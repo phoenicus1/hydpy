@@ -700,14 +700,12 @@ the given group name `test`.
         else:
             seq.activate_disk()
 
-    def plot_allseries(self, **kwargs):
+    def plot_allseries(self):
         """Plot the series of both the `sim` and (if available) the `obs`
         sequence."""
         for seq in self.sequences:
-            if pyplot.isinteractive():
-                name = ' '.join((self.name, seq.name))
-            pyplot.plot(seq.series, label=name, **kwargs)
-        pyplot.legend()
+            name = ' '.join((self.name, seq.name))
+            seq.plot(label=name, suppress_show=True)
         variable = self.variable
         if variable == 'Q':
             variable = u'Q [m³/s]'
@@ -1115,11 +1113,11 @@ assigned to the element so far.
         for seq in selseqs:
             if seq.NDIM == 0:
                 label = kwargs.pop('label', ' '.join((self.name, seq.name)))
-                pyplot.plot(seq.series, label=label, **kwargs)
+                seq.plot(label=label, suppress_show=True)
                 pyplot.legend()
             else:
                 color = kwargs.pop('color', kwargs.pop('c', 'red'))
-                pyplot.plot(seq.series, color=color, **kwargs)
+                seq.plot(suppress_show=True, color=color)
         if not pyplot.isinteractive():
             pyplot.show()
 

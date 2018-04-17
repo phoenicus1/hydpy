@@ -12,6 +12,8 @@ import struct
 import warnings
 # ...from site-packages
 import numpy
+import pandas
+from matplotlib import pyplot
 # ...from HydPy
 from hydpy import pub
 from hydpy.core import abctools
@@ -1167,6 +1169,17 @@ class IOSequence(Sequence):
         self.update_fastaccess()
 
     shape = property(Sequence._getshape, _setshape)
+
+    def plot(self, label=None, suppress_show=False, color=None):
+        dates = [date.datetime for date in pub.timegrids.init]
+        kwargs = {'label': label if label else self.name}
+        if color:
+            kwargs['color'] = color
+        series = pandas.Series(self.series, dates)
+        series.plot(**kwargs)
+        pyplot.legend()
+        if (not pyplot.isinteractive()) and (not suppress_show):
+            pyplot.show()
 
 
 class ModelIOSequence(IOSequence):
