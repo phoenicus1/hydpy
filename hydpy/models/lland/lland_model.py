@@ -126,12 +126,14 @@ def calc_et0_v1(self):
                                   (1.+0.00019*min(con.hnn[k], 600.)))))
 
 
-def calc_et0_v2(self):
-    """Correct the given reference evapotranspiration.
+def calc_et0_wet0_v1(self):
+    """Correct the given reference evapotranspiration and update the
+    corresponding log sequence.
 
     Required control parameters:
       |NHRU|
       |KE|
+      |WfET0|
 
     Required input sequence:
       |PET|
@@ -139,26 +141,55 @@ def calc_et0_v2(self):
     Calculated flux sequence:
       |ET0|
 
-    Basic equation:
-      :math:`ET0 = KE \\cdot PET`
+    Updated log sequence:
+      |WET0|
+
+    Basic equations:
+      :math:`ET0_{new} = WfET0 \\cdot KE \\cdot PET +
+      (1-WfET0) \\cdot ET0_{alt}`
 
     Example:
+
+        Prepare four hydrological response units with different value
+        combinations of parameters |KE| and |WfET0|:
 
         >>> from hydpy.models.lland import *
         >>> parameterstep('1d')
         >>> simulationstep('12h')
-        >>> nhru(2)
-        >>> ke(0.8, 1.2)
-        >>> inputs.pet = 2.
-        >>> model.calc_et0_v2()
+        >>> nhru(4)
+        >>> ke(0.8, 1.2, 0.8, 1.2)
+        >>> wfet0(2.0, 2.0, 0.2, 0.2)
+
+        Note that the actual value of time dependend parameter |WfET0|
+        is reduced due the difference between the given parameter and
+        simulation time steps:
+
+        >>> from hydpy import round_
+        >>> round_(wfet0.values)
+        1.0, 1.0, 0.1, 0.1
+
+        For the first two hydrological response units, the given |PET|
+        value is modified by -0.4 mm and +0.4 mm, respectively.  For the
+        other two response units, which weight the "new" evaporation
+        value with 10 %, |ET0| does deviate from the old value of |WET0|
+        by -0.04 mm and +0.04 mm only:
+
+        >>> inputs.pet = 2.0
+        >>> logs.wet0 = 2.0
+        >>> model.calc_et0_wet0_v1()
         >>> fluxes.et0
-        et0(1.6, 2.4)
+        et0(1.6, 2.4, 1.96, 2.04)
+        >>> logs.wet0
+        wet0(1.6, 2.4, 1.96, 2.04)
     """
     con = self.parameters.control.fastaccess
     inp = self.sequences.inputs.fastaccess
     flu = self.sequences.fluxes.fastaccess
+    log = self.sequences.logs.fastaccess
     for k in range(con.nhru):
-        flu.et0[k] = con.ke[k]*inp.pet
+        flu.et0[k] = (con.wfet0[k]*con.ke[k]*inp.pet +
+                      (1.-con.wfet0[k])*log.wet0[0, k])
+        log.wet0[0, k] = flu.et0[k]
 
 
 def calc_evpo_v1(self):
@@ -1544,16 +1575,15 @@ def calc_qbga_v1(self):
     der = self.parameters.derived.fastaccess
     old = self.sequences.states.fastaccess_old
     new = self.sequences.states.fastaccess_new
-    aid = self.sequences.aides.fastaccess
     if der.kb <= 0.:
         new.qbga = new.qbgz
     elif der.kb > 1e200:
         new.qbga = old.qbga+new.qbgz-old.qbgz
     else:
-        aid.temp = (1.-modelutils.exp(-1./der.kb))
+        d_temp = (1.-modelutils.exp(-1./der.kb))
         new.qbga = (old.qbga +
-                    (old.qbgz-old.qbga)*aid.temp +
-                    (new.qbgz-old.qbgz)*(1.-der.kb*aid.temp))
+                    (old.qbgz-old.qbga)*d_temp +
+                    (new.qbgz-old.qbgz)*(1.-der.kb*d_temp))
 
 
 def calc_qiga1_v1(self):
@@ -1609,16 +1639,15 @@ def calc_qiga1_v1(self):
     der = self.parameters.derived.fastaccess
     old = self.sequences.states.fastaccess_old
     new = self.sequences.states.fastaccess_new
-    aid = self.sequences.aides.fastaccess
     if der.ki1 <= 0.:
         new.qiga1 = new.qigz1
     elif der.ki1 > 1e200:
         new.qiga1 = old.qiga1+new.qigz1-old.qigz1
     else:
-        aid.temp = (1.-modelutils.exp(-1./der.ki1))
+        d_temp = (1.-modelutils.exp(-1./der.ki1))
         new.qiga1 = (old.qiga1 +
-                     (old.qigz1-old.qiga1)*aid.temp +
-                     (new.qigz1-old.qigz1)*(1.-der.ki1*aid.temp))
+                     (old.qigz1-old.qiga1)*d_temp +
+                     (new.qigz1-old.qigz1)*(1.-der.ki1*d_temp))
 
 
 def calc_qiga2_v1(self):
@@ -1674,16 +1703,15 @@ def calc_qiga2_v1(self):
     der = self.parameters.derived.fastaccess
     old = self.sequences.states.fastaccess_old
     new = self.sequences.states.fastaccess_new
-    aid = self.sequences.aides.fastaccess
     if der.ki2 <= 0.:
         new.qiga2 = new.qigz2
     elif der.ki2 > 1e200:
         new.qiga2 = old.qiga2+new.qigz2-old.qigz2
     else:
-        aid.temp = (1.-modelutils.exp(-1./der.ki2))
+        d_temp = (1.-modelutils.exp(-1./der.ki2))
         new.qiga2 = (old.qiga2 +
-                     (old.qigz2-old.qiga2)*aid.temp +
-                     (new.qigz2-old.qigz2)*(1.-der.ki2*aid.temp))
+                     (old.qigz2-old.qiga2)*d_temp +
+                     (new.qigz2-old.qigz2)*(1.-der.ki2*d_temp))
 
 
 def calc_qdga1_v1(self):
@@ -1738,16 +1766,15 @@ def calc_qdga1_v1(self):
     der = self.parameters.derived.fastaccess
     old = self.sequences.states.fastaccess_old
     new = self.sequences.states.fastaccess_new
-    aid = self.sequences.aides.fastaccess
     if der.kd1 <= 0.:
         new.qdga1 = new.qdgz1
     elif der.kd1 > 1e200:
         new.qdga1 = old.qdga1+new.qdgz1-old.qdgz1
     else:
-        aid.temp = (1.-modelutils.exp(-1./der.kd1))
+        d_temp = (1.-modelutils.exp(-1./der.kd1))
         new.qdga1 = (old.qdga1 +
-                     (old.qdgz1-old.qdga1)*aid.temp +
-                     (new.qdgz1-old.qdgz1)*(1.-der.kd1*aid.temp))
+                     (old.qdgz1-old.qdga1)*d_temp +
+                     (new.qdgz1-old.qdgz1)*(1.-der.kd1*d_temp))
 
 
 def calc_qdga2_v1(self):
@@ -1802,16 +1829,15 @@ def calc_qdga2_v1(self):
     der = self.parameters.derived.fastaccess
     old = self.sequences.states.fastaccess_old
     new = self.sequences.states.fastaccess_new
-    aid = self.sequences.aides.fastaccess
     if der.kd2 <= 0.:
         new.qdga2 = new.qdgz2
     elif der.kd2 > 1e200:
         new.qdga2 = old.qdga2+new.qdgz2-old.qdgz2
     else:
-        aid.temp = (1.-modelutils.exp(-1./der.kd2))
+        d_temp = (1.-modelutils.exp(-1./der.kd2))
         new.qdga2 = (old.qdga2 +
-                     (old.qdgz2-old.qdga2)*aid.temp +
-                     (new.qdgz2-old.qdgz2)*(1.-der.kd2*aid.temp))
+                     (old.qdgz2-old.qdga2)*d_temp +
+                     (new.qdgz2-old.qdgz2)*(1.-der.kd2*d_temp))
 
 
 def calc_q_v1(self):
@@ -1829,6 +1855,7 @@ def calc_q_v1(self):
       |NHRU|
       |FHRU|
       |Lnk|
+      |NegQ|
 
     Required flux sequence:
       |NKor|
@@ -1862,6 +1889,7 @@ def calc_q_v1(self):
         >>> nhru(3)
         >>> lnk(ACKER, ACKER, ACKER)
         >>> fhru(0.5, 0.2, 0.3)
+        >>> negq(False)
         >>> states.qbga = 0.1
         >>> states.qiga1 = 0.3
         >>> states.qiga2 = 0.5
@@ -1907,7 +1935,7 @@ def calc_q_v1(self):
         evi(3.333333, 4.166667, 3.0)
 
         The handling from water areas of type |FLUSS| and |SEE| differs
-        from those of type |WASSER|, as these do receiver their net input
+        from those of type |WASSER|, as these do receive their net input
         before the runoff concentration routines are applied.  This
         should be more realistic in most cases (especially for type |SEE|
         representing lakes not direct connected to the stream network).
@@ -1932,29 +1960,44 @@ def calc_q_v1(self):
         even negative |EvI| values might occur.  This seems acceptable,
         as long as the adjustment of |EvI| is rarely triggered.  When in
         doubt about this, check sequences |EvPo| and |EvI| of HRUs of
-        types |FLUSS| and |SEE| for possible discrepancies.
+        types |FLUSS| and |SEE| for possible discrepancies.  Also note
+        that there might occur unnecessary corrections of |lland_fluxes.Q|
+        in case landtype |WASSER| is combined with either landtype
+        |SEE| or |FLUSS|.
+
+        Eventually you might want to avoid correcting |lland_fluxes.Q|.
+        This can be achieved by setting parameter |NegQ| to `True`:
+
+        >>> negq(True)
+        >>> fluxes.evi = 4.0, 5.0, 3.0
+        >>> model.calc_q_v1()
+        >>> fluxes.q
+        q(-1.0)
+        >>> fluxes.evi
+        evi(4.0, 5.0, 3.0)
     """
     con = self.parameters.control.fastaccess
     flu = self.sequences.fluxes.fastaccess
     sta = self.sequences.states.fastaccess
     aid = self.sequences.aides.fastaccess
     flu.q = sta.qbga+sta.qiga1+sta.qiga2+sta.qdga1+sta.qdga2
-    if flu.q < 0.:
-        d_area = 0.
-        for k in range(con.nhru):
-            if con.lnk[k] in (FLUSS, SEE):
-                d_area += con.fhru[k]
-        if d_area > 0.:
+    if not con.negq:
+        if flu.q < 0.:
+            d_area = 0.
             for k in range(con.nhru):
                 if con.lnk[k] in (FLUSS, SEE):
-                    flu.evi[k] += flu.q/d_area
-        flu.q = 0.
+                    d_area += con.fhru[k]
+            if d_area > 0.:
+                for k in range(con.nhru):
+                    if con.lnk[k] in (FLUSS, SEE):
+                        flu.evi[k] += flu.q/d_area
+            flu.q = 0.
     aid.epw = 0.
     for k in range(con.nhru):
         if con.lnk[k] == WASSER:
             flu.q += con.fhru[k]*flu.nkor[k]
             aid.epw += con.fhru[k]*flu.evi[k]
-    if flu.q > aid.epw:
+    if (flu.q > aid.epw) or con.negq:
         flu.q -= aid.epw
     elif aid.epw > 0.:
         for k in range(con.nhru):
@@ -1990,7 +2033,7 @@ class Model(modeltools.Model):
     _RUN_METHODS = (calc_nkor_v1,
                     calc_tkor_v1,
                     calc_et0_v1,
-                    calc_et0_v2,
+                    calc_et0_wet0_v1,
                     calc_evpo_v1,
                     calc_nbes_inzp_v1,
                     calc_evi_inzp_v1,
