@@ -14,6 +14,7 @@ import weakref
 # ...from site-packages
 import numpy
 from hydpy import pyplot
+from scipy import ndimage
 # ...from HydPy
 from hydpy import pub
 from hydpy.core import abctools
@@ -700,20 +701,42 @@ the given group name `test`.
         else:
             seq.activate_disk()
 
-    def plot_allseries(self, **kwargs):
+    def plot_allseries(self):
         """Plot the series of both the `sim` and (if available) the `obs`
         sequence."""
         for seq in self.sequences:
-            if pyplot.isinteractive():
-                name = ' '.join((self.name, seq.name))
-            pyplot.plot(seq.series, label=name, **kwargs)
-        pyplot.legend()
+            name = ' '.join((self.name, seq.name))
+            seq.plot(label=name, suppress_show=True)
         variable = self.variable
         if variable == 'Q':
             variable = u'Q [m³/s]'
         pyplot.ylabel(variable)
         if not pyplot.isinteractive():
             pyplot.show()
+
+    def dottyplot(self, std=50.0):
+        sim = self.sequences.sim
+        obs = self.sequences.obs
+        if not (sim.memoryflag and obs.memoryflag):
+            raise RuntimeError(
+                'not sim and obs')
+        idxs = self._calc_idxs(sim.series)*self._calc_idxs(obs.series)
+        sim, obs = sim.series[idxs], obs.series[idxs]
+        pyplot.plot(sim, obs, 'ok', markersize=.5)
+        idxs = numpy.argsort(sim)
+        sim, obs = sim[idxs], obs[idxs]
+        minmax = min(sim[0], obs[0]), max(sim[-1], obs[-1])
+        pyplot.plot(minmax, minmax, 'b')
+        obs_smooth = ndimage.filters.gaussian_filter1d(
+            obs-sim, std, mode='nearest')+sim
+        pyplot.plot(sim, obs_smooth, 'r')
+        if not pyplot.isinteractive():
+            pyplot.show()
+        variable = self.variable
+        if variable == 'Q':
+            variable = u'Q [m³/s]'
+        pyplot.xlabel(u'sim ' + variable)
+        pyplot.ylabel(u'obs ' + variable)
 
     @staticmethod
     def _calc_idxs(values):
@@ -1164,13 +1187,9 @@ assigned to the element so far.
         else:
             selseqs = subseqs
         for seq in selseqs:
-            if seq.NDIM == 0:
-                label = kwargs.pop('label', ' '.join((self.name, seq.name)))
-                pyplot.plot(seq.series, label=label, **kwargs)
-                pyplot.legend()
-            else:
-                color = kwargs.pop('color', kwargs.pop('c', 'red'))
-                pyplot.plot(seq.series, color=color, **kwargs)
+            label = kwargs.pop('label', ' '.join((self.name, seq.name)))
+            seq.plot(label=label, suppress_show=True)
+            pyplot.legend()
         if not pyplot.isinteractive():
             pyplot.show()
 
@@ -1601,7 +1620,7 @@ which is in conflict with using their names as identifiers.
     def __delattr__(self, name):
         deleted_something = False
         if name in vars(self):
-            Devices.__delattr__(self, name)
+            object.__delattr__(self, name)
             deleted_something = True
         if name in self._devices:
             self.remove_device(name)
