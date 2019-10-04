@@ -21,6 +21,8 @@ from hydpy.core import parametertools
 from hydpy.core import sequencetools
 from hydpy.core import timetools
 from hydpy.core.typingtools import *
+if TYPE_CHECKING:
+    from hydpy.core import modeltools
 
 
 def parameterstep(timestep: Optional[timetools.PeriodConstrArg] = None) -> None:
@@ -195,8 +197,10 @@ def reverse_model_wildcard_import() -> None:
                 pass
 
 
-def prepare_model(module: Union[types.ModuleType, str],
-                  timestep: Optional[timetools.PeriodConstrArg] = None):
+def prepare_model(
+        module: Union[types.ModuleType, str],
+        timestep: Optional[timetools.PeriodConstrArg] = None,
+) -> 'modeltools.Model':
     """Prepare and return the model of the given module.
 
     In usual *HydPy* projects, each control file prepares an individual
