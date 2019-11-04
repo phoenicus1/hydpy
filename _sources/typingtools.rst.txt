@@ -1,0 +1,24 @@
+.. |Cythonizer| replace:: :class:`~hydpy.cythons.modelutils.Cythonizer`
+.. |FastAccessLinkSequenceProtocol.alloc| replace:: :func:`~hydpy.core.typingtools.FastAccessLinkSequenceProtocol.alloc`
+.. |FastAccessModelSequence| replace:: :class:`~hydpy.core.sequencetools.FastAccessModelSequence`
+.. |FastAccessParameter| replace:: :class:`~hydpy.core.parametertools.FastAccessParameter`
+.. |IOSequence.diskflag| replace:: :const:`~hydpy.core.sequencetools.IOSequence.diskflag`
+.. |IOSequence.memoryflag| replace:: :const:`~hydpy.core.sequencetools.IOSequence.memoryflag`
+.. |IOSequence.ramflag| replace:: :const:`~hydpy.core.sequencetools.IOSequence.ramflag`
+.. |LinkSequence| replace:: :class:`~hydpy.core.sequencetools.LinkSequence`
+.. |PDouble| replace:: :class:`~hydpy.cythons.autogen.pointerutils.PDouble`
+.. |Parameter| replace:: :class:`~hydpy.core.parametertools.Parameter`
+.. |Sequence| replace:: :class:`~hydpy.core.sequencetools.Sequence`
+.. |SubVariables| replace:: :class:`~hydpy.core.variabletools.SubVariables`
+.. |True| replace:: :const:`True`
+.. |Variable| replace:: :class:`~hydpy.core.variabletools.Variable`
+
+.. _typingtools:
+
+typingtools
+===========
+
+.. automodule:: hydpy.core.typingtools
+    :members:
+    :show-inheritance:
+    :exclude-members: CLASSES, RUN_METHODS, ADD_METHODS, INLET_METHODS, OUTLET_METHODS, RECEIVER_METHODS, SENDER_METHODS, PART_ODE_METHODS, FULL_ODE_METHODS, CONTROLPARAMETERS, DERIVEDPARAMETERS, REQUIREDSEQUENCES, UPDATESSEQUENCES, RESULTSEQUENCES

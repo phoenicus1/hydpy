@@ -1,0 +1,725 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>hydpy.core.auxfiletools &#8212; HydPy 4.0a11 documentation</title>
+    <link rel="stylesheet" href="../../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css" />
+    
+    <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="../../../_static/language_data.js"></script>
+    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">HydPy 4.0a11 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for hydpy.core.auxfiletools</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;This module supports writing auxiliary files.</span>
+
+<span class="sd">In HydPy, parameter values are usually not shared between different</span>
+<span class="sd">model objects handled by different elements, even if the model objects</span>
+<span class="sd">model objects handled by different elements, even if the model objects</span>
+<span class="sd">are of the same type (e.g. HBV).  This offers flexibility in applying</span>
+<span class="sd">different parameterization schemes.  But very often, modellers prefer</span>
+<span class="sd">to use a very limited amount of values for certain parameters (at least</span>
+<span class="sd">within hydrologically homogeneous regions).  Hence, the downside of</span>
+<span class="sd">this flexibility is that the same parameter values might be defined in</span>
+<span class="sd">hundreds or even thousands of parameter control files (one file for</span>
+<span class="sd">hundreds or even thousands of parameter control files (one file for</span>
+<span class="sd">each model/element).</span>
+
+<span class="sd">To decrease this redundancy, HydPy allows for passing names of</span>
+<span class="sd">`auxiliary` control files to parameters defined within `normal`</span>
+<span class="sd">control files.  The actual parameter values are than read from the</span>
+<span class="sd">auxiliary files, each one possibly referenced within a large number</span>
+<span class="sd">of control files.</span>
+
+<span class="sd">Reading parameters from `normal` and `auxiliary` control files is</span>
+<span class="sd">straightforward.   But storing some parameters in a large number</span>
+<span class="sd">of `normal` control files and some other parameters in a small number</span>
+<span class="sd">of `auxiliary` files can be a little complicated.  The features</span>
+<span class="sd">implemented in |auxfiletools| are a means to perform such actions in a</span>
+<span class="sd">semi-automated manner (another means are the selection mechanism</span>
+<span class="sd">implemented in module |selectiontools|).</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="c1"># import...</span>
+<span class="c1"># ...from standard library</span>
+<span class="kn">import</span> <span class="nn">copy</span>
+<span class="kn">import</span> <span class="nn">types</span>
+<span class="c1"># ...from HydPy</span>
+<span class="kn">import</span> <span class="nn">hydpy</span>
+<span class="kn">from</span> <span class="nn">hydpy.core</span> <span class="k">import</span> <span class="n">importtools</span>
+<span class="kn">from</span> <span class="nn">hydpy.core</span> <span class="k">import</span> <span class="n">modeltools</span>
+<span class="kn">from</span> <span class="nn">hydpy.core</span> <span class="k">import</span> <span class="n">objecttools</span>
+<span class="kn">from</span> <span class="nn">hydpy.core</span> <span class="k">import</span> <span class="n">parametertools</span>
+<span class="kn">from</span> <span class="nn">hydpy.core</span> <span class="k">import</span> <span class="n">typingtools</span>
+<span class="kn">from</span> <span class="nn">hydpy.core</span> <span class="k">import</span> <span class="n">variabletools</span>
+
+
+<div class="viewcode-block" id="Auxfiler"><a class="viewcode-back" href="../../../auxfiletools.html#hydpy.core.auxfiletools.Auxfiler">[docs]</a><span class="k">class</span> <span class="nc">Auxfiler</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Structures auxiliary file information.</span>
+
+<span class="sd">    To save some parameter information to auxiliary files, it is advisable</span>
+<span class="sd">    to prepare (only) one |Auxfiler| object:</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy import Auxfiler</span>
+<span class="sd">    &gt;&gt;&gt; aux = Auxfiler()</span>
+
+<span class="sd">    Each |Auxfiler| object is capable of handling parameter</span>
+<span class="sd">    information for different kinds of models and performs some plausibility</span>
+<span class="sd">    checks on added data.  Assume, we want to store the control files of</span>
+<span class="sd">    a &quot;LARSIM type&quot; HydPy project involving the application models |lland_v1|,</span>
+<span class="sd">    |lland_v2| and |lstream_v1|.  The following example shows, that these</span>
+<span class="sd">    models can be added to the |Auxfiler| object by passing their module</span>
+<span class="sd">    (|lland_v1|), a working model object (|lland_v2|) or their name</span>
+<span class="sd">    (|lstream_v1|):</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy import prepare_model</span>
+<span class="sd">    &gt;&gt;&gt; from hydpy.models import lland_v1 as module</span>
+<span class="sd">    &gt;&gt;&gt; from hydpy.models import lland_v2</span>
+<span class="sd">    &gt;&gt;&gt; model = prepare_model(lland_v2)</span>
+<span class="sd">    &gt;&gt;&gt; string = &#39;lstream_v1&#39;</span>
+
+<span class="sd">    All new model types can be added individually or in groups using the</span>
+<span class="sd">    `+=` operator:</span>
+
+<span class="sd">    &gt;&gt;&gt; aux += module</span>
+<span class="sd">    &gt;&gt;&gt; aux += model, string</span>
+<span class="sd">    &gt;&gt;&gt; aux</span>
+<span class="sd">    Auxfiler(lland_v1, lland_v2, lstream_v1)</span>
+
+<span class="sd">    Wrong model specifications result in errors like the following one:</span>
+
+<span class="sd">    &gt;&gt;&gt; aux += &#39;asdf&#39;   # doc test: +SKIP</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    ModuleNotFoundError: While trying to add one ore more models \</span>
+<span class="sd">to the actual auxiliary file handler, the following error occurred: \</span>
+<span class="sd">No module named &#39;hydpy.models.asdf&#39;</span>
+
+<span class="sd">    .. testsetup::</span>
+
+<span class="sd">        &gt;&gt;&gt; try:</span>
+<span class="sd">        ...     aux += &#39;asdf&#39;</span>
+<span class="sd">        ... except ImportError:</span>
+<span class="sd">        ...     pass</span>
+
+<span class="sd">    The |Auxfiler| object allocates a separate |Variable2Auxfile| object to</span>
+<span class="sd">    each model type.  These are available via attribute reading access, but</span>
+<span class="sd">    setting new or deleting existing |Variable2Auxfile| objects is disabled</span>
+<span class="sd">    for safety purposes:</span>
+
+<span class="sd">    &gt;&gt;&gt; aux.lland_v1</span>
+<span class="sd">    Variable2Auxfile()</span>
+<span class="sd">    &gt;&gt;&gt; aux.lland_v2 = aux.lland_v1</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    AttributeError: Auxiliary file handler do not support setting \</span>
+<span class="sd">attributes.  Use the `+=` operator to register additional models instead.</span>
+<span class="sd">    &gt;&gt;&gt; del aux.lland_v1</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    AttributeError: Auxiliary file handler do not support deleting \</span>
+<span class="sd">attributes.  Use the `-=` operator to remove registered models instead.</span>
+
+<span class="sd">    As stated by the last error message, removing models and their</span>
+<span class="sd">    |Variable2Auxfile| object should be done via the `-=` operator:</span>
+
+<span class="sd">    &gt;&gt;&gt; aux -= module, string</span>
+<span class="sd">    &gt;&gt;&gt; aux</span>
+<span class="sd">    Auxfiler(lland_v2)</span>
+
+<span class="sd">    &gt;&gt;&gt; aux -= module, string</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    AttributeError: While trying to remove one or more models from the \</span>
+<span class="sd">actual auxiliary file handler, the following error occurred: The handler \</span>
+<span class="sd">does not contain model `lland_v1`.</span>
+
+<span class="sd">    &gt;&gt;&gt; aux.lland_v1</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    AttributeError: The actual auxiliary file handler does neither have a \</span>
+<span class="sd">standard member nor does it handle a model named `lland_v1`.</span>
+
+<span class="sd">    The handling of the individual |Variable2Auxfile| objects is</span>
+<span class="sd">    explained below.  But there are some additional plausibility checks,</span>
+<span class="sd">    which require that these objects are contained by a single master</span>
+<span class="sd">    |Auxfiler| object.  For demonstration, the removed models are added again:</span>
+
+<span class="sd">    &gt;&gt;&gt; aux += module, string</span>
+
+<span class="sd">    The first plausibility check is for duplicate filenames:</span>
+
+<span class="sd">    &gt;&gt;&gt; model.parameters.control.eqd1(200.0)</span>
+<span class="sd">    &gt;&gt;&gt; aux.lland_v1.file1 = model.parameters.control.eqd1</span>
+<span class="sd">    &gt;&gt;&gt; model.parameters.control.eqd2(100.0)</span>
+<span class="sd">    &gt;&gt;&gt; aux.lland_v2.file1 = model.parameters.control.eqd2</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    ValueError: While trying to extend the range of variables handled \</span>
+<span class="sd">by the actual Variable2AuxFile object, the following error occurred: \</span>
+<span class="sd">Filename `file1` is already allocated to another `Variable2Auxfile` object.</span>
+<span class="sd">    &gt;&gt;&gt; aux.lland_v2.file2 = model.parameters.control.eqd2</span>
+
+<span class="sd">    Secondly, it is checked if an assigned parameter actually belongs</span>
+<span class="sd">    to the corresponding model:</span>
+
+<span class="sd">    &gt;&gt;&gt; aux.lstream_v1.file3 = model.parameters.control.eqd1</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    TypeError: While trying to extend the range of variables handled \</span>
+<span class="sd">by the actual Variable2AuxFile object, the following error occurred: \</span>
+<span class="sd">Variable type `EQD1` is not handled by model `lstream_v1`.</span>
+<span class="sd">    &gt;&gt;&gt; aux.lland_v2.file2 = model.parameters.control.eqd1</span>
+
+<span class="sd">    The |Auxfiler| object defined above is also used in the documentation</span>
+<span class="sd">    of the following class members.  Hence it is stored in the |Dummies|</span>
+<span class="sd">    object:</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy import dummies</span>
+<span class="sd">    &gt;&gt;&gt; dummies.aux = aux</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">with</span> <span class="n">objecttools</span><span class="o">.</span><span class="n">ResetAttrFuncs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_dict</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="k">def</span> <span class="nf">__iadd__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">values</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">model</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_models</span><span class="p">(</span><span class="n">values</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_dict</span><span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">model</span><span class="p">)]</span> <span class="o">=</span> <span class="n">Variable2Auxfile</span><span class="p">(</span>
+                    <span class="n">_master</span><span class="o">=</span><span class="bp">self</span><span class="p">,</span> <span class="n">_model</span><span class="o">=</span><span class="n">model</span><span class="p">)</span>
+            <span class="k">return</span> <span class="bp">self</span>
+        <span class="k">except</span> <span class="ne">BaseException</span><span class="p">:</span>
+            <span class="n">objecttools</span><span class="o">.</span><span class="n">augment_excmessage</span><span class="p">(</span>
+                <span class="s1">&#39;While trying to add one ore more models &#39;</span>
+                <span class="s1">&#39;to the actual auxiliary file handler&#39;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__isub__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">values</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">model</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_models</span><span class="p">(</span><span class="n">values</span><span class="p">):</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dict</span><span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">model</span><span class="p">)]</span>
+                <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span>
+                        <span class="n">f</span><span class="s1">&#39;The handler does not contain model `</span><span class="si">{model}</span><span class="s1">`.&#39;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="bp">self</span>
+        <span class="k">except</span> <span class="ne">BaseException</span><span class="p">:</span>
+            <span class="n">objecttools</span><span class="o">.</span><span class="n">augment_excmessage</span><span class="p">(</span>
+                <span class="s1">&#39;While trying to remove one or more models &#39;</span>
+                <span class="s1">&#39;from the actual auxiliary file handler&#39;</span><span class="p">)</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">_get_models</span><span class="p">(</span><span class="n">values</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">objecttools</span><span class="o">.</span><span class="n">extract</span><span class="p">(</span>
+                <span class="n">values</span><span class="p">,</span> <span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">types</span><span class="o">.</span><span class="n">ModuleType</span><span class="p">,</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">Model</span><span class="p">)):</span>
+            <span class="k">yield</span> <span class="n">importtools</span><span class="o">.</span><span class="n">prepare_model</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__getattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dict</span><span class="p">[</span><span class="n">name</span><span class="p">]</span>
+        <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span>
+                <span class="n">f</span><span class="s1">&#39;The actual auxiliary file handler does neither have a &#39;</span>
+                <span class="n">f</span><span class="s1">&#39;standard member nor does it handle a model named `</span><span class="si">{name}</span><span class="s1">`.&#39;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__setattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span>
+            <span class="s1">&#39;Auxiliary file handler do not support setting attributes.  &#39;</span>
+            <span class="s1">&#39;Use the `+=` operator to register additional models instead.&#39;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__delattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span>
+            <span class="s1">&#39;Auxiliary file handler do not support deleting attributes.  &#39;</span>
+            <span class="s1">&#39;Use the `-=` operator to remove registered models instead.&#39;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">for</span> <span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_dict</span><span class="o">.</span><span class="n">items</span><span class="p">()):</span>
+            <span class="k">yield</span> <span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">modelnames</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;A sorted list of all names of the handled models.</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy import dummies</span>
+<span class="sd">        &gt;&gt;&gt; dummies.aux.modelnames</span>
+<span class="sd">        [&#39;lland_v1&#39;, &#39;lland_v2&#39;, &#39;lstream_v1&#39;]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">sorted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+
+<div class="viewcode-block" id="Auxfiler.save"><a class="viewcode-back" href="../../../auxfiletools.html#hydpy.core.auxfiletools.Auxfiler.save">[docs]</a>    <span class="k">def</span> <span class="nf">save</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parameterstep</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">simulationstep</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Save all defined auxiliary control files.</span>
+
+<span class="sd">        The target path is taken from the |ControlManager| object stored</span>
+<span class="sd">        in module |pub|.  Hence we initialize one and override its</span>
+<span class="sd">        |property| `currentpath` with a simple |str| object defining the</span>
+<span class="sd">        test target path:</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy import pub</span>
+<span class="sd">        &gt;&gt;&gt; pub.projectname = &#39;test&#39;</span>
+<span class="sd">        &gt;&gt;&gt; from hydpy.core.filetools import ControlManager</span>
+<span class="sd">        &gt;&gt;&gt; class Test(ControlManager):</span>
+<span class="sd">        ...     currentpath = &#39;test_directory&#39;</span>
+<span class="sd">        &gt;&gt;&gt; pub.controlmanager = Test()</span>
+
+<span class="sd">        Normally, the control files would be written to disk, of course.</span>
+<span class="sd">        But to show (and test) the results in the following doctest,</span>
+<span class="sd">        file writing is temporarily redirected via |Open|:</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy import dummies</span>
+<span class="sd">        &gt;&gt;&gt; from hydpy import Open</span>
+<span class="sd">        &gt;&gt;&gt; with Open():</span>
+<span class="sd">        ...     dummies.aux.save(</span>
+<span class="sd">        ...         parameterstep=&#39;1d&#39;,</span>
+<span class="sd">        ...         simulationstep=&#39;12h&#39;)</span>
+<span class="sd">        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~</span>
+<span class="sd">        test_directory/file1.py</span>
+<span class="sd">        -----------------------------------</span>
+<span class="sd">        # -*- coding: utf-8 -*-</span>
+<span class="sd">        &lt;BLANKLINE&gt;</span>
+<span class="sd">        from hydpy.models.lland_v1 import *</span>
+<span class="sd">        &lt;BLANKLINE&gt;</span>
+<span class="sd">        simulationstep(&#39;12h&#39;)</span>
+<span class="sd">        parameterstep(&#39;1d&#39;)</span>
+<span class="sd">        &lt;BLANKLINE&gt;</span>
+<span class="sd">        eqd1(200.0)</span>
+<span class="sd">        &lt;BLANKLINE&gt;</span>
+<span class="sd">        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~</span>
+<span class="sd">        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~</span>
+<span class="sd">        test_directory/file2.py</span>
+<span class="sd">        -----------------------------------</span>
+<span class="sd">        # -*- coding: utf-8 -*-</span>
+<span class="sd">        &lt;BLANKLINE&gt;</span>
+<span class="sd">        from hydpy.models.lland_v2 import *</span>
+<span class="sd">        &lt;BLANKLINE&gt;</span>
+<span class="sd">        simulationstep(&#39;12h&#39;)</span>
+<span class="sd">        parameterstep(&#39;1d&#39;)</span>
+<span class="sd">        &lt;BLANKLINE&gt;</span>
+<span class="sd">        eqd1(200.0)</span>
+<span class="sd">        eqd2(100.0)</span>
+<span class="sd">        &lt;BLANKLINE&gt;</span>
+<span class="sd">        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">par</span> <span class="o">=</span> <span class="n">parametertools</span><span class="o">.</span><span class="n">Parameter</span>
+        <span class="k">for</span> <span class="p">(</span><span class="n">modelname</span><span class="p">,</span> <span class="n">var2aux</span><span class="p">)</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">filename</span> <span class="ow">in</span> <span class="n">var2aux</span><span class="o">.</span><span class="n">filenames</span><span class="p">:</span>
+                <span class="k">with</span> <span class="n">par</span><span class="o">.</span><span class="n">parameterstep</span><span class="p">(</span><span class="n">parameterstep</span><span class="p">),</span> \
+                         <span class="n">par</span><span class="o">.</span><span class="n">simulationstep</span><span class="p">(</span><span class="n">simulationstep</span><span class="p">):</span>
+                    <span class="n">lines</span> <span class="o">=</span> <span class="p">[</span><span class="n">parametertools</span><span class="o">.</span><span class="n">get_controlfileheader</span><span class="p">(</span>
+                        <span class="n">modelname</span><span class="p">,</span> <span class="n">parameterstep</span><span class="p">,</span> <span class="n">simulationstep</span><span class="p">)]</span>
+                    <span class="k">for</span> <span class="n">par</span> <span class="ow">in</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">var2aux</span><span class="p">,</span> <span class="n">filename</span><span class="p">):</span>
+                        <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">repr</span><span class="p">(</span><span class="n">par</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+                <span class="n">hydpy</span><span class="o">.</span><span class="n">pub</span><span class="o">.</span><span class="n">controlmanager</span><span class="o">.</span><span class="n">save_file</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">))</span></div>
+
+    <span class="n">__copy__</span> <span class="o">=</span> <span class="n">objecttools</span><span class="o">.</span><span class="n">copy_</span>
+
+    <span class="n">__deepcopy__</span> <span class="o">=</span> <span class="n">objecttools</span><span class="o">.</span><span class="n">deepcopy_</span>
+
+    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">objecttools</span><span class="o">.</span><span class="n">assignrepr_values</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">modelnames</span><span class="p">,</span> <span class="s1">&#39;Auxfiler(&#39;</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mi">70</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;)&#39;</span>
+
+    <span class="k">def</span> <span class="nf">__dir__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        &gt;&gt;&gt; from hydpy import print_values</span>
+<span class="sd">        &gt;&gt;&gt; aux = Auxfiler()</span>
+<span class="sd">        &gt;&gt;&gt; aux += &#39;llake_v1&#39;, &#39;lland_v1&#39;, &#39;lstream_v1&#39;</span>
+<span class="sd">        &gt;&gt;&gt; print_values(dir(aux))</span>
+<span class="sd">        llake_v1, lland_v1, lstream_v1, modelnames, save</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">objecttools</span><span class="o">.</span><span class="n">dir_</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">modelnames</span></div>
+
+
+<div class="viewcode-block" id="Variable2Auxfile"><a class="viewcode-back" href="../../../auxfiletools.html#hydpy.core.auxfiletools.Variable2Auxfile">[docs]</a><span class="k">class</span> <span class="nc">Variable2Auxfile</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Map |Variable| objects to names of auxiliary files.</span>
+
+<span class="sd">    Normally, |Variable2Auxfile| object are not initialised by the</span>
+<span class="sd">    user explicitly but made available by a `master` |Auxfiler| object.</span>
+
+<span class="sd">    To show how |Variable2Auxfile| works, we firstly initialise a</span>
+<span class="sd">    HydPy-L-Land (version 1) model:</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy import pub</span>
+<span class="sd">    &gt;&gt;&gt; pub.options.usedefaultvalues = True</span>
+<span class="sd">    &gt;&gt;&gt; from hydpy.models.lland_v1 import *</span>
+<span class="sd">    &gt;&gt;&gt; simulationstep(&#39;1d&#39;)</span>
+<span class="sd">    &gt;&gt;&gt; parameterstep(&#39;1d&#39;)</span>
+
+<span class="sd">    Note that we made use of the `usedefaultvalues` option.</span>
+<span class="sd">    Hence, all parameters used in the following examples have</span>
+<span class="sd">    some predefined values, e.g.:</span>
+
+<span class="sd">    &gt;&gt;&gt; eqb</span>
+<span class="sd">    eqb(5000.0)</span>
+
+<span class="sd">    Next, we initialize a |Variable2Auxfile| object, which is supposed</span>
+<span class="sd">    to allocate some calibration parameters related to runoff</span>
+<span class="sd">    concentration to two axiliary files named `file1` and `file2`:</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy.core.auxfiletools import Variable2Auxfile</span>
+<span class="sd">    &gt;&gt;&gt; v2af = Variable2Auxfile()</span>
+
+<span class="sd">    Auxiliary file `file1` shall contain the actual values of parameters</span>
+<span class="sd">    `eqb`, `eqi1` and `eqi2`:</span>
+
+<span class="sd">    &gt;&gt;&gt; v2af.file1 = eqb</span>
+<span class="sd">    &gt;&gt;&gt; v2af.file1 = eqi1, eqi2</span>
+<span class="sd">    &gt;&gt;&gt; v2af.file1</span>
+<span class="sd">    [eqb(5000.0), eqi1(2000.0), eqi2(1000.0)]</span>
+
+<span class="sd">    Auxiliary file `file2` shall contain the actual values of parameters</span>
+<span class="sd">    `eqd1`, `eqd2` and (also!) of parameter `eqb`:</span>
+
+<span class="sd">    &gt;&gt;&gt; v2af.file2 = eqd1, eqd2</span>
+<span class="sd">    &gt;&gt;&gt; v2af.file2 = eqb</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    ValueError: While trying to extend the range of variables handled by the \</span>
+<span class="sd">actual Variable2AuxFile object, the following error occurred: You tried to \</span>
+<span class="sd">allocate variable `eqb(5000.0)` to filename `file2`, but an equal `EQB` \</span>
+<span class="sd">object has already been allocated to filename `file1`.</span>
+<span class="sd">    &gt;&gt;&gt; v2af.file2</span>
+<span class="sd">    [eqd1(100.0), eqd2(50.0)]</span>
+
+<span class="sd">    As explained by the error message, allocating the same parameter type</span>
+<span class="sd">    with equal values to two different auxiliary files is not allowed.</span>
+<span class="sd">    (If you really want to store equal values of the same type of parameter</span>
+<span class="sd">    whithin different auxiliary files, work with selections instead.)</span>
+
+<span class="sd">    Nevertheless, after changing the value of parameter `eqb`, it can be</span>
+<span class="sd">    allocated to file name `file2`:</span>
+
+<span class="sd">    &gt;&gt;&gt; eqb *= 2</span>
+<span class="sd">    &gt;&gt;&gt; v2af.file2 = eqb</span>
+<span class="sd">    &gt;&gt;&gt; v2af.file2</span>
+<span class="sd">    [eqb(10000.0), eqd1(100.0), eqd2(50.0)]</span>
+
+<span class="sd">    The following example shows that the value of parameter `eqb` already</span>
+<span class="sd">    allocated to `file1` has not been changed (this safety mechanism is</span>
+<span class="sd">    accomplished via deep copying), and that all registered parameters can</span>
+<span class="sd">    be viewed by using their names as an attribute names:</span>
+
+<span class="sd">    &gt;&gt;&gt; v2af.eqb</span>
+<span class="sd">    [eqb(5000.0), eqb(10000.0)]</span>
+
+<span class="sd">    Unfortunately, the string representations of |Variable2Auxfile|</span>
+<span class="sd">    are not executable at the moment:</span>
+
+<span class="sd">    &gt;&gt;&gt; v2af</span>
+<span class="sd">    Variable2Auxfile(file1, file2)</span>
+
+<span class="sd">    Erroneous attribute access results in the following error:</span>
+
+<span class="sd">    &gt;&gt;&gt; v2af.wrong</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    AttributeError: `wrong` is neither a filename nor a name of a \</span>
+<span class="sd">variable handled by the actual Variable2AuxFile object.</span>
+
+<span class="sd">    The |Variable2Auxfile| object defined above is also used in the</span>
+<span class="sd">    documentation of the following class members.  Hence it is stored in</span>
+<span class="sd">    the |Dummies| object:</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy import dummies</span>
+<span class="sd">    &gt;&gt;&gt; dummies.v2af = v2af</span>
+
+<span class="sd">    The explanations above focus on parameter objects only.</span>
+<span class="sd">    |Variable2Auxfile| could be used to handle sequence objects as well,</span>
+<span class="sd">    but possibly without a big benefit as long as `auxiliary condition</span>
+<span class="sd">    files` are not supported.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">_master</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">_model</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="k">with</span> <span class="n">objecttools</span><span class="o">.</span><span class="n">ResetAttrFuncs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_master</span> <span class="o">=</span> <span class="n">_master</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_model</span> <span class="o">=</span> <span class="n">_model</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_type2filename2variable</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="k">def</span> <span class="nf">__getattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+        <span class="n">variables</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sort_variables</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_yield_variables</span><span class="p">(</span><span class="n">name</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">variables</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">variables</span>
+        <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span>
+            <span class="n">f</span><span class="s1">&#39;`</span><span class="si">{name}</span><span class="s1">` is neither a filename nor a name of a variable &#39;</span>
+            <span class="n">f</span><span class="s1">&#39;handled by the actual Variable2AuxFile object.&#39;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__setattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">,</span> <span class="n">variables</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_check_filename</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+            <span class="n">new_vars</span> <span class="o">=</span> <span class="n">objecttools</span><span class="o">.</span><span class="n">extract</span><span class="p">(</span>
+                <span class="n">variables</span><span class="p">,</span> <span class="p">(</span><span class="n">typingtools</span><span class="o">.</span><span class="n">VariableProtocol</span><span class="p">,))</span>
+            <span class="k">for</span> <span class="n">new_var</span> <span class="ow">in</span> <span class="n">new_vars</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_check_variable</span><span class="p">(</span><span class="n">new_var</span><span class="p">)</span>
+                <span class="n">fn2var</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_type2filename2variable</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">new_var</span><span class="p">),</span> <span class="p">{})</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_check_duplicate</span><span class="p">(</span><span class="n">fn2var</span><span class="p">,</span> <span class="n">new_var</span><span class="p">,</span> <span class="n">filename</span><span class="p">)</span>
+                <span class="n">fn2var</span><span class="p">[</span><span class="n">filename</span><span class="p">]</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">new_var</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_type2filename2variable</span><span class="p">[</span><span class="nb">type</span><span class="p">(</span><span class="n">new_var</span><span class="p">)]</span> <span class="o">=</span> <span class="n">fn2var</span>
+        <span class="k">except</span> <span class="ne">BaseException</span><span class="p">:</span>
+            <span class="n">objecttools</span><span class="o">.</span><span class="n">augment_excmessage</span><span class="p">(</span>
+                <span class="s1">&#39;While trying to extend the range of variables handled by &#39;</span>
+                <span class="s1">&#39;the actual Variable2AuxFile object&#39;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_check_filename</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">):</span>
+        <span class="n">objecttools</span><span class="o">.</span><span class="n">valid_variable_identifier</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_master</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">dummy</span><span class="p">,</span> <span class="n">var2aux</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_master</span><span class="p">:</span>
+                <span class="k">if</span> <span class="p">(</span><span class="n">var2aux</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">self</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">filename</span> <span class="ow">in</span> <span class="n">var2aux</span><span class="o">.</span><span class="n">filenames</span><span class="p">):</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                        <span class="n">f</span><span class="s1">&#39;Filename `</span><span class="si">{filename}</span><span class="s1">` is already allocated to &#39;</span>
+                        <span class="n">f</span><span class="s1">&#39;another `Variable2Auxfile` object.&#39;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_check_variable</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">variable</span><span class="p">):</span>
+        <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_model</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span>
+                <span class="n">variable</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">control</span><span class="o">.</span><span class="n">CLASSES</span><span class="p">)):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
+                <span class="n">f</span><span class="s1">&#39;Variable type `{objecttools.classname(variable)}` is &#39;</span>
+                <span class="n">f</span><span class="s1">&#39;not handled by model `</span><span class="si">{self._model}</span><span class="s1">`.&#39;</span><span class="p">)</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">_check_duplicate</span><span class="p">(</span><span class="n">fn2var</span><span class="p">,</span> <span class="n">new_var</span><span class="p">,</span> <span class="n">filename</span><span class="p">):</span>
+        <span class="k">for</span> <span class="p">(</span><span class="n">reg_fn</span><span class="p">,</span> <span class="n">reg_var</span><span class="p">)</span> <span class="ow">in</span> <span class="n">fn2var</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">reg_fn</span> <span class="o">!=</span> <span class="n">filename</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">reg_var</span> <span class="o">==</span> <span class="n">new_var</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="n">f</span><span class="s1">&#39;You tried to allocate variable `{repr(new_var)}` &#39;</span>
+                    <span class="n">f</span><span class="s1">&#39;to filename `</span><span class="si">{filename}</span><span class="s1">`, but an equal &#39;</span>
+                    <span class="n">f</span><span class="s1">&#39;`{objecttools.classname(new_var)}` object has &#39;</span>
+                    <span class="n">f</span><span class="s1">&#39;already been allocated to filename `</span><span class="si">{reg_fn}</span><span class="s1">`.&#39;</span><span class="p">)</span>
+
+<div class="viewcode-block" id="Variable2Auxfile.remove"><a class="viewcode-back" href="../../../auxfiletools.html#hydpy.core.auxfiletools.Variable2Auxfile.remove">[docs]</a>    <span class="k">def</span> <span class="nf">remove</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">values</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Remove the defined variables.</span>
+
+<span class="sd">        The variables to be removed can be selected in two ways.  But the</span>
+<span class="sd">        first example shows that passing nothing or an empty iterable to</span>
+<span class="sd">        method |Variable2Auxfile.remove| does not remove any variable:</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy import dummies</span>
+<span class="sd">        &gt;&gt;&gt; v2af = dummies.v2af</span>
+<span class="sd">        &gt;&gt;&gt; v2af.remove()</span>
+<span class="sd">        &gt;&gt;&gt; v2af.remove([])</span>
+<span class="sd">        &gt;&gt;&gt; from hydpy import print_values</span>
+<span class="sd">        &gt;&gt;&gt; print_values(v2af.filenames)</span>
+<span class="sd">        file1, file2</span>
+<span class="sd">        &gt;&gt;&gt; print_values(v2af.variables, width=30)</span>
+<span class="sd">        eqb(5000.0), eqb(10000.0),</span>
+<span class="sd">        eqd1(100.0), eqd2(50.0),</span>
+<span class="sd">        eqi1(2000.0), eqi2(1000.0)</span>
+
+<span class="sd">        The first option is to pass auxiliary file names:</span>
+
+<span class="sd">        &gt;&gt;&gt; v2af.remove(&#39;file1&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; print_values(v2af.filenames)</span>
+<span class="sd">        file2</span>
+<span class="sd">        &gt;&gt;&gt; print_values(v2af.variables)</span>
+<span class="sd">        eqb(10000.0), eqd1(100.0), eqd2(50.0)</span>
+
+<span class="sd">        The second option is, to pass variables of the correct type</span>
+<span class="sd">        and value:</span>
+
+<span class="sd">        &gt;&gt;&gt; v2af = dummies.v2af</span>
+<span class="sd">        &gt;&gt;&gt; v2af.remove(v2af.eqb[0])</span>
+<span class="sd">        &gt;&gt;&gt; print_values(v2af.filenames)</span>
+<span class="sd">        file1, file2</span>
+<span class="sd">        &gt;&gt;&gt; print_values(v2af.variables)</span>
+<span class="sd">        eqb(10000.0), eqd1(100.0), eqd2(50.0), eqi1(2000.0), eqi2(1000.0)</span>
+
+<span class="sd">        One can pass multiple variables or iterables containing variables</span>
+<span class="sd">        at once:</span>
+
+<span class="sd">        &gt;&gt;&gt; v2af = dummies.v2af</span>
+<span class="sd">        &gt;&gt;&gt; v2af.remove(v2af.eqb, v2af.eqd1, v2af.eqd2)</span>
+<span class="sd">        &gt;&gt;&gt; print_values(v2af.filenames)</span>
+<span class="sd">        file1</span>
+<span class="sd">        &gt;&gt;&gt; print_values(v2af.variables)</span>
+<span class="sd">        eqi1(2000.0), eqi2(1000.0)</span>
+
+<span class="sd">        Passing an argument that equals neither a registered file name or a</span>
+<span class="sd">        registered variable results in the following exception:</span>
+
+<span class="sd">        &gt;&gt;&gt; v2af.remove(&#39;test&#39;)</span>
+<span class="sd">        Traceback (most recent call last):</span>
+<span class="sd">        ...</span>
+<span class="sd">        ValueError: While trying to remove the given object `test` of type \</span>
+<span class="sd">`str` from the actual Variable2AuxFile object, the following error occurred: \</span>
+<span class="sd">`&#39;test&#39;` is neither a registered filename nor a registered variable.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">objecttools</span><span class="o">.</span><span class="n">extract</span><span class="p">(</span><span class="n">values</span><span class="p">,</span> <span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">variabletools</span><span class="o">.</span><span class="n">Variable</span><span class="p">)):</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">deleted_something</span> <span class="o">=</span> <span class="kc">False</span>
+                <span class="k">for</span> <span class="n">fn2var</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_type2filename2variable</span><span class="o">.</span><span class="n">values</span><span class="p">()):</span>
+                    <span class="k">for</span> <span class="n">fn_</span><span class="p">,</span> <span class="n">var</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">fn2var</span><span class="o">.</span><span class="n">items</span><span class="p">()):</span>
+                        <span class="k">if</span> <span class="n">value</span> <span class="ow">in</span> <span class="p">(</span><span class="n">fn_</span><span class="p">,</span> <span class="n">var</span><span class="p">):</span>
+                            <span class="k">del</span> <span class="n">fn2var</span><span class="p">[</span><span class="n">fn_</span><span class="p">]</span>
+                            <span class="n">deleted_something</span> <span class="o">=</span> <span class="kc">True</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">deleted_something</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                        <span class="n">f</span><span class="s1">&#39;`{repr(value)}` is neither a registered &#39;</span>
+                        <span class="n">f</span><span class="s1">&#39;filename nor a registered variable.&#39;</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">BaseException</span><span class="p">:</span>
+                <span class="n">objecttools</span><span class="o">.</span><span class="n">augment_excmessage</span><span class="p">(</span>
+                    <span class="n">f</span><span class="s1">&#39;While trying to remove the given object `</span><span class="si">{value}</span><span class="s1">` &#39;</span>
+                    <span class="n">f</span><span class="s1">&#39;of type `{objecttools.classname(value)}` from the &#39;</span>
+                    <span class="n">f</span><span class="s1">&#39;actual Variable2AuxFile object&#39;</span><span class="p">)</span></div>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">types</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;A list of all handled variable types.</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy import dummies</span>
+<span class="sd">        &gt;&gt;&gt; from hydpy.core.objecttools import classname</span>
+<span class="sd">        &gt;&gt;&gt; [classname(type_) for type_ in dummies.v2af.types]</span>
+<span class="sd">        [&#39;EQB&#39;, &#39;EQD1&#39;, &#39;EQD2&#39;, &#39;EQI1&#39;, &#39;EQI2&#39;]</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">sorted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_type2filename2variable</span><span class="o">.</span><span class="n">keys</span><span class="p">(),</span> <span class="n">key</span><span class="o">=</span><span class="nb">str</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">filenames</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;A list of all handled auxiliary file names.</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy import dummies</span>
+<span class="sd">        &gt;&gt;&gt; dummies.v2af.filenames</span>
+<span class="sd">        [&#39;file1&#39;, &#39;file2&#39;]</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">fns</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">fn2var</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_type2filename2variable</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+            <span class="n">fns</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">fn2var</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+        <span class="k">return</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">fns</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">variables</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;A list of all handled variable objects.</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy import dummies</span>
+<span class="sd">        &gt;&gt;&gt; from hydpy import print_values</span>
+<span class="sd">        &gt;&gt;&gt; print_values(dummies.v2af.variables, width=30)</span>
+<span class="sd">        eqb(5000.0), eqb(10000.0),</span>
+<span class="sd">        eqd1(100.0), eqd2(50.0),</span>
+<span class="sd">        eqi1(2000.0), eqi2(1000.0)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sort_variables</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_yield_variables</span><span class="p">())</span>
+
+    <span class="k">def</span> <span class="nf">_yield_variables</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">fn2var</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_type2filename2variable</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+            <span class="k">for</span> <span class="n">fn_</span><span class="p">,</span> <span class="n">var</span> <span class="ow">in</span> <span class="n">fn2var</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">fn_</span><span class="p">,</span> <span class="n">var</span><span class="o">.</span><span class="n">name</span><span class="p">):</span>
+                    <span class="k">yield</span> <span class="n">var</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">_sort_variables</span><span class="p">(</span><span class="n">variables</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">variables</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="nb">sum</span><span class="p">(</span><span class="n">x</span><span class="p">)))</span>
+
+<div class="viewcode-block" id="Variable2Auxfile.get_filename"><a class="viewcode-back" href="../../../auxfiletools.html#hydpy.core.auxfiletools.Variable2Auxfile.get_filename">[docs]</a>    <span class="k">def</span> <span class="nf">get_filename</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">variable</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return the auxiliary file name the given variable is allocated</span>
+<span class="sd">        to or |None| if the given variable is not allocated to any</span>
+<span class="sd">        auxiliary file name.</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy import dummies</span>
+<span class="sd">        &gt;&gt;&gt; eqb = dummies.v2af.eqb[0]</span>
+<span class="sd">        &gt;&gt;&gt; dummies.v2af.get_filename(eqb)</span>
+<span class="sd">        &#39;file1&#39;</span>
+<span class="sd">        &gt;&gt;&gt; eqb += 500.0</span>
+<span class="sd">        &gt;&gt;&gt; dummies.v2af.get_filename(eqb)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">fn2var</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_type2filename2variable</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">variable</span><span class="p">),</span> <span class="p">{})</span>
+        <span class="k">for</span> <span class="p">(</span><span class="n">fn_</span><span class="p">,</span> <span class="n">var</span><span class="p">)</span> <span class="ow">in</span> <span class="n">fn2var</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">var</span> <span class="o">==</span> <span class="n">variable</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">fn_</span>
+        <span class="k">return</span> <span class="kc">None</span></div>
+
+    <span class="n">__copy__</span> <span class="o">=</span> <span class="n">objecttools</span><span class="o">.</span><span class="n">copy_</span>
+
+    <span class="n">__deepcopy__</span> <span class="o">=</span> <span class="n">objecttools</span><span class="o">.</span><span class="n">deepcopy_</span>
+
+    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">objecttools</span><span class="o">.</span><span class="n">assignrepr_values</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">filenames</span><span class="p">,</span> <span class="s1">&#39;Variable2Auxfile(&#39;</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mi">70</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;)&#39;</span>
+
+    <span class="k">def</span> <span class="nf">__dir__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        &gt;&gt;&gt; from hydpy import dummies</span>
+<span class="sd">        &gt;&gt;&gt; from hydpy import print_values</span>
+<span class="sd">        &gt;&gt;&gt; print_values(dir(dummies.v2af))</span>
+<span class="sd">        eqb, eqd1, eqd2, eqi1, eqi2, file1, file2, filenames, get_filename,</span>
+<span class="sd">        remove, types, variables</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">objecttools</span><span class="o">.</span><span class="n">dir_</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">+</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">filenames</span> <span class="o">+</span>
+                <span class="p">[</span><span class="n">objecttools</span><span class="o">.</span><span class="n">instancename</span><span class="p">(</span><span class="n">type_</span><span class="p">)</span> <span class="k">for</span> <span class="n">type_</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">types</span><span class="p">])</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../../index.html">
+              <img class="logo" src="../../../_static/HydPy_Logo.png" alt="Logo"/>
+            </a></p>
+  <h3><a href="../../../index.html">Table of Contents</a></h3>
+  <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../install.html">Installation Instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../framework.html">Framework Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../modelcollection.html">Model Collection</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../development.html">Development</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../examples.html">Example Projects</a></li>
+</ul>
+
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">HydPy 4.0a11 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2019, HydPy Developers.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.2.1.
+    </div>
+  </body>
+</html>

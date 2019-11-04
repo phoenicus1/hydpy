@@ -1,0 +1,368 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>hydpy.models.lland.lland_derived &#8212; HydPy 4.0a11 documentation</title>
+    <link rel="stylesheet" href="../../../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/graphviz.css" />
+    
+    <script type="text/javascript" id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="../../../../_static/language_data.js"></script>
+    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../index.html">HydPy 4.0a11 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../../index.html" >Module code</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="../lland.html" accesskey="U">hydpy.models.lland</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for hydpy.models.lland.lland_derived</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="c1"># pylint: disable=missing-docstring</span>
+<span class="c1"># pylint: enable=missing-docstring</span>
+
+<span class="c1"># import...</span>
+<span class="c1"># ...from HydPy</span>
+<span class="kn">from</span> <span class="nn">hydpy.core</span> <span class="k">import</span> <span class="n">parametertools</span>
+<span class="c1"># ...from lland</span>
+<span class="kn">from</span> <span class="nn">hydpy.models.lland</span> <span class="k">import</span> <span class="n">lland_control</span>
+<span class="kn">from</span> <span class="nn">hydpy.models.lland</span> <span class="k">import</span> <span class="n">lland_parameters</span>
+
+
+<div class="viewcode-block" id="MOY"><a class="viewcode-back" href="../../../../lland.html#hydpy.models.lland.lland_derived.MOY">[docs]</a><span class="k">class</span> <span class="nc">MOY</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">MOYParameter</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;References the &quot;global&quot; month of the year index array [-].&quot;&quot;&quot;</span></div>
+
+
+<div class="viewcode-block" id="AbsFHRU"><a class="viewcode-back" href="../../../../lland.html#hydpy.models.lland.lland_derived.AbsFHRU">[docs]</a><span class="k">class</span> <span class="nc">AbsFHRU</span><span class="p">(</span><span class="n">lland_parameters</span><span class="o">.</span><span class="n">ParameterComplete</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Flächen der Hydrotope (areas of the respective HRUs) [km²].&quot;&quot;&quot;</span>
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+    <span class="n">CONTROLPARAMETERS</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">lland_control</span><span class="o">.</span><span class="n">FT</span><span class="p">,</span>
+        <span class="n">lland_control</span><span class="o">.</span><span class="n">FHRU</span><span class="p">,</span>
+    <span class="p">)</span>
+
+<div class="viewcode-block" id="AbsFHRU.update"><a class="viewcode-back" href="../../../../lland.html#hydpy.models.lland.lland_derived.AbsFHRU.update">[docs]</a>    <span class="k">def</span> <span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Update |AbsFHRU| based on |FT| and |FHRU|.</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.lland import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep(&#39;1d&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; nhru(2)</span>
+<span class="sd">        &gt;&gt;&gt; lnk(ACKER)</span>
+<span class="sd">        &gt;&gt;&gt; ft(100.0)</span>
+<span class="sd">        &gt;&gt;&gt; fhru(0.2, 0.8)</span>
+<span class="sd">        &gt;&gt;&gt; derived.absfhru.update()</span>
+<span class="sd">        &gt;&gt;&gt; derived.absfhru</span>
+<span class="sd">        absfhru(20.0, 80.0)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">control</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">subpars</span><span class="o">.</span><span class="n">pars</span><span class="o">.</span><span class="n">control</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">control</span><span class="o">.</span><span class="n">ft</span><span class="o">*</span><span class="n">control</span><span class="o">.</span><span class="n">fhru</span></div></div>
+
+
+<div class="viewcode-block" id="KInz"><a class="viewcode-back" href="../../../../lland.html#hydpy.models.lland.lland_derived.KInz">[docs]</a><span class="k">class</span> <span class="nc">KInz</span><span class="p">(</span><span class="n">lland_parameters</span><span class="o">.</span><span class="n">LanduseMonthParameter</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Interzeptionskapazität bezogen auf die Bodenoberfläche (interception</span>
+<span class="sd">    capacity normalized to the soil surface area) [mm].&quot;&quot;&quot;</span>
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">2</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+    <span class="n">CONTROLPARAMETERS</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">lland_control</span><span class="o">.</span><span class="n">HInz</span><span class="p">,</span>
+        <span class="n">lland_control</span><span class="o">.</span><span class="n">LAI</span><span class="p">,</span>
+    <span class="p">)</span>
+
+<div class="viewcode-block" id="KInz.update"><a class="viewcode-back" href="../../../../lland.html#hydpy.models.lland.lland_derived.KInz.update">[docs]</a>    <span class="k">def</span> <span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Update |KInz| based on |HInz| and |LAI|.</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.lland import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep(&#39;1d&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; nhru(2)</span>
+<span class="sd">        &gt;&gt;&gt; hinz(0.2)</span>
+<span class="sd">        &gt;&gt;&gt; lai.acker_jun = 1.0</span>
+<span class="sd">        &gt;&gt;&gt; lai.vers_dec = 2.0</span>
+<span class="sd">        &gt;&gt;&gt; derived.kinz.update()</span>
+<span class="sd">        &gt;&gt;&gt; from hydpy import round_</span>
+<span class="sd">        &gt;&gt;&gt; round_(derived.kinz.acker_jun)</span>
+<span class="sd">        0.2</span>
+<span class="sd">        &gt;&gt;&gt; round_(derived.kinz.vers_dec)</span>
+<span class="sd">        0.4</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">con</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">subpars</span><span class="o">.</span><span class="n">pars</span><span class="o">.</span><span class="n">control</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">con</span><span class="o">.</span><span class="n">hinz</span><span class="o">*</span><span class="n">con</span><span class="o">.</span><span class="n">lai</span></div></div>
+
+
+<div class="viewcode-block" id="WB"><a class="viewcode-back" href="../../../../lland.html#hydpy.models.lland.lland_derived.WB">[docs]</a><span class="k">class</span> <span class="nc">WB</span><span class="p">(</span><span class="n">lland_parameters</span><span class="o">.</span><span class="n">ParameterComplete</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Absolute Mindestbodenfeuchte für die Basisabflussentstehung (threshold</span>
+<span class="sd">       value of absolute soil moisture for base flow generation) [-].&quot;&quot;&quot;</span>
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+    <span class="n">CONTROLPARAMETERS</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">lland_control</span><span class="o">.</span><span class="n">RelWB</span><span class="p">,</span>
+        <span class="n">lland_control</span><span class="o">.</span><span class="n">NFk</span><span class="p">,</span>
+    <span class="p">)</span>
+
+<div class="viewcode-block" id="WB.update"><a class="viewcode-back" href="../../../../lland.html#hydpy.models.lland.lland_derived.WB.update">[docs]</a>    <span class="k">def</span> <span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Update |WB| based on |RelWB| and |NFk|.</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.lland import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep(&#39;1d&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; nhru(2)</span>
+<span class="sd">        &gt;&gt;&gt; lnk(ACKER)</span>
+<span class="sd">        &gt;&gt;&gt; relwb(0.2)</span>
+<span class="sd">        &gt;&gt;&gt; nfk(100.0, 200.0)</span>
+<span class="sd">        &gt;&gt;&gt; derived.wb.update()</span>
+<span class="sd">        &gt;&gt;&gt; derived.wb</span>
+<span class="sd">        wb(20.0, 40.0)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">con</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">subpars</span><span class="o">.</span><span class="n">pars</span><span class="o">.</span><span class="n">control</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">con</span><span class="o">.</span><span class="n">relwb</span><span class="o">*</span><span class="n">con</span><span class="o">.</span><span class="n">nfk</span></div></div>
+
+
+<div class="viewcode-block" id="WZ"><a class="viewcode-back" href="../../../../lland.html#hydpy.models.lland.lland_derived.WZ">[docs]</a><span class="k">class</span> <span class="nc">WZ</span><span class="p">(</span><span class="n">lland_parameters</span><span class="o">.</span><span class="n">ParameterComplete</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Absolute Mindestbodenfeuchte für die Interflowentstehung (threshold</span>
+<span class="sd">       value of absolute soil moisture for interflow generation) [-].&quot;&quot;&quot;</span>
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+    <span class="n">CONTROLPARAMETERS</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">lland_control</span><span class="o">.</span><span class="n">RelWZ</span><span class="p">,</span>
+        <span class="n">lland_control</span><span class="o">.</span><span class="n">NFk</span><span class="p">,</span>
+    <span class="p">)</span>
+
+<div class="viewcode-block" id="WZ.update"><a class="viewcode-back" href="../../../../lland.html#hydpy.models.lland.lland_derived.WZ.update">[docs]</a>    <span class="k">def</span> <span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Update |WZ| based on |RelWZ| and |NFk|.</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.lland import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep(&#39;1d&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; nhru(2)</span>
+<span class="sd">        &gt;&gt;&gt; lnk(ACKER)</span>
+<span class="sd">        &gt;&gt;&gt; relwz(0.8)</span>
+<span class="sd">        &gt;&gt;&gt; nfk(100.0, 200.0)</span>
+<span class="sd">        &gt;&gt;&gt; derived.wz.update()</span>
+<span class="sd">        &gt;&gt;&gt; derived.wz</span>
+<span class="sd">        wz(80.0, 160.0)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">con</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">subpars</span><span class="o">.</span><span class="n">pars</span><span class="o">.</span><span class="n">control</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">con</span><span class="o">.</span><span class="n">relwz</span><span class="o">*</span><span class="n">con</span><span class="o">.</span><span class="n">nfk</span></div></div>
+
+
+<div class="viewcode-block" id="KB"><a class="viewcode-back" href="../../../../lland.html#hydpy.models.lland.lland_derived.KB">[docs]</a><span class="k">class</span> <span class="nc">KB</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">Parameter</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Konzentrationszeit des Basisabflusses (concentration time of baseflow)</span>
+<span class="sd">    [-].&quot;&quot;&quot;</span>
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+    <span class="n">CONTROLPARAMETERS</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">lland_control</span><span class="o">.</span><span class="n">EQB</span><span class="p">,</span>
+        <span class="n">lland_control</span><span class="o">.</span><span class="n">TInd</span><span class="p">,</span>
+    <span class="p">)</span>
+
+<div class="viewcode-block" id="KB.update"><a class="viewcode-back" href="../../../../lland.html#hydpy.models.lland.lland_derived.KB.update">[docs]</a>    <span class="k">def</span> <span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Update |KB| based on |EQB| and |TInd|.</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.lland import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep(&#39;1d&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; eqb(10.0)</span>
+<span class="sd">        &gt;&gt;&gt; tind.value = 10.0</span>
+<span class="sd">        &gt;&gt;&gt; derived.kb.update()</span>
+<span class="sd">        &gt;&gt;&gt; derived.kb</span>
+<span class="sd">        kb(100.0)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">con</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">subpars</span><span class="o">.</span><span class="n">pars</span><span class="o">.</span><span class="n">control</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">con</span><span class="o">.</span><span class="n">eqb</span><span class="o">*</span><span class="n">con</span><span class="o">.</span><span class="n">tind</span></div></div>
+
+
+<div class="viewcode-block" id="KI1"><a class="viewcode-back" href="../../../../lland.html#hydpy.models.lland.lland_derived.KI1">[docs]</a><span class="k">class</span> <span class="nc">KI1</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">Parameter</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Konzentrationszeit des &quot;unteren&quot; Zwischenabflusses (concentration time</span>
+<span class="sd">    of the first interflow component) [-].&quot;&quot;&quot;</span>
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+    <span class="n">CONTROLPARAMETERS</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">lland_control</span><span class="o">.</span><span class="n">EQI1</span><span class="p">,</span>
+        <span class="n">lland_control</span><span class="o">.</span><span class="n">TInd</span><span class="p">,</span>
+    <span class="p">)</span>
+
+<div class="viewcode-block" id="KI1.update"><a class="viewcode-back" href="../../../../lland.html#hydpy.models.lland.lland_derived.KI1.update">[docs]</a>    <span class="k">def</span> <span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Update |KI1| based on |EQI1| and |TInd|.</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.lland import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep(&#39;1d&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; eqi1(5.0)</span>
+<span class="sd">        &gt;&gt;&gt; tind.value = 10.0</span>
+<span class="sd">        &gt;&gt;&gt; derived.ki1.update()</span>
+<span class="sd">        &gt;&gt;&gt; derived.ki1</span>
+<span class="sd">        ki1(50.0)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">con</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">subpars</span><span class="o">.</span><span class="n">pars</span><span class="o">.</span><span class="n">control</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">con</span><span class="o">.</span><span class="n">eqi1</span><span class="o">*</span><span class="n">con</span><span class="o">.</span><span class="n">tind</span></div></div>
+
+
+<div class="viewcode-block" id="KI2"><a class="viewcode-back" href="../../../../lland.html#hydpy.models.lland.lland_derived.KI2">[docs]</a><span class="k">class</span> <span class="nc">KI2</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">Parameter</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Konzentrationszeit des &quot;oberen&quot; Zwischenabflusses&quot; (concentration time</span>
+<span class="sd">    of the second interflow component) [-].&quot;&quot;&quot;</span>
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+    <span class="n">CONTROLPARAMETERS</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">lland_control</span><span class="o">.</span><span class="n">EQI2</span><span class="p">,</span>
+        <span class="n">lland_control</span><span class="o">.</span><span class="n">TInd</span><span class="p">,</span>
+    <span class="p">)</span>
+
+<div class="viewcode-block" id="KI2.update"><a class="viewcode-back" href="../../../../lland.html#hydpy.models.lland.lland_derived.KI2.update">[docs]</a>    <span class="k">def</span> <span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Update |KI2| based on |EQI2| and |TInd|.</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.lland import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep(&#39;1d&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; eqi2(1.0)</span>
+<span class="sd">        &gt;&gt;&gt; tind.value = 10.0</span>
+<span class="sd">        &gt;&gt;&gt; derived.ki2.update()</span>
+<span class="sd">        &gt;&gt;&gt; derived.ki2</span>
+<span class="sd">        ki2(10.0)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">con</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">subpars</span><span class="o">.</span><span class="n">pars</span><span class="o">.</span><span class="n">control</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">con</span><span class="o">.</span><span class="n">eqi2</span><span class="o">*</span><span class="n">con</span><span class="o">.</span><span class="n">tind</span></div></div>
+
+
+<div class="viewcode-block" id="KD1"><a class="viewcode-back" href="../../../../lland.html#hydpy.models.lland.lland_derived.KD1">[docs]</a><span class="k">class</span> <span class="nc">KD1</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">Parameter</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Konzentrationszeit des &quot;langsamen&quot; Direktabflusses (concentration time</span>
+<span class="sd">    of the slower component of direct runoff) [-].&quot;&quot;&quot;</span>
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+    <span class="n">CONTROLPARAMETERS</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">lland_control</span><span class="o">.</span><span class="n">EQD1</span><span class="p">,</span>
+        <span class="n">lland_control</span><span class="o">.</span><span class="n">TInd</span><span class="p">,</span>
+    <span class="p">)</span>
+
+<div class="viewcode-block" id="KD1.update"><a class="viewcode-back" href="../../../../lland.html#hydpy.models.lland.lland_derived.KD1.update">[docs]</a>    <span class="k">def</span> <span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Update |KD1| based on |EQD1| and |TInd|.</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.lland import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep(&#39;1d&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; eqd1(0.5)</span>
+<span class="sd">        &gt;&gt;&gt; tind.value = 10.0</span>
+<span class="sd">        &gt;&gt;&gt; derived.kd1.update()</span>
+<span class="sd">        &gt;&gt;&gt; derived.kd1</span>
+<span class="sd">        kd1(5.0)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">con</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">subpars</span><span class="o">.</span><span class="n">pars</span><span class="o">.</span><span class="n">control</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">con</span><span class="o">.</span><span class="n">eqd1</span><span class="o">*</span><span class="n">con</span><span class="o">.</span><span class="n">tind</span></div></div>
+
+
+<div class="viewcode-block" id="KD2"><a class="viewcode-back" href="../../../../lland.html#hydpy.models.lland.lland_derived.KD2">[docs]</a><span class="k">class</span> <span class="nc">KD2</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">Parameter</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Konzentrationszeit des &quot;schnellen&quot; Direktabflusses (concentration time</span>
+<span class="sd">    of the faster component of direct runoff) [-].&quot;&quot;&quot;</span>
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+    <span class="n">CONTROLPARAMETERS</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">lland_control</span><span class="o">.</span><span class="n">EQD2</span><span class="p">,</span>
+        <span class="n">lland_control</span><span class="o">.</span><span class="n">TInd</span><span class="p">,</span>
+    <span class="p">)</span>
+
+<div class="viewcode-block" id="KD2.update"><a class="viewcode-back" href="../../../../lland.html#hydpy.models.lland.lland_derived.KD2.update">[docs]</a>    <span class="k">def</span> <span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Update |KD2| based on |EQD2| and |TInd|.</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.lland import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep(&#39;1d&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; eqd2(0.1)</span>
+<span class="sd">        &gt;&gt;&gt; tind.value = 10.0</span>
+<span class="sd">        &gt;&gt;&gt; derived.kd2.update()</span>
+<span class="sd">        &gt;&gt;&gt; derived.kd2</span>
+<span class="sd">        kd2(1.0)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">con</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">subpars</span><span class="o">.</span><span class="n">pars</span><span class="o">.</span><span class="n">control</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">con</span><span class="o">.</span><span class="n">eqd2</span><span class="o">*</span><span class="n">con</span><span class="o">.</span><span class="n">tind</span></div></div>
+
+
+<div class="viewcode-block" id="QFactor"><a class="viewcode-back" href="../../../../lland.html#hydpy.models.lland.lland_derived.QFactor">[docs]</a><span class="k">class</span> <span class="nc">QFactor</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">Parameter</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Factor for converting mm/stepsize to m³/s.&quot;&quot;&quot;</span>
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+    <span class="n">CONTROLPARAMETERS</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">lland_control</span><span class="o">.</span><span class="n">FT</span><span class="p">,</span>
+    <span class="p">)</span>
+
+<div class="viewcode-block" id="QFactor.update"><a class="viewcode-back" href="../../../../lland.html#hydpy.models.lland.lland_derived.QFactor.update">[docs]</a>    <span class="k">def</span> <span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Update |QFactor| based on |FT| and the current simulation step size.</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.lland import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep(&#39;1d&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; simulationstep(&#39;1d&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; ft(10.0)</span>
+<span class="sd">        &gt;&gt;&gt; derived.qfactor.update()</span>
+<span class="sd">        &gt;&gt;&gt; derived.qfactor</span>
+<span class="sd">        qfactor(0.115741)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">con</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">subpars</span><span class="o">.</span><span class="n">pars</span><span class="o">.</span><span class="n">control</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">con</span><span class="o">.</span><span class="n">ft</span><span class="o">*</span><span class="mf">1000.</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">simulationstep</span><span class="o">.</span><span class="n">seconds</span></div></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../../../index.html">
+              <img class="logo" src="../../../../_static/HydPy_Logo.png" alt="Logo"/>
+            </a></p>
+  <h3><a href="../../../../index.html">Table of Contents</a></h3>
+  <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../install.html">Installation Instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../framework.html">Framework Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../modelcollection.html">Model Collection</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../development.html">Development</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../examples.html">Example Projects</a></li>
+</ul>
+
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../index.html">HydPy 4.0a11 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../../index.html" >Module code</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="../lland.html" >hydpy.models.lland</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2019, HydPy Developers.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.2.1.
+    </div>
+  </body>
+</html>

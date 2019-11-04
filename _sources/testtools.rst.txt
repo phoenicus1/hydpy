@@ -1,0 +1,39 @@
+.. |Array| replace:: :class:`~hydpy.core.testtools.Array`
+.. |Cythonizer| replace:: :class:`~hydpy.cythons.modelutils.Cythonizer`
+.. |Date| replace:: :class:`~hydpy.core.timetools.Date`
+.. |IntegrationTest.dateformat| replace:: :const:`~hydpy.core.testtools.IntegrationTest.dateformat`
+.. |IntegrationTest.plot| replace:: :func:`~hydpy.core.testtools.IntegrationTest.plot`
+.. |IntegrationTest| replace:: :class:`~hydpy.core.testtools.IntegrationTest`
+.. |NotImplementedError| replace:: :class:`NotImplementedError`
+.. |Open| replace:: :class:`~hydpy.core.testtools.Open`
+.. |Options.usecython| replace:: :const:`~hydpy.core.optiontools.Options.usecython`
+.. |TestIO.clear| replace:: :func:`~hydpy.core.testtools.TestIO.clear`
+.. |TestIO| replace:: :class:`~hydpy.core.testtools.TestIO`
+.. |Tester.perform_tests| replace:: :func:`~hydpy.core.testtools.Tester.perform_tests`
+.. |Tester| replace:: :class:`~hydpy.core.testtools.Tester`
+.. |Test| replace:: :class:`~hydpy.core.testtools.Test`
+.. |Timegrids| replace:: :class:`~hydpy.core.timetools.Timegrids`
+.. |True| replace:: :const:`True`
+.. |UnitTest.nexts| replace:: :const:`~hydpy.core.testtools.UnitTest.nexts`
+.. |UnitTest.results| replace:: :const:`~hydpy.core.testtools.UnitTest.results`
+.. |UnitTest| replace:: :class:`~hydpy.core.testtools.UnitTest`
+.. |arma_v1| replace:: :mod:`~hydpy.models.arma_v1`
+.. |datetime| replace:: :mod:`~datetime`
+.. |llake_v1| replace:: :mod:`~hydpy.models.llake_v1`
+.. |make_abc_testable| replace:: :func:`~hydpy.core.testtools.make_abc_testable`
+.. |os| replace:: :mod:`~os`
+.. |pub| replace:: :mod:`~hydpy.pub`
+.. |datetime.datetime.now| replace:: :func:`~datetime.datetime.now`
+.. |datetime.datetime| replace:: :class:`~datetime.datetime`
+.. |hland_control.ZoneType| replace:: :class:`~hydpy.models.hland.hland_control.ZoneType`
+.. |numpy.ndarray| replace:: :class:`~numpy.ndarray`
+
+.. _testtools:
+
+testtools
+=========
+
+.. automodule:: hydpy.core.testtools
+    :members:
+    :show-inheritance:
+    :exclude-members: CLASSES, RUN_METHODS, ADD_METHODS, INLET_METHODS, OUTLET_METHODS, RECEIVER_METHODS, SENDER_METHODS, PART_ODE_METHODS, FULL_ODE_METHODS, CONTROLPARAMETERS, DERIVEDPARAMETERS, REQUIREDSEQUENCES, UPDATESSEQUENCES, RESULTSEQUENCES

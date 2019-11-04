@@ -1,0 +1,12 @@
+.. |K| replace:: :class:`~hydpy.models.test.test_control.K`
+.. |test| replace:: :mod:`~hydpy.models.test`
+
+.. _test:
+
+test
+====
+
+.. automodule:: hydpy.models.test
+    :members:
+    :show-inheritance:
+    :exclude-members: CLASSES, RUN_METHODS, ADD_METHODS, INLET_METHODS, OUTLET_METHODS, RECEIVER_METHODS, SENDER_METHODS, PART_ODE_METHODS, FULL_ODE_METHODS, CONTROLPARAMETERS, DERIVEDPARAMETERS, REQUIREDSEQUENCES, UPDATESSEQUENCES, RESULTSEQUENCES

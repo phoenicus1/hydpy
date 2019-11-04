@@ -1,0 +1,554 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>hydpy.auxs.networktools &#8212; HydPy 4.0a11 documentation</title>
+    <link rel="stylesheet" href="../../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css" />
+    
+    <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="../../../_static/language_data.js"></script>
+    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">HydPy 4.0a11 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for hydpy.auxs.networktools</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;This module provides features for preparing HydPy networks based on</span>
+<span class="sd">different data.&quot;&quot;&quot;</span>
+<span class="c1"># import...</span>
+<span class="c1"># ...from HydPy</span>
+<span class="kn">from</span> <span class="nn">hydpy.core</span> <span class="k">import</span> <span class="n">objecttools</span>
+<span class="kn">from</span> <span class="nn">hydpy.core</span> <span class="k">import</span> <span class="n">devicetools</span>
+<span class="kn">from</span> <span class="nn">hydpy.core</span> <span class="k">import</span> <span class="n">selectiontools</span>
+
+
+<div class="viewcode-block" id="RiverBasinNumber"><a class="viewcode-back" href="../../../networktools.html#hydpy.auxs.networktools.RiverBasinNumber">[docs]</a><span class="k">class</span> <span class="nc">RiverBasinNumber</span><span class="p">(</span><span class="nb">str</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;A single river basin number (Gewässerkennzahl) based on a guideline</span>
+<span class="sd">    of the German organisation LAWA.</span>
+
+<span class="sd">    See `Länderarbeitsgemeinschaft Wasser: Richtlinie für die</span>
+<span class="sd">    Gebietsbezeichung und die Verschlüsselung von Fließgewässern (1970)`</span>
+
+<span class="sd">    Note that zero fill numbers are ignored:</span>
+
+<span class="sd">    &gt;&gt;&gt; RiverBasinNumber(1230)</span>
+<span class="sd">    RiverBasinNumber(123)</span>
+<span class="sd">    &gt;&gt;&gt; RiverBasinNumber(&#39;0123&#39;)</span>
+<span class="sd">    RiverBasinNumber(123)</span>
+
+<span class="sd">    Numbers that cannot be interpreted as a river basin numbers, result</span>
+<span class="sd">    in the following error message:</span>
+
+<span class="sd">    &gt;&gt;&gt; RiverBasinNumber(&#39;123A&#39;)</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    ValueError: The given value `123A` could not be interpreted as a river \</span>
+<span class="sd">basin number.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__new__</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">str</span><span class="o">.</span><span class="fm">__new__</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">value</span><span class="p">))</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s1">&#39;0&#39;</span><span class="p">))</span>
+        <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="n">f</span><span class="s1">&#39;The given value `</span><span class="si">{value}</span><span class="s1">` could not be &#39;</span>
+                <span class="n">f</span><span class="s1">&#39;interpreted as a river basin number.&#39;</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">is_rivermouth</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Only true if the river basin number ends with `9`.</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy import RiverBasinNumber</span>
+<span class="sd">        &gt;&gt;&gt; RiverBasinNumber(129).is_rivermouth</span>
+<span class="sd">        True</span>
+<span class="sd">        &gt;&gt;&gt; RiverBasinNumber(123).is_rivermouth</span>
+<span class="sd">        False</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;9&#39;</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">is_mainchannel</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Only true if the river basin number ends with an odd number.</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy import RiverBasinNumber</span>
+<span class="sd">        &gt;&gt;&gt; for number in range(120, 130):</span>
+<span class="sd">        ...     rbn = RiverBasinNumber(number)</span>
+<span class="sd">        ...     print(number, rbn, rbn.is_mainchannel)</span>
+<span class="sd">        120 12 False</span>
+<span class="sd">        121 121 True</span>
+<span class="sd">        122 122 False</span>
+<span class="sd">        123 123 True</span>
+<span class="sd">        124 124 False</span>
+<span class="sd">        125 125 True</span>
+<span class="sd">        126 126 False</span>
+<span class="sd">        127 127 True</span>
+<span class="sd">        128 128 False</span>
+<span class="sd">        129 129 True</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span> <span class="o">%</span> <span class="mi">2</span> <span class="o">==</span> <span class="mi">1</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">is_tributary</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Only true if the river basin number ends with an even number.</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy import RiverBasinNumber</span>
+<span class="sd">        &gt;&gt;&gt; for number in range(120, 130):</span>
+<span class="sd">        ...     rbn = RiverBasinNumber(number)</span>
+<span class="sd">        ...     print(number, rbn, rbn.is_tributary)</span>
+<span class="sd">        120 12 True</span>
+<span class="sd">        121 121 False</span>
+<span class="sd">        122 122 True</span>
+<span class="sd">        123 123 False</span>
+<span class="sd">        124 124 True</span>
+<span class="sd">        125 125 False</span>
+<span class="sd">        126 126 True</span>
+<span class="sd">        127 127 False</span>
+<span class="sd">        128 128 True</span>
+<span class="sd">        129 129 False</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span> <span class="o">%</span> <span class="mi">2</span> <span class="o">==</span> <span class="mi">0</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">_possible_next_last_initial_digits</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">digit</span> <span class="k">for</span> <span class="n">digit</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;3&#39;</span><span class="p">,</span> <span class="s1">&#39;5&#39;</span><span class="p">,</span> <span class="s1">&#39;7&#39;</span><span class="p">,</span> <span class="s1">&#39;9&#39;</span><span class="p">)</span> <span class="k">if</span>
+                <span class="n">digit</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">rstrip</span><span class="p">(</span><span class="s1">&#39;9&#39;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">possible_next_initial_digits</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return a tuple of all potential candidates for the next downstream</span>
+<span class="sd">        river basin number.</span>
+
+<span class="sd">        I think, only the first and the last returned candidate should be of</span>
+<span class="sd">        relevance.  But to return all possible intermediate candidates might</span>
+<span class="sd">        be safer river basin number specifications I am not taking into</span>
+<span class="sd">        account at the moment.</span>
+
+<span class="sd">        The candidate numbers might be incomplete.  For example, the next</span>
+<span class="sd">        number downstream of `123` could be `1251` instead of `125`.</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy import RiverBasinNumber</span>
+<span class="sd">        &gt;&gt;&gt; for number in range(120, 130):</span>
+<span class="sd">        ...     rbn = RiverBasinNumber(number)</span>
+<span class="sd">        ...     print(number, rbn, rbn.possible_next_initial_digits)</span>
+<span class="sd">        120 12 (&#39;13&#39;, &#39;15&#39;, &#39;17&#39;, &#39;19&#39;)</span>
+<span class="sd">        121 121 (&#39;123&#39;, &#39;125&#39;, &#39;127&#39;, &#39;129&#39;)</span>
+<span class="sd">        122 122 (&#39;123&#39;, &#39;125&#39;, &#39;127&#39;, &#39;129&#39;)</span>
+<span class="sd">        123 123 (&#39;125&#39;, &#39;127&#39;, &#39;129&#39;)</span>
+<span class="sd">        124 124 (&#39;125&#39;, &#39;127&#39;, &#39;129&#39;)</span>
+<span class="sd">        125 125 (&#39;127&#39;, &#39;129&#39;)</span>
+<span class="sd">        126 126 (&#39;127&#39;, &#39;129&#39;)</span>
+<span class="sd">        127 127 (&#39;129&#39;,)</span>
+<span class="sd">        128 128 (&#39;129&#39;,)</span>
+<span class="sd">        129 129 (&#39;13&#39;, &#39;15&#39;, &#39;17&#39;, &#39;19&#39;)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">rstrip</span><span class="p">(</span><span class="s1">&#39;9&#39;</span><span class="p">)[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">+</span><span class="n">digit</span> <span class="k">for</span> <span class="n">digit</span>
+                     <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_possible_next_last_initial_digits</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">nmb_digits</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Number of (significant) digits of a river basin number.</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy import RiverBasinNumber</span>
+<span class="sd">        &gt;&gt;&gt; RiverBasinNumber(120).nmb_digits</span>
+<span class="sd">        2</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s1">&#39;RiverBasinNumber(</span><span class="si">%s</span><span class="s1">)&#39;</span> <span class="o">%</span> <span class="nb">str</span><span class="o">.</span><span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">)[</span><span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="RiverBasinNumbers"><a class="viewcode-back" href="../../../networktools.html#hydpy.auxs.networktools.RiverBasinNumbers">[docs]</a><span class="k">class</span> <span class="nc">RiverBasinNumbers</span><span class="p">(</span><span class="nb">tuple</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;A sorted collection of |RiverBasinNumber| objects.</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy import RiverBasinNumbers</span>
+<span class="sd">        &gt;&gt;&gt; RiverBasinNumbers((111, 113, 1129, 11269, 1125, 11261,</span>
+<span class="sd">        ...                    11262, 1123, 1124, 1122, 1121))</span>
+<span class="sd">        RiverBasinNumbers((111, 1121, 1122, 1123, 1124, 1125, 11261,</span>
+<span class="sd">                           11262, 11269, 1129, 113))</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__new__</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">values</span><span class="p">):</span>
+        <span class="n">_values</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">RiverBasinNumber</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="k">for</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">values</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">tuple</span><span class="o">.</span><span class="fm">__new__</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">_values</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">_get_next_numbers</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">riverbasinnumber</span><span class="p">):</span>
+        <span class="n">riverbasinnumber</span> <span class="o">=</span> <span class="n">RiverBasinNumber</span><span class="p">(</span><span class="n">riverbasinnumber</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">pdn1</span> <span class="ow">in</span> <span class="n">riverbasinnumber</span><span class="o">.</span><span class="n">possible_next_initial_digits</span><span class="p">:</span>
+            <span class="n">neighbours</span> <span class="o">=</span> <span class="p">[</span><span class="n">rbn</span> <span class="k">for</span> <span class="n">rbn</span> <span class="ow">in</span> <span class="bp">self</span> <span class="k">if</span> <span class="n">rbn</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="n">pdn1</span><span class="p">)]</span>
+            <span class="k">if</span> <span class="n">neighbours</span><span class="p">:</span>
+                <span class="k">return</span> <span class="nb">min</span><span class="p">(</span><span class="n">neighbours</span><span class="p">)</span>
+        <span class="k">return</span> <span class="kc">None</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">next_numbers</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;A tuple of the next downstream river basin numbers.</span>
+
+<span class="sd">        The order of the returned numbers corresponds to the order of the</span>
+<span class="sd">        numbers contained by the |RiverBasinNumbers| object.</span>
+
+<span class="sd">        The number of the subcatchment immediately downstream of the outlet</span>
+<span class="sd">        subcatchment is not known.  The tuple contains a |None| object</span>
+<span class="sd">        instead (or multiple |None| objects in case of multiple outlets).</span>
+
+<span class="sd">        Eventually, not all possible combinations of river basin numbers</span>
+<span class="sd">        are covered.  Please keep us informed if you notices a problem</span>
+<span class="sd">        when applying this algorithm on your data.  At least, the algorithm</span>
+<span class="sd">        works properly on the following test case provided by Michael</span>
+<span class="sd">        Wagner (TU Dresden):</span>
+
+<span class="sd">        .. image:: LAWA_river-basin-bumbers.png</span>
+
+<span class="sd">        At first, only the black arrows are considered, exemplifying the basic</span>
+<span class="sd">        definition of river basin numbers:</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy import RiverBasinNumbers</span>
+<span class="sd">        &gt;&gt;&gt; rbns = RiverBasinNumbers((111, 113, 1129, 11269, 1125, 11261,</span>
+<span class="sd">        ...                           11262, 1123, 1124, 1122, 1121))</span>
+<span class="sd">        &gt;&gt;&gt; for this_rbn, next_rbn in zip(rbns, rbns.next_numbers):</span>
+<span class="sd">        ...    print(this_rbn.ljust(6), next_rbn)</span>
+<span class="sd">        111    113</span>
+<span class="sd">        1121   1123</span>
+<span class="sd">        1122   1123</span>
+<span class="sd">        1123   1125</span>
+<span class="sd">        1124   1125</span>
+<span class="sd">        1125   1129</span>
+<span class="sd">        11261  11269</span>
+<span class="sd">        11262  11269</span>
+<span class="sd">        11269  1129</span>
+<span class="sd">        1129   113</span>
+<span class="sd">        113    None</span>
+
+<span class="sd">        The coloured arrows exemplify the situation, where some additional</span>
+<span class="sd">        subdivisions become necessary:</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy import RiverBasinNumbers</span>
+<span class="sd">        &gt;&gt;&gt; rbns = RiverBasinNumbers((1111, 1119, 113, 1129, 1127,</span>
+<span class="sd">        ...                           11269, 1125, 11261, 11262, 11239,</span>
+<span class="sd">        ...                           11231, 1124, 1122, 1121))</span>
+<span class="sd">        &gt;&gt;&gt; for this_rbn, next_rbn in zip(rbns, rbns.next_numbers):</span>
+<span class="sd">        ...    print(this_rbn.ljust(6), next_rbn)</span>
+<span class="sd">        1111   1119</span>
+<span class="sd">        1119   113</span>
+<span class="sd">        1121   11231</span>
+<span class="sd">        1122   11231</span>
+<span class="sd">        11231  11239</span>
+<span class="sd">        11239  1125</span>
+<span class="sd">        1124   1125</span>
+<span class="sd">        1125   1127</span>
+<span class="sd">        11261  11269</span>
+<span class="sd">        11262  11269</span>
+<span class="sd">        11269  1127</span>
+<span class="sd">        1127   1129</span>
+<span class="sd">        1129   113</span>
+<span class="sd">        113    None</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_next_numbers</span><span class="p">(</span><span class="n">rbn</span><span class="p">)</span> <span class="k">for</span> <span class="n">rbn</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">objecttools</span><span class="o">.</span><span class="n">assignrepr_tuple</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                                            <span class="s1">&#39;RiverBasinNumbers(&#39;</span><span class="p">,</span>
+                                            <span class="mi">60</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;)&#39;</span></div>
+
+
+<div class="viewcode-block" id="RiverBasinNumbers2Selection"><a class="viewcode-back" href="../../../networktools.html#hydpy.auxs.networktools.RiverBasinNumbers2Selection">[docs]</a><span class="k">class</span> <span class="nc">RiverBasinNumbers2Selection</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Class for defining a |Selection| object (consisting of connected</span>
+<span class="sd">    nodes and elements) based on given |RiverBasinNumber| objects.</span>
+
+<span class="sd">    Note that this class is not intended to cover all possible HydPy</span>
+<span class="sd">    networks.  So it might be necessary to make some adjustments on</span>
+<span class="sd">    the returned selection, e.g. to define special names for specific</span>
+<span class="sd">    elements or nodes.</span>
+
+<span class="sd">    All examples of the methods and propertys of</span>
+<span class="sd">    |RiverBasinNumbers2Selection| are based on the river basin numbers</span>
+<span class="sd">    defined in the documentation on class |RiverBasinNumbers|.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">numbers</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">supplier_prefix</span> <span class="o">=</span> <span class="s1">&#39;land_&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">router_prefix</span> <span class="o">=</span> <span class="s1">&#39;stream_&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">node_prefix</span> <span class="o">=</span> <span class="s1">&#39;node_&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">last_node</span> <span class="o">=</span> <span class="s1">&#39;node_outlet&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">selection_name</span> <span class="o">=</span> <span class="s1">&#39;complete&#39;</span>
+        <span class="n">rbns</span> <span class="o">=</span> <span class="n">RiverBasinNumbers</span><span class="p">(</span><span class="n">numbers</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_up2down</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">tuple_</span> <span class="k">for</span> <span class="n">tuple_</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">rbns</span><span class="p">,</span> <span class="n">rbns</span><span class="o">.</span><span class="n">next_numbers</span><span class="p">))</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">_supplier_numbers</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;A tuple of the numbers of all &quot;supplying&quot; basins.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_up2down</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">_router_numbers</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;A tuple of the numbers of all &quot;routing&quot; basins.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">up</span> <span class="k">for</span> <span class="n">up</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_up2down</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+                     <span class="k">if</span> <span class="n">up</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_up2down</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+
+    <span class="k">def</span> <span class="nf">_get_nodename</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">string</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">node_prefix</span> <span class="o">+</span> <span class="n">string</span>
+
+    <span class="k">def</span> <span class="nf">_get_suppliername</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">string</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">supplier_prefix</span> <span class="o">+</span> <span class="n">string</span>
+
+    <span class="k">def</span> <span class="nf">_get_routername</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">string</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">router_prefix</span> <span class="o">+</span> <span class="n">string</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">supplier_elements</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;A |Elements| collection of all &quot;supplying&quot; basins.</span>
+
+<span class="sd">        (All river basins are assumed to supply something to the downstream</span>
+<span class="sd">        basin.)</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy import RiverBasinNumbers2Selection</span>
+<span class="sd">        &gt;&gt;&gt; rbns2s = RiverBasinNumbers2Selection(</span>
+<span class="sd">        ...                            (111, 113, 1129, 11269, 1125, 11261,</span>
+<span class="sd">        ...                             11262, 1123, 1124, 1122, 1121))</span>
+
+<span class="sd">        The following elements are properly connected to the required</span>
+<span class="sd">        outlet nodes already:</span>
+
+<span class="sd">        &gt;&gt;&gt; for element in rbns2s.supplier_elements:</span>
+<span class="sd">        ...     print(repr(element))</span>
+<span class="sd">        Element(&quot;land_111&quot;,</span>
+<span class="sd">                outlets=&quot;node_113&quot;)</span>
+<span class="sd">        Element(&quot;land_1121&quot;,</span>
+<span class="sd">                outlets=&quot;node_1123&quot;)</span>
+<span class="sd">        Element(&quot;land_1122&quot;,</span>
+<span class="sd">                outlets=&quot;node_1123&quot;)</span>
+<span class="sd">        Element(&quot;land_1123&quot;,</span>
+<span class="sd">                outlets=&quot;node_1125&quot;)</span>
+<span class="sd">        Element(&quot;land_1124&quot;,</span>
+<span class="sd">                outlets=&quot;node_1125&quot;)</span>
+<span class="sd">        Element(&quot;land_1125&quot;,</span>
+<span class="sd">                outlets=&quot;node_1129&quot;)</span>
+<span class="sd">        Element(&quot;land_11261&quot;,</span>
+<span class="sd">                outlets=&quot;node_11269&quot;)</span>
+<span class="sd">        Element(&quot;land_11262&quot;,</span>
+<span class="sd">                outlets=&quot;node_11269&quot;)</span>
+<span class="sd">        Element(&quot;land_11269&quot;,</span>
+<span class="sd">                outlets=&quot;node_1129&quot;)</span>
+<span class="sd">        Element(&quot;land_1129&quot;,</span>
+<span class="sd">                outlets=&quot;node_113&quot;)</span>
+<span class="sd">        Element(&quot;land_113&quot;,</span>
+<span class="sd">                outlets=&quot;node_outlet&quot;)</span>
+
+<span class="sd">        It is both possible to change the prefix names of the elements</span>
+<span class="sd">        and nodes, as long as it results in a valid variable name (e.g.</span>
+<span class="sd">        does not start with a number):</span>
+
+<span class="sd">        &gt;&gt;&gt; rbns2s.supplier_prefix = &#39;a_&#39;</span>
+<span class="sd">        &gt;&gt;&gt; rbns2s.node_prefix = &#39;b_&#39;</span>
+<span class="sd">        &gt;&gt;&gt; rbns2s.supplier_elements</span>
+<span class="sd">        Elements(&quot;a_111&quot;, &quot;a_1121&quot;, &quot;a_1122&quot;, &quot;a_1123&quot;, &quot;a_1124&quot;, &quot;a_1125&quot;,</span>
+<span class="sd">                 &quot;a_11261&quot;, &quot;a_11262&quot;, &quot;a_11269&quot;, &quot;a_1129&quot;, &quot;a_113&quot;)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">elements</span> <span class="o">=</span> <span class="n">devicetools</span><span class="o">.</span><span class="n">Elements</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">supplier</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_supplier_numbers</span><span class="p">:</span>
+            <span class="n">element</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_suppliername</span><span class="p">(</span><span class="n">supplier</span><span class="p">)</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">outlet</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_nodename</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_up2down</span><span class="p">[</span><span class="n">supplier</span><span class="p">])</span>
+            <span class="k">except</span> <span class="ne">TypeError</span><span class="p">:</span>
+                <span class="n">outlet</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">last_node</span>
+            <span class="n">elements</span> <span class="o">+=</span> <span class="n">devicetools</span><span class="o">.</span><span class="n">Element</span><span class="p">(</span><span class="n">element</span><span class="p">,</span> <span class="n">outlets</span><span class="o">=</span><span class="n">outlet</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">elements</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">router_elements</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;A |Elements| collection of all &quot;routing&quot; basins.</span>
+
+<span class="sd">        (Only river basins with a upstream basin are assumed to route</span>
+<span class="sd">        something to the downstream basin.)</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy import RiverBasinNumbers2Selection</span>
+<span class="sd">        &gt;&gt;&gt; rbns2s = RiverBasinNumbers2Selection(</span>
+<span class="sd">        ...                            (111, 113, 1129, 11269, 1125, 11261,</span>
+<span class="sd">        ...                             11262, 1123, 1124, 1122, 1121))</span>
+
+<span class="sd">        The following elements are properly connected to the required</span>
+<span class="sd">        inlet and outlet nodes already:</span>
+
+<span class="sd">        &gt;&gt;&gt; for element in rbns2s.router_elements:</span>
+<span class="sd">        ...     print(repr(element))</span>
+<span class="sd">        Element(&quot;stream_1123&quot;,</span>
+<span class="sd">                inlets=&quot;node_1123&quot;,</span>
+<span class="sd">                outlets=&quot;node_1125&quot;)</span>
+<span class="sd">        Element(&quot;stream_1125&quot;,</span>
+<span class="sd">                inlets=&quot;node_1125&quot;,</span>
+<span class="sd">                outlets=&quot;node_1129&quot;)</span>
+<span class="sd">        Element(&quot;stream_11269&quot;,</span>
+<span class="sd">                inlets=&quot;node_11269&quot;,</span>
+<span class="sd">                outlets=&quot;node_1129&quot;)</span>
+<span class="sd">        Element(&quot;stream_1129&quot;,</span>
+<span class="sd">                inlets=&quot;node_1129&quot;,</span>
+<span class="sd">                outlets=&quot;node_113&quot;)</span>
+<span class="sd">        Element(&quot;stream_113&quot;,</span>
+<span class="sd">                inlets=&quot;node_113&quot;,</span>
+<span class="sd">                outlets=&quot;node_outlet&quot;)</span>
+
+<span class="sd">        It is both possible to change the prefix names of the elements</span>
+<span class="sd">        and nodes, as long as it results in a valid variable name (e.g.</span>
+<span class="sd">        does not start with a number):</span>
+
+<span class="sd">        &gt;&gt;&gt; rbns2s.router_prefix = &#39;c_&#39;</span>
+<span class="sd">        &gt;&gt;&gt; rbns2s.node_prefix = &#39;d_&#39;</span>
+<span class="sd">        &gt;&gt;&gt; rbns2s.router_elements</span>
+<span class="sd">        Elements(&quot;c_1123&quot;, &quot;c_1125&quot;, &quot;c_11269&quot;, &quot;c_1129&quot;, &quot;c_113&quot;)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">elements</span> <span class="o">=</span> <span class="n">devicetools</span><span class="o">.</span><span class="n">Elements</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">router</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_router_numbers</span><span class="p">:</span>
+            <span class="n">element</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_routername</span><span class="p">(</span><span class="n">router</span><span class="p">)</span>
+            <span class="n">inlet</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_nodename</span><span class="p">(</span><span class="n">router</span><span class="p">)</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">outlet</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_nodename</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_up2down</span><span class="p">[</span><span class="n">router</span><span class="p">])</span>
+            <span class="k">except</span> <span class="ne">TypeError</span><span class="p">:</span>
+                <span class="n">outlet</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">last_node</span>
+            <span class="n">elements</span> <span class="o">+=</span> <span class="n">devicetools</span><span class="o">.</span><span class="n">Element</span><span class="p">(</span>
+                <span class="n">element</span><span class="p">,</span> <span class="n">inlets</span><span class="o">=</span><span class="n">inlet</span><span class="p">,</span> <span class="n">outlets</span><span class="o">=</span><span class="n">outlet</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">elements</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">elements</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Both the &quot;supplying&quot; and the &quot;routing&quot; elements.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">supplier_elements</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">router_elements</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">nodes</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;A |Nodes| collection of all required nodes.</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy import RiverBasinNumbers2Selection</span>
+<span class="sd">        &gt;&gt;&gt; rbns2s = RiverBasinNumbers2Selection(</span>
+<span class="sd">        ...                            (111, 113, 1129, 11269, 1125, 11261,</span>
+<span class="sd">        ...                             11262, 1123, 1124, 1122, 1121))</span>
+
+<span class="sd">        Note that the required outlet node is added:</span>
+
+<span class="sd">        &gt;&gt;&gt; rbns2s.nodes</span>
+<span class="sd">        Nodes(&quot;node_1123&quot;, &quot;node_1125&quot;, &quot;node_11269&quot;, &quot;node_1129&quot;, &quot;node_113&quot;,</span>
+<span class="sd">              &quot;node_outlet&quot;)</span>
+
+<span class="sd">        It is both possible to change the prefix names of the nodes and</span>
+<span class="sd">        the name of the outlet node separately:</span>
+
+<span class="sd">        &gt;&gt;&gt; rbns2s.node_prefix = &#39;b_&#39;</span>
+<span class="sd">        &gt;&gt;&gt; rbns2s.last_node = &#39;l_node&#39;</span>
+<span class="sd">        &gt;&gt;&gt; rbns2s.nodes</span>
+<span class="sd">        Nodes(&quot;b_1123&quot;, &quot;b_1125&quot;, &quot;b_11269&quot;, &quot;b_1129&quot;, &quot;b_113&quot;, &quot;l_node&quot;)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">(</span>
+            <span class="n">devicetools</span><span class="o">.</span><span class="n">Nodes</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">node_prefix</span><span class="o">+</span><span class="n">routers</span> <span class="k">for</span> <span class="n">routers</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_router_numbers</span><span class="p">)</span> <span class="o">+</span>
+            <span class="n">devicetools</span><span class="o">.</span><span class="n">Node</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">last_node</span><span class="p">))</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">selection</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;A complete |Selection| object of all &quot;supplying&quot; and &quot;routing&quot;</span>
+<span class="sd">        elements and required nodes.</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy import RiverBasinNumbers2Selection</span>
+<span class="sd">        &gt;&gt;&gt; rbns2s = RiverBasinNumbers2Selection(</span>
+<span class="sd">        ...                            (111, 113, 1129, 11269, 1125, 11261,</span>
+<span class="sd">        ...                             11262, 1123, 1124, 1122, 1121))</span>
+<span class="sd">        &gt;&gt;&gt; rbns2s.selection</span>
+<span class="sd">        Selection(&quot;complete&quot;,</span>
+<span class="sd">                  nodes=(&quot;node_1123&quot;, &quot;node_1125&quot;, &quot;node_11269&quot;, &quot;node_1129&quot;,</span>
+<span class="sd">                         &quot;node_113&quot;, &quot;node_outlet&quot;),</span>
+<span class="sd">                  elements=(&quot;land_111&quot;, &quot;land_1121&quot;, &quot;land_1122&quot;, &quot;land_1123&quot;,</span>
+<span class="sd">                            &quot;land_1124&quot;, &quot;land_1125&quot;, &quot;land_11261&quot;,</span>
+<span class="sd">                            &quot;land_11262&quot;, &quot;land_11269&quot;, &quot;land_1129&quot;,</span>
+<span class="sd">                            &quot;land_113&quot;, &quot;stream_1123&quot;, &quot;stream_1125&quot;,</span>
+<span class="sd">                            &quot;stream_11269&quot;, &quot;stream_1129&quot;, &quot;stream_113&quot;))</span>
+
+<span class="sd">        Besides the possible modifications on the names of the different</span>
+<span class="sd">        nodes and elements, the name of the selection can be set differently:</span>
+
+<span class="sd">        &gt;&gt;&gt; rbns2s.selection_name = &#39;sel&#39;</span>
+<span class="sd">        &gt;&gt;&gt; from hydpy import pub</span>
+<span class="sd">        &gt;&gt;&gt; with pub.options.ellipsis(1):</span>
+<span class="sd">        ...     print(repr(rbns2s.selection))</span>
+<span class="sd">        Selection(&quot;sel&quot;,</span>
+<span class="sd">                  nodes=(&quot;node_1123&quot;, ...,&quot;node_outlet&quot;),</span>
+<span class="sd">                  elements=(&quot;land_111&quot;, ...,&quot;stream_113&quot;))</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">selectiontools</span><span class="o">.</span><span class="n">Selection</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">selection_name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nodes</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">elements</span><span class="p">)</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../../index.html">
+              <img class="logo" src="../../../_static/HydPy_Logo.png" alt="Logo"/>
+            </a></p>
+  <h3><a href="../../../index.html">Table of Contents</a></h3>
+  <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../install.html">Installation Instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../framework.html">Framework Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../modelcollection.html">Model Collection</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../development.html">Development</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../examples.html">Example Projects</a></li>
+</ul>
+
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">HydPy 4.0a11 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2019, HydPy Developers.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.2.1.
+    </div>
+  </body>
+</html>

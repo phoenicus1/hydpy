@@ -1,0 +1,1644 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>hydpy.core.modeltools &#8212; HydPy 4.0a11 documentation</title>
+    <link rel="stylesheet" href="../../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css" />
+    
+    <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="../../../_static/language_data.js"></script>
+    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">HydPy 4.0a11 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for hydpy.core.modeltools</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;This module provides features for applying and implementing</span>
+<span class="sd">hydrological models.</span>
+
+<span class="sd">.. _`thorough description`: http://www.hydrology.ruhr-uni-bochum.de/\</span>
+<span class="sd">hydrolgy/mam/download/schriftenreihe_29.pdf</span>
+
+<span class="sd">.. _`Clark and Kavetski`: \</span>
+<span class="sd">https://agupubs.onlinelibrary.wiley.com/doi/full/10.1029/2009WR008894</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="c1"># import...</span>
+<span class="c1"># ...from standard library</span>
+<span class="kn">import</span> <span class="nn">abc</span>
+<span class="kn">import</span> <span class="nn">importlib</span>
+<span class="kn">import</span> <span class="nn">inspect</span>
+<span class="kn">import</span> <span class="nn">itertools</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">types</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="k">import</span> <span class="o">*</span>
+<span class="c1"># ...from site-packages</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="k">import</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Set</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span>
+<span class="c1"># ...from HydPy</span>
+<span class="kn">from</span> <span class="nn">hydpy</span> <span class="k">import</span> <span class="n">conf</span>
+<span class="kn">from</span> <span class="nn">hydpy.core</span> <span class="k">import</span> <span class="n">objecttools</span>
+<span class="kn">from</span> <span class="nn">hydpy.core</span> <span class="k">import</span> <span class="n">parametertools</span>
+<span class="kn">from</span> <span class="nn">hydpy.core</span> <span class="k">import</span> <span class="n">sequencetools</span>
+<span class="kn">from</span> <span class="nn">hydpy.core</span> <span class="k">import</span> <span class="n">typingtools</span>
+<span class="kn">from</span> <span class="nn">hydpy.cythons</span> <span class="k">import</span> <span class="n">modelutils</span>
+<span class="k">if</span> <span class="n">TYPE_CHECKING</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">hydpy.core</span> <span class="k">import</span> <span class="n">devicetools</span>
+    <span class="kn">from</span> <span class="nn">hydpy.core</span> <span class="k">import</span> <span class="n">masktools</span>
+
+
+<div class="viewcode-block" id="Method"><a class="viewcode-back" href="../../../modeltools.html#hydpy.core.modeltools.Method">[docs]</a><span class="k">class</span> <span class="nc">Method</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Base class for defining (hydrological) calculation methods.&quot;&quot;&quot;</span>
+    <span class="n">CONTROLPARAMETERS</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Type</span><span class="p">[</span><span class="n">typingtools</span><span class="o">.</span><span class="n">VariableProtocol</span><span class="p">],</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">()</span>
+    <span class="n">DERIVEDPARAMETERS</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Type</span><span class="p">[</span><span class="n">typingtools</span><span class="o">.</span><span class="n">VariableProtocol</span><span class="p">],</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">()</span>
+    <span class="n">REQUIREDSEQUENCES</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Type</span><span class="p">[</span><span class="n">typingtools</span><span class="o">.</span><span class="n">VariableProtocol</span><span class="p">],</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">()</span>
+    <span class="n">UPDATEDSEQUENCES</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Type</span><span class="p">[</span><span class="n">typingtools</span><span class="o">.</span><span class="n">VariableProtocol</span><span class="p">],</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">()</span>
+    <span class="n">RESULTSEQUENCES</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Type</span><span class="p">[</span><span class="n">typingtools</span><span class="o">.</span><span class="n">VariableProtocol</span><span class="p">],</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">()</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="nd">@abc</span><span class="o">.</span><span class="n">abstractmethod</span>
+    <span class="k">def</span> <span class="nf">__call__</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="s1">&#39;Model&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;The actual calculaton function.&quot;&quot;&quot;</span>
+
+    <span class="vm">__name__</span> <span class="o">=</span> <span class="nb">property</span><span class="p">(</span><span class="n">objecttools</span><span class="o">.</span><span class="n">get_name</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Model"><a class="viewcode-back" href="../../../modeltools.html#hydpy.core.modeltools.Model">[docs]</a><span class="k">class</span> <span class="nc">Model</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Base class for all hydrological models.</span>
+
+<span class="sd">    Class |Model| provides everything to create a usable application</span>
+<span class="sd">    model, except method |Model.simulate|.  See class |AdHocModel| and</span>
+<span class="sd">    |ELSModel|, which implement this method.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">element</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="s1">&#39;devicetools.Element&#39;</span><span class="p">]</span>
+    <span class="n">cymodel</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">typingtools</span><span class="o">.</span><span class="n">CyModelProtocol</span><span class="p">]</span>
+    <span class="n">_name</span><span class="p">:</span> <span class="n">ClassVar</span><span class="p">[</span><span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="n">INLET_METHODS</span><span class="p">:</span> <span class="n">ClassVar</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="n">Callable</span><span class="p">,</span> <span class="o">...</span><span class="p">]]</span>
+    <span class="n">OUTLET_METHODS</span><span class="p">:</span> <span class="n">ClassVar</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="n">Callable</span><span class="p">,</span> <span class="o">...</span><span class="p">]]</span>
+    <span class="n">RECEIVER_METHODS</span><span class="p">:</span> <span class="n">ClassVar</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="n">Callable</span><span class="p">,</span> <span class="o">...</span><span class="p">]]</span>
+    <span class="n">SENDER_METHODS</span><span class="p">:</span> <span class="n">ClassVar</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="n">Callable</span><span class="p">,</span> <span class="o">...</span><span class="p">]]</span>
+    <span class="n">METHOD_GROUPS</span><span class="p">:</span> <span class="n">ClassVar</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]]</span>
+
+    <span class="n">SOLVERPARAMETERS</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Type</span><span class="p">[</span><span class="n">typingtools</span><span class="o">.</span><span class="n">VariableProtocol</span><span class="p">],</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cymodel</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">element</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_init_methods</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">_init_methods</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Convert all pure Python calculation functions of the model class to</span>
+<span class="sd">        methods and assign them to the model instance.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">name_group</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">METHOD_GROUPS</span><span class="p">:</span>
+            <span class="n">functions</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name_group</span><span class="p">,</span> <span class="p">())</span>
+            <span class="n">shortname2method</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">types</span><span class="o">.</span><span class="n">MethodType</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="n">shortnames</span><span class="p">:</span> <span class="n">Set</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+            <span class="k">for</span> <span class="n">func</span> <span class="ow">in</span> <span class="n">functions</span><span class="p">:</span>
+                <span class="n">method</span> <span class="o">=</span> <span class="n">types</span><span class="o">.</span><span class="n">MethodType</span><span class="p">(</span><span class="n">func</span><span class="o">.</span><span class="fm">__call__</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span>
+                <span class="n">name_func</span> <span class="o">=</span> <span class="n">func</span><span class="o">.</span><span class="vm">__name__</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+                <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name_func</span><span class="p">,</span> <span class="n">method</span><span class="p">)</span>
+                <span class="n">shortname</span> <span class="o">=</span> <span class="s1">&#39;_&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">name_func</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;_&#39;</span><span class="p">)[:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+                <span class="k">if</span> <span class="n">shortname</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">shortnames</span><span class="p">:</span>
+                    <span class="n">shortname2method</span><span class="p">[</span><span class="n">shortname</span><span class="p">]</span> <span class="o">=</span> <span class="n">method</span>
+                    <span class="n">shortnames</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">shortname</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">shortname2method</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">shortname</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+            <span class="k">for</span> <span class="p">(</span><span class="n">shortname</span><span class="p">,</span> <span class="n">method</span><span class="p">)</span> <span class="ow">in</span> <span class="n">shortname2method</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="k">if</span> <span class="n">method</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">shortname</span><span class="p">,</span> <span class="n">method</span><span class="p">)</span>
+
+<div class="viewcode-block" id="Model.connect"><a class="viewcode-back" href="../../../modeltools.html#hydpy.core.modeltools.Model.connect">[docs]</a>    <span class="k">def</span> <span class="nf">connect</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Connect all |LinkSequence| objects of the actual model to</span>
+<span class="sd">        the corresponding |NodeSequence| objects.</span>
+
+<span class="sd">        You cannot connect the link sequences until the |Model| object</span>
+<span class="sd">        itself is connected to an |Element| object referencing the</span>
+<span class="sd">        required |Node| objects:</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy import prepare_model</span>
+<span class="sd">        &gt;&gt;&gt; prepare_model(&#39;hstream_v1&#39;).connect()</span>
+<span class="sd">        Traceback (most recent call last):</span>
+<span class="sd">        ...</span>
+<span class="sd">        AttributeError: While trying to build the node connection of the \</span>
+<span class="sd">`inlet` sequences of the model handled by element `?`, the following \</span>
+<span class="sd">error occurred: &#39;NoneType&#39; object has no attribute &#39;inlets&#39;</span>
+
+<span class="sd">        The application model |hstream_v1| can receive inflow from an</span>
+<span class="sd">        arbitrary number of upstream nodes and passes its outflow to</span>
+<span class="sd">        a single downstream node (note that property |Element.model| of</span>
+<span class="sd">        class |Element| calls method |Model.connect| automatically):</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy import Element, Node</span>
+<span class="sd">        &gt;&gt;&gt; in1 = Node(&#39;in1&#39;, variable=&#39;Q&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; in2 = Node(&#39;in2&#39;, variable=&#39;Q&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; out1 = Node(&#39;out1&#39;, variable=&#39;Q&#39;)</span>
+
+<span class="sd">        &gt;&gt;&gt; element1 = Element(</span>
+<span class="sd">        ...     &#39;element1&#39;, inlets=(in1, in2), outlets=out1)</span>
+<span class="sd">        &gt;&gt;&gt; element1.model = prepare_model(&#39;hstream_v1&#39;)</span>
+
+<span class="sd">        Now all connections work as expected:</span>
+
+<span class="sd">        &gt;&gt;&gt; in1.sequences.sim = 1.0</span>
+<span class="sd">        &gt;&gt;&gt; in2.sequences.sim = 2.0</span>
+<span class="sd">        &gt;&gt;&gt; out1.sequences.sim = 3.0</span>
+<span class="sd">        &gt;&gt;&gt; element1.model.sequences.inlets.q</span>
+<span class="sd">        q(1.0, 2.0)</span>
+<span class="sd">        &gt;&gt;&gt; element1.model.sequences.outlets.q</span>
+<span class="sd">        q(3.0)</span>
+<span class="sd">        &gt;&gt;&gt; element1.model.sequences.inlets.q *= 2.0</span>
+<span class="sd">        &gt;&gt;&gt; element1.model.sequences.outlets.q *= 2.0</span>
+<span class="sd">        &gt;&gt;&gt; in1.sequences.sim</span>
+<span class="sd">        sim(2.0)</span>
+<span class="sd">        &gt;&gt;&gt; in2.sequences.sim</span>
+<span class="sd">        sim(4.0)</span>
+<span class="sd">        &gt;&gt;&gt; out1.sequences.sim</span>
+<span class="sd">        sim(6.0)</span>
+
+<span class="sd">        To show some possible errors and related error messages, we</span>
+<span class="sd">        define three additional nodes of, two handling variables</span>
+<span class="sd">        different from discharge (`Q`):</span>
+
+<span class="sd">        &gt;&gt;&gt; in3 = Node(&#39;in3&#39;, variable=&#39;X&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; out2 = Node(&#39;out2&#39;, variable=&#39;Q&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; out3 = Node(&#39;out3&#39;, variable=&#39;X&#39;)</span>
+
+<span class="sd">        Link sequence names must match the `variable` a node is handling:</span>
+
+<span class="sd">        &gt;&gt;&gt; element2 = Element(</span>
+<span class="sd">        ...     &#39;element2&#39;, inlets=(in1, in2), outlets=out3)</span>
+<span class="sd">        &gt;&gt;&gt; element2.model = prepare_model(&#39;hstream_v1&#39;)</span>
+<span class="sd">        Traceback (most recent call last):</span>
+<span class="sd">        ...</span>
+<span class="sd">        RuntimeError: While trying to build the node connection of the \</span>
+<span class="sd">`outlet` sequences of the model handled by element `element2`, the \</span>
+<span class="sd">following error occurred: Sequence `q` of element `element2` cannot be \</span>
+<span class="sd">connected due to no available node handling variable `Q`.</span>
+
+<span class="sd">        One can connect a 0-dimensional link sequence to a single node</span>
+<span class="sd">        sequence only:</span>
+
+<span class="sd">        &gt;&gt;&gt; element3 = Element(</span>
+<span class="sd">        ...     &#39;element3&#39;, inlets=(in1, in2), outlets=(out1, out2))</span>
+<span class="sd">        &gt;&gt;&gt; element3.model = prepare_model(&#39;hstream_v1&#39;)</span>
+<span class="sd">        Traceback (most recent call last):</span>
+<span class="sd">        ...</span>
+<span class="sd">        RuntimeError: While trying to build the node connection of the \</span>
+<span class="sd">`outlet` sequences of the model handled by element `element3`, the following \</span>
+<span class="sd">error occurred: Sequence `q` cannot be connected as it is 0-dimensional \</span>
+<span class="sd">but multiple nodes are available which are handling variable `Q`.</span>
+
+<span class="sd">        Method |Model.connect| generally reports about unusable node</span>
+<span class="sd">        sequences:</span>
+
+<span class="sd">        &gt;&gt;&gt; element4 = Element(</span>
+<span class="sd">        ...     &#39;element4&#39;, inlets=(in1, in2), outlets=(out1, out3))</span>
+<span class="sd">        &gt;&gt;&gt; element4.model = prepare_model(&#39;hstream_v1&#39;)</span>
+<span class="sd">        Traceback (most recent call last):</span>
+<span class="sd">        ...</span>
+<span class="sd">        RuntimeError: While trying to build the node connection of the \</span>
+<span class="sd">`outlet` sequences of the model handled by element `element4`, the \</span>
+<span class="sd">following error occurred: The following nodes have not been connected \</span>
+<span class="sd">to any sequences: out3.</span>
+
+<span class="sd">        &gt;&gt;&gt; element5 = Element(</span>
+<span class="sd">        ...     &#39;element5&#39;, inlets=(in1, in2, in3), outlets=out1)</span>
+<span class="sd">        &gt;&gt;&gt; element5.model = prepare_model(&#39;hstream_v1&#39;)</span>
+<span class="sd">        Traceback (most recent call last):</span>
+<span class="sd">        ...</span>
+<span class="sd">        RuntimeError: While trying to build the node connection of the \</span>
+<span class="sd">`inlet` sequences of the model handled by element `element5`, the \</span>
+<span class="sd">following error occurred: The following nodes have not been connected \</span>
+<span class="sd">to any sequences: in3.</span>
+
+<span class="sd">        &gt;&gt;&gt; element6 = Element(</span>
+<span class="sd">        ...     &#39;element6&#39;, inlets=in1, outlets=out1, receivers=in2)</span>
+<span class="sd">        &gt;&gt;&gt; element6.model = prepare_model(&#39;hstream_v1&#39;)</span>
+<span class="sd">        Traceback (most recent call last):</span>
+<span class="sd">        ...</span>
+<span class="sd">        RuntimeError: While trying to build the node connection of the \</span>
+<span class="sd">`receiver` sequences of the model handled by element `element6`, the \</span>
+<span class="sd">following error occurred: The following nodes have not been connected \</span>
+<span class="sd">to any sequences: in2.</span>
+
+<span class="sd">        &gt;&gt;&gt; element7 = Element(</span>
+<span class="sd">        ...     &#39;element7&#39;, inlets=in1, outlets=out1, senders=in2)</span>
+<span class="sd">        &gt;&gt;&gt; element7.model = prepare_model(&#39;hstream_v1&#39;)</span>
+<span class="sd">        Traceback (most recent call last):</span>
+<span class="sd">        ...</span>
+<span class="sd">        RuntimeError: While trying to build the node connection of the \</span>
+<span class="sd">`sender` sequences of the model handled by element `element7`, the \</span>
+<span class="sd">following error occurred: The following nodes have not been connected \</span>
+<span class="sd">to any sequences: in2.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">group</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;inlets&#39;</span><span class="p">,</span> <span class="s1">&#39;receivers&#39;</span><span class="p">,</span> <span class="s1">&#39;outlets&#39;</span><span class="p">,</span> <span class="s1">&#39;senders&#39;</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_connect_subgroup</span><span class="p">(</span><span class="n">group</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">BaseException</span><span class="p">:</span>
+            <span class="n">objecttools</span><span class="o">.</span><span class="n">augment_excmessage</span><span class="p">(</span>
+                <span class="n">f</span><span class="s1">&#39;While trying to build the node connection of &#39;</span>
+                <span class="n">f</span><span class="s1">&#39;the `</span><span class="si">{group[:-1]}</span><span class="s1">` sequences of the model handled &#39;</span>
+                <span class="n">f</span><span class="s1">&#39;by element `{objecttools.devicename(self)}`&#39;</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="nf">_connect_subgroup</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">group</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">available_nodes</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">element</span><span class="p">,</span> <span class="n">group</span><span class="p">)</span>
+        <span class="n">links</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sequences</span><span class="p">,</span> <span class="n">group</span><span class="p">,</span> <span class="p">())</span>
+        <span class="n">applied_nodes</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">seq</span> <span class="ow">in</span> <span class="n">links</span><span class="p">:</span>
+            <span class="n">selected_nodes</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">node</span> <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">available_nodes</span>
+                                   <span class="k">if</span> <span class="n">node</span><span class="o">.</span><span class="n">variable</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="n">seq</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">seq</span><span class="o">.</span><span class="n">NDIM</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">selected_nodes</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+                        <span class="n">f</span><span class="s1">&#39;Sequence {objecttools.elementphrase(seq)} &#39;</span>
+                        <span class="n">f</span><span class="s1">&#39;cannot be connected due to no available node &#39;</span>
+                        <span class="n">f</span><span class="s1">&#39;handling variable `{seq.name.upper()}`.&#39;</span><span class="p">)</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">selected_nodes</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+                        <span class="n">f</span><span class="s1">&#39;Sequence `</span><span class="si">{seq.name}</span><span class="s1">` cannot be connected as &#39;</span>
+                        <span class="n">f</span><span class="s1">&#39;it is 0-dimensional but multiple nodes are &#39;</span>
+                        <span class="n">f</span><span class="s1">&#39;available which are handling variable &#39;</span>
+                        <span class="n">f</span><span class="s1">&#39;`{seq.name.upper()}`.&#39;</span><span class="p">)</span>
+                <span class="n">applied_nodes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">selected_nodes</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+                <span class="n">seq</span><span class="o">.</span><span class="n">set_pointer</span><span class="p">(</span><span class="n">selected_nodes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">get_double</span><span class="p">(</span><span class="n">group</span><span class="p">))</span>
+            <span class="k">elif</span> <span class="n">seq</span><span class="o">.</span><span class="n">NDIM</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">seq</span><span class="o">.</span><span class="n">shape</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">selected_nodes</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">node</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">selected_nodes</span><span class="p">):</span>
+                    <span class="n">applied_nodes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">node</span><span class="p">)</span>
+                    <span class="n">seq</span><span class="o">.</span><span class="n">set_pointer</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">get_double</span><span class="p">(</span><span class="n">group</span><span class="p">),</span> <span class="n">idx</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">applied_nodes</span><span class="p">)</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">available_nodes</span><span class="p">):</span>
+            <span class="n">remaining_nodes</span> <span class="o">=</span> <span class="p">[</span><span class="n">node</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">available_nodes</span>
+                               <span class="k">if</span> <span class="n">node</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">applied_nodes</span><span class="p">]</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+                <span class="n">f</span><span class="s1">&#39;The following nodes have not been connected to any &#39;</span>
+                <span class="n">f</span><span class="s1">&#39;sequences: {objecttools.enumeration(remaining_nodes)}.&#39;</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">name</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Name of the model type.</span>
+
+<span class="sd">        For base models, |Model.name| corresponds to the package name:</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy import prepare_model</span>
+<span class="sd">        &gt;&gt;&gt; hland = prepare_model(&#39;hland&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; hland.name</span>
+<span class="sd">        &#39;hland&#39;</span>
+
+<span class="sd">        For application models, |Model.name| corresponds the module name:</span>
+
+<span class="sd">        &gt;&gt;&gt; hland_v1 = prepare_model(&#39;hland_v1&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; hland_v1.name</span>
+<span class="sd">        &#39;hland_v1&#39;</span>
+
+<span class="sd">        This last example has only technical reasons:</span>
+
+<span class="sd">        &gt;&gt;&gt; hland.name</span>
+<span class="sd">        &#39;hland&#39;</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_name</span>
+        <span class="k">if</span> <span class="n">name</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">substrings</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__module__</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">)</span>
+            <span class="n">name</span> <span class="o">=</span> <span class="n">substrings</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">substrings</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span> <span class="k">else</span> <span class="n">substrings</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+            <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">_name</span> <span class="o">=</span> <span class="n">name</span>
+        <span class="k">return</span> <span class="n">name</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">parameters</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">parametertools</span><span class="o">.</span><span class="n">Parameters</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;All parameters of the actual model.</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy import prepare_model</span>
+<span class="sd">        &gt;&gt;&gt; model = prepare_model(&#39;hland_v1&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; hasattr(model, &#39;parameters&#39;)</span>
+<span class="sd">        True</span>
+
+<span class="sd">        When using the standard model import mechanism (see functions</span>
+<span class="sd">        |parameterstep| and |prepare_model|) and not demolishing a</span>
+<span class="sd">        correctly prepared model, you should never encounter a</span>
+<span class="sd">        situation where the following error occurs:</span>
+
+<span class="sd">        &gt;&gt;&gt; del vars(model)[&#39;parameters&#39;]</span>
+<span class="sd">        &gt;&gt;&gt; model.parameters</span>
+<span class="sd">        Traceback (most recent call last):</span>
+<span class="sd">        ...</span>
+<span class="sd">        AttributeError: Model `hland_v1` of element `?` does not handle \</span>
+<span class="sd">any parameters so far.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">parameters</span> <span class="o">=</span> <span class="nb">vars</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;parameters&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">parameters</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span>
+                <span class="n">f</span><span class="s1">&#39;Model {objecttools.elementphrase(self)} &#39;</span>
+                <span class="n">f</span><span class="s1">&#39;does not handle any parameters so far.&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">parameters</span>
+
+    <span class="nd">@parameters</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">parameters</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parameters</span><span class="p">:</span> <span class="n">parametertools</span><span class="o">.</span><span class="n">Parameters</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="nb">vars</span><span class="p">(</span><span class="bp">self</span><span class="p">)[</span><span class="s1">&#39;parameters&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">parameters</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">sequences</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;sequencetools.Sequences&#39;</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;All sequences of the actual model.</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy import prepare_model</span>
+<span class="sd">        &gt;&gt;&gt; model = prepare_model(&#39;hland_v1&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; hasattr(model, &#39;sequences&#39;)</span>
+<span class="sd">        True</span>
+
+<span class="sd">        When using the standard model import mechanism (see functions</span>
+<span class="sd">        |parameterstep| and |prepare_model|) and not demolishing a</span>
+<span class="sd">        correctly prepared model, you should never encounter a</span>
+<span class="sd">        situation where the following error occurs:</span>
+
+<span class="sd">        &gt;&gt;&gt; del vars(model)[&#39;sequences&#39;]</span>
+<span class="sd">        &gt;&gt;&gt; model.sequences</span>
+<span class="sd">        Traceback (most recent call last):</span>
+<span class="sd">        ...</span>
+<span class="sd">        AttributeError: Model `hland_v1` of element `?` does not handle \</span>
+<span class="sd">any sequences so far.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">sequences</span> <span class="o">=</span> <span class="nb">vars</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;sequences&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">sequences</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span>
+                <span class="n">f</span><span class="s1">&#39;Model {objecttools.elementphrase(self)} &#39;</span>
+                <span class="n">f</span><span class="s1">&#39;does not handle any sequences so far.&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">sequences</span>
+
+    <span class="nd">@sequences</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">sequences</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sequences</span><span class="p">:</span> <span class="s1">&#39;sequencetools.Sequences&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="nb">vars</span><span class="p">(</span><span class="bp">self</span><span class="p">)[</span><span class="s1">&#39;sequences&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">sequences</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">idx_sim</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;The index of the current simulation time step.</span>
+
+<span class="sd">        Some methods require to know the index of the current simulation</span>
+<span class="sd">        step (with respect to the initialisation period),  which one</span>
+<span class="sd">        usually updates by passing it to method  |Model.simulate|.</span>
+<span class="sd">        However, you are allowed to change it manually, which is often</span>
+<span class="sd">        beneficial when testing some methods:</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy import prepare_model</span>
+<span class="sd">        &gt;&gt;&gt; model = prepare_model(&#39;hland_v1&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; model.idx_sim</span>
+<span class="sd">        0</span>
+<span class="sd">        &gt;&gt;&gt; model.idx_sim = 1</span>
+<span class="sd">        &gt;&gt;&gt; model.idx_sim</span>
+<span class="sd">        1</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">cymodel</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">cymodel</span><span class="o">.</span><span class="n">idx_sim</span>
+        <span class="k">return</span> <span class="nb">vars</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;idx_sim&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+
+    <span class="nd">@idx_sim</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">idx_sim</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">cymodel</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">cymodel</span><span class="o">.</span><span class="n">idx_sim</span> <span class="o">=</span> <span class="n">value</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="nb">vars</span><span class="p">(</span><span class="bp">self</span><span class="p">)[</span><span class="s1">&#39;idx_sim&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+
+<div class="viewcode-block" id="Model.simulate"><a class="viewcode-back" href="../../../modeltools.html#hydpy.core.modeltools.Model.simulate">[docs]</a>    <span class="nd">@abc</span><span class="o">.</span><span class="n">abstractmethod</span>
+    <span class="k">def</span> <span class="nf">simulate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">idx</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Perform a simulation run over a single simulation time step.&quot;&quot;&quot;</span></div>
+
+<div class="viewcode-block" id="Model.load_data"><a class="viewcode-back" href="../../../modeltools.html#hydpy.core.modeltools.Model.load_data">[docs]</a>    <span class="k">def</span> <span class="nf">load_data</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Call method |Sequences.load_data| of attribute `sequences`.</span>
+
+<span class="sd">        When working in Cython mode, the standard model import overrides</span>
+<span class="sd">        this generic Python version with a model-specific Cython version.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">sequences</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">load_data</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">idx_sim</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Model.save_data"><a class="viewcode-back" href="../../../modeltools.html#hydpy.core.modeltools.Model.save_data">[docs]</a>    <span class="k">def</span> <span class="nf">save_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">idx</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Call method |Sequences.save_data| of attribute `sequences`.</span>
+
+<span class="sd">        When working in Cython mode, the standard model import overrides</span>
+<span class="sd">        this generic Python version with a model-specific Cython version.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">idx_sim</span> <span class="o">=</span> <span class="n">idx</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">sequences</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">save_data</span><span class="p">(</span><span class="n">idx</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Model.update_inlets"><a class="viewcode-back" href="../../../modeltools.html#hydpy.core.modeltools.Model.update_inlets">[docs]</a>    <span class="k">def</span> <span class="nf">update_inlets</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Call all methods defined as &quot;INLET_METHODS&quot; in the defined order.</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.core.modeltools import AdHocModel, Method</span>
+<span class="sd">        &gt;&gt;&gt; class print_1(Method):</span>
+<span class="sd">        ...     @staticmethod</span>
+<span class="sd">        ...     def __call__(self):</span>
+<span class="sd">        ...         print(1)</span>
+<span class="sd">        &gt;&gt;&gt; class print_2(Method):</span>
+<span class="sd">        ...     @staticmethod</span>
+<span class="sd">        ...     def __call__(self):</span>
+<span class="sd">        ...         print(2)</span>
+<span class="sd">        &gt;&gt;&gt; class Test(AdHocModel):</span>
+<span class="sd">        ...     INLET_METHODS = print_1, print_2</span>
+<span class="sd">        &gt;&gt;&gt; Test().update_inlets()</span>
+<span class="sd">        1</span>
+<span class="sd">        2</span>
+
+<span class="sd">        When working in Cython mode, the standard model import overrides</span>
+<span class="sd">        this generic Python version with a model-specific Cython version.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">method</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">INLET_METHODS</span><span class="p">:</span>
+            <span class="n">method</span><span class="o">.</span><span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Model.update_outlets"><a class="viewcode-back" href="../../../modeltools.html#hydpy.core.modeltools.Model.update_outlets">[docs]</a>    <span class="k">def</span> <span class="nf">update_outlets</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Call all methods defined as &quot;OUTLET_METHODS&quot; in the defined order.</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.core.modeltools import AdHocModel, Method</span>
+<span class="sd">        &gt;&gt;&gt; class print_1(Method):</span>
+<span class="sd">        ...     @staticmethod</span>
+<span class="sd">        ...     def __call__(self):</span>
+<span class="sd">        ...         print(1)</span>
+<span class="sd">        &gt;&gt;&gt; class print_2(Method):</span>
+<span class="sd">        ...     @staticmethod</span>
+<span class="sd">        ...     def __call__(self):</span>
+<span class="sd">        ...         print(2)</span>
+<span class="sd">        &gt;&gt;&gt; class Test(AdHocModel):</span>
+<span class="sd">        ...     OUTLET_METHODS = print_1, print_2</span>
+<span class="sd">        &gt;&gt;&gt; Test().update_outlets()</span>
+<span class="sd">        1</span>
+<span class="sd">        2</span>
+
+<span class="sd">        When working in Cython mode, the standard model import overrides</span>
+<span class="sd">        this generic Python version with a model-specific Cython version.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">method</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">OUTLET_METHODS</span><span class="p">:</span>
+            <span class="n">method</span><span class="o">.</span><span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Model.update_receivers"><a class="viewcode-back" href="../../../modeltools.html#hydpy.core.modeltools.Model.update_receivers">[docs]</a>    <span class="k">def</span> <span class="nf">update_receivers</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">idx</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Call all methods defined as &quot;RECEIVER_METHODS&quot; in the defined order.</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.core.modeltools import AdHocModel, Method</span>
+<span class="sd">        &gt;&gt;&gt; class print_1(Method):</span>
+<span class="sd">        ...     @staticmethod</span>
+<span class="sd">        ...     def __call__(self):</span>
+<span class="sd">        ...        print(test.idx_sim+1)</span>
+<span class="sd">        &gt;&gt;&gt; class print_2(Method):</span>
+<span class="sd">        ...     @staticmethod</span>
+<span class="sd">        ...     def __call__(self):</span>
+<span class="sd">        ...         print(test.idx_sim+2)</span>
+<span class="sd">        &gt;&gt;&gt; class Test(AdHocModel):</span>
+<span class="sd">        ...     RECEIVER_METHODS = print_1, print_2</span>
+<span class="sd">        &gt;&gt;&gt; test = Test()</span>
+<span class="sd">        &gt;&gt;&gt; test.update_receivers(1)</span>
+<span class="sd">        2</span>
+<span class="sd">        3</span>
+
+<span class="sd">        When working in Cython mode, the standard model import overrides</span>
+<span class="sd">        this generic Python version with a model-specific Cython version.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">idx_sim</span> <span class="o">=</span> <span class="n">idx</span>
+        <span class="k">for</span> <span class="n">method</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">RECEIVER_METHODS</span><span class="p">:</span>
+            <span class="n">method</span><span class="o">.</span><span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Model.update_senders"><a class="viewcode-back" href="../../../modeltools.html#hydpy.core.modeltools.Model.update_senders">[docs]</a>    <span class="k">def</span> <span class="nf">update_senders</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">idx</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Call all methods defined as &quot;SENDER_METHODS&quot; in the defined order.</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.core.modeltools import AdHocModel, Method</span>
+<span class="sd">        &gt;&gt;&gt; class print_1(Method):</span>
+<span class="sd">        ...     @staticmethod</span>
+<span class="sd">        ...     def __call__(self):</span>
+<span class="sd">        ...        print(test.idx_sim+1)</span>
+<span class="sd">        &gt;&gt;&gt; class print_2(Method):</span>
+<span class="sd">        ...     @staticmethod</span>
+<span class="sd">        ...     def __call__(self):</span>
+<span class="sd">        ...         print(test.idx_sim+2)</span>
+<span class="sd">        &gt;&gt;&gt; class Test(AdHocModel):</span>
+<span class="sd">        ...     SENDER_METHODS = print_1, print_2</span>
+<span class="sd">        &gt;&gt;&gt; test = Test()</span>
+<span class="sd">        &gt;&gt;&gt; test.update_senders(1)</span>
+<span class="sd">        2</span>
+<span class="sd">        3</span>
+
+<span class="sd">        When working in Cython mode, the standard model import overrides</span>
+<span class="sd">        this generic Python version with a model-specific Cython version.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">idx_sim</span> <span class="o">=</span> <span class="n">idx</span>
+        <span class="k">for</span> <span class="n">method</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">SENDER_METHODS</span><span class="p">:</span>
+            <span class="n">method</span><span class="o">.</span><span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Model.new2old"><a class="viewcode-back" href="../../../modeltools.html#hydpy.core.modeltools.Model.new2old">[docs]</a>    <span class="k">def</span> <span class="nf">new2old</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Call method |StateSequences.new2old| of subattribute</span>
+<span class="sd">        `sequences.states`.</span>
+
+<span class="sd">        When working in Cython mode, the standard model import overrides</span>
+<span class="sd">        this generic Python version with a model-specific Cython version.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">sequences</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">states</span><span class="o">.</span><span class="n">new2old</span><span class="p">()</span></div>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">masks</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;masktools.Masks&#39;</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;All predefined masks of the actual model type contained in a</span>
+<span class="sd">        |Masks| objects.</span>
+
+<span class="sd">        To give an example, we show the masks implemented by the</span>
+<span class="sd">        |hland_v1| application model:</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.hland_v1 import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep(&#39;1d&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; model.masks</span>
+<span class="sd">        complete of module hydpy.models.hland.hland_masks</span>
+<span class="sd">        land of module hydpy.models.hland.hland_masks</span>
+<span class="sd">        noglacier of module hydpy.models.hland.hland_masks</span>
+<span class="sd">        soil of module hydpy.models.hland.hland_masks</span>
+<span class="sd">        field of module hydpy.models.hland.hland_masks</span>
+<span class="sd">        forest of module hydpy.models.hland.hland_masks</span>
+<span class="sd">        ilake of module hydpy.models.hland.hland_masks</span>
+<span class="sd">        glacier of module hydpy.models.hland.hland_masks</span>
+
+<span class="sd">        You can use them, for example, to average the zone-specific</span>
+<span class="sd">        precipitation values handled by sequence |hland_fluxes.PC|.</span>
+<span class="sd">        When passing no argument, method |Variable.average_values|</span>
+<span class="sd">        applies the `complete` mask.  Pass mask `land` to average the</span>
+<span class="sd">        values of all zones except those of type |hland_constants.ILAKE|:</span>
+
+<span class="sd">        &gt;&gt;&gt; nmbzones(4)</span>
+<span class="sd">        &gt;&gt;&gt; zonetype(FIELD, FOREST, GLACIER, ILAKE)</span>
+<span class="sd">        &gt;&gt;&gt; zonearea(1.0)</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.pc = 1.0, 3.0, 5.0, 7.0</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.pc.average_values()</span>
+<span class="sd">        4.0</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.pc.average_values(model.masks.land)</span>
+<span class="sd">        3.0</span>
+
+<span class="sd">        To try to query the masks of a model not implementing any masks</span>
+<span class="sd">        results in the following error:</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy import prepare_model</span>
+<span class="sd">        &gt;&gt;&gt; prepare_model(&#39;test_v1&#39;).masks</span>
+<span class="sd">        Traceback (most recent call last):</span>
+<span class="sd">        ...</span>
+<span class="sd">        AttributeError: Model `test_v1` does not handle a group of masks.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">masks</span> <span class="o">=</span> <span class="nb">vars</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;masks&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">masks</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span>
+                <span class="n">f</span><span class="s1">&#39;Model `</span><span class="si">{self.name}</span><span class="s1">` does not handle a group of masks.&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">masks</span>
+
+    <span class="nd">@masks</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">masks</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">masks</span><span class="p">:</span> <span class="s1">&#39;masktools.Masks&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="nb">vars</span><span class="p">(</span><span class="bp">self</span><span class="p">)[</span><span class="s1">&#39;masks&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">masks</span>
+
+<div class="viewcode-block" id="Model.get_methods"><a class="viewcode-back" href="../../../modeltools.html#hydpy.core.modeltools.Model.get_methods">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">get_methods</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="n">Method</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;Convenience method for iterating through all methods selected by</span>
+<span class="sd">        a |Model| subclass.</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models import hland_v1</span>
+<span class="sd">        &gt;&gt;&gt; for method in hland_v1.Model.get_methods():</span>
+<span class="sd">        ...     print(method.__name__)   # doctest: +ELLIPSIS</span>
+<span class="sd">        Calc_TC_V1</span>
+<span class="sd">        Calc_TMean_V1</span>
+<span class="sd">        ...</span>
+<span class="sd">        Calc_QT_V1</span>
+<span class="sd">        Pass_Q_v1</span>
+
+<span class="sd">        Note that function |Model.get_methods| returns the &quot;raw&quot; |Method|</span>
+<span class="sd">        objects instead of the modified Python or Cython functions used</span>
+<span class="sd">        for performing calculations.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">name_group</span> <span class="ow">in</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="s1">&#39;METHOD_GROUPS&#39;</span><span class="p">,</span> <span class="p">()):</span>
+            <span class="k">for</span> <span class="n">method</span> <span class="ow">in</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">name_group</span><span class="p">,</span> <span class="p">()):</span>
+                <span class="k">yield</span> <span class="n">method</span></div>
+
+    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span>
+
+    <span class="k">def</span> <span class="nf">__init_subclass__</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
+        <span class="n">modulename</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="vm">__module__</span>
+        <span class="k">if</span> <span class="n">modulename</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="n">modulename</span> <span class="o">=</span> <span class="n">modulename</span><span class="o">.</span><span class="n">rpartition</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">module</span> <span class="o">=</span> <span class="n">importlib</span><span class="o">.</span><span class="n">import_module</span><span class="p">(</span><span class="n">modulename</span><span class="p">)</span>
+        <span class="n">modelname</span> <span class="o">=</span> <span class="n">modulename</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+        <span class="n">allsequences</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+        <span class="n">st</span> <span class="o">=</span> <span class="n">sequencetools</span>
+        <span class="n">infos</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="p">(</span><span class="n">st</span><span class="o">.</span><span class="n">InletSequences</span><span class="p">,</span> <span class="n">st</span><span class="o">.</span><span class="n">InletSequence</span><span class="p">,</span> <span class="nb">set</span><span class="p">()),</span>
+            <span class="p">(</span><span class="n">st</span><span class="o">.</span><span class="n">ReceiverSequences</span><span class="p">,</span> <span class="n">st</span><span class="o">.</span><span class="n">ReceiverSequence</span><span class="p">,</span> <span class="nb">set</span><span class="p">()),</span>
+            <span class="p">(</span><span class="n">st</span><span class="o">.</span><span class="n">InputSequences</span><span class="p">,</span> <span class="n">st</span><span class="o">.</span><span class="n">InputSequence</span><span class="p">,</span> <span class="nb">set</span><span class="p">()),</span>
+            <span class="p">(</span><span class="n">st</span><span class="o">.</span><span class="n">FluxSequences</span><span class="p">,</span> <span class="n">st</span><span class="o">.</span><span class="n">FluxSequence</span><span class="p">,</span> <span class="nb">set</span><span class="p">()),</span>
+            <span class="p">(</span><span class="n">st</span><span class="o">.</span><span class="n">StateSequences</span><span class="p">,</span> <span class="n">st</span><span class="o">.</span><span class="n">StateSequence</span><span class="p">,</span> <span class="nb">set</span><span class="p">()),</span>
+            <span class="p">(</span><span class="n">st</span><span class="o">.</span><span class="n">LogSequences</span><span class="p">,</span> <span class="n">st</span><span class="o">.</span><span class="n">LogSequence</span><span class="p">,</span> <span class="nb">set</span><span class="p">()),</span>
+            <span class="p">(</span><span class="n">st</span><span class="o">.</span><span class="n">AideSequences</span><span class="p">,</span> <span class="n">st</span><span class="o">.</span><span class="n">AideSequence</span><span class="p">,</span> <span class="nb">set</span><span class="p">()),</span>
+            <span class="p">(</span><span class="n">st</span><span class="o">.</span><span class="n">OutletSequences</span><span class="p">,</span> <span class="n">st</span><span class="o">.</span><span class="n">OutletSequence</span><span class="p">,</span> <span class="nb">set</span><span class="p">()),</span>
+            <span class="p">(</span><span class="n">st</span><span class="o">.</span><span class="n">SenderSequences</span><span class="p">,</span> <span class="n">st</span><span class="o">.</span><span class="n">SenderSequence</span><span class="p">,</span> <span class="nb">set</span><span class="p">()),</span>
+        <span class="p">)</span>
+        <span class="k">for</span> <span class="n">method</span> <span class="ow">in</span> <span class="bp">cls</span><span class="o">.</span><span class="n">get_methods</span><span class="p">():</span>
+            <span class="k">for</span> <span class="n">sequence</span> <span class="ow">in</span> <span class="n">itertools</span><span class="o">.</span><span class="n">chain</span><span class="p">(</span>
+                    <span class="n">method</span><span class="o">.</span><span class="n">REQUIREDSEQUENCES</span><span class="p">,</span>
+                    <span class="n">method</span><span class="o">.</span><span class="n">UPDATEDSEQUENCES</span><span class="p">,</span>
+                    <span class="n">method</span><span class="o">.</span><span class="n">RESULTSEQUENCES</span><span class="p">):</span>
+                <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">typesequence</span><span class="p">,</span> <span class="n">sequences</span> <span class="ow">in</span> <span class="n">infos</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="nb">issubclass</span><span class="p">(</span><span class="n">sequence</span><span class="p">,</span> <span class="n">typesequence</span><span class="p">):</span>
+                        <span class="n">sequences</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">sequence</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">typesequences</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">sequences</span> <span class="ow">in</span> <span class="n">infos</span><span class="p">:</span>
+            <span class="n">allsequences</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">sequences</span><span class="p">)</span>
+            <span class="n">classname</span> <span class="o">=</span> <span class="n">objecttools</span><span class="o">.</span><span class="n">classname</span><span class="p">(</span><span class="n">typesequences</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">module</span><span class="p">,</span> <span class="n">classname</span><span class="p">):</span>
+                <span class="n">members</span> <span class="o">=</span> <span class="p">{</span>
+                    <span class="s1">&#39;CLASSES&#39;</span><span class="p">:</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_sort_variables</span><span class="p">(</span><span class="n">sequences</span><span class="p">),</span>
+                    <span class="s1">&#39;__doc__&#39;</span><span class="p">:</span> <span class="n">f</span><span class="s1">&#39;</span><span class="si">{classname[:-9]}</span><span class="s1"> sequences &#39;</span>
+                               <span class="n">f</span><span class="s1">&#39;of model </span><span class="si">{modelname}</span><span class="s1">.&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;__module__&#39;</span><span class="p">:</span> <span class="n">modulename</span><span class="p">,</span>
+                <span class="p">}</span>
+                <span class="n">typesequence</span> <span class="o">=</span> <span class="nb">type</span><span class="p">(</span><span class="n">classname</span><span class="p">,</span> <span class="p">(</span><span class="n">typesequences</span><span class="p">,),</span> <span class="n">members</span><span class="p">)</span>
+                <span class="nb">setattr</span><span class="p">(</span><span class="n">module</span><span class="p">,</span> <span class="n">classname</span><span class="p">,</span> <span class="n">typesequence</span><span class="p">)</span>
+
+        <span class="n">controlparameters</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+        <span class="n">derivedparameters</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">host</span> <span class="ow">in</span> <span class="n">itertools</span><span class="o">.</span><span class="n">chain</span><span class="p">(</span><span class="bp">cls</span><span class="o">.</span><span class="n">get_methods</span><span class="p">(),</span> <span class="n">allsequences</span><span class="p">):</span>
+            <span class="n">controlparameters</span><span class="o">.</span><span class="n">update</span><span class="p">(</span>
+                <span class="nb">getattr</span><span class="p">(</span><span class="n">host</span><span class="p">,</span> <span class="s1">&#39;CONTROLPARAMETERS&#39;</span><span class="p">,</span> <span class="p">()))</span>
+            <span class="n">derivedparameters</span><span class="o">.</span><span class="n">update</span><span class="p">(</span>
+                <span class="nb">getattr</span><span class="p">(</span><span class="n">host</span><span class="p">,</span> <span class="s1">&#39;DERIVEDPARAMETERS&#39;</span><span class="p">,</span> <span class="p">()))</span>
+        <span class="k">for</span> <span class="n">par</span> <span class="ow">in</span> <span class="n">itertools</span><span class="o">.</span><span class="n">chain</span><span class="p">(</span><span class="n">derivedparameters</span><span class="p">,</span> <span class="bp">cls</span><span class="o">.</span><span class="n">SOLVERPARAMETERS</span><span class="p">):</span>
+            <span class="n">controlparameters</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">par</span><span class="p">,</span> <span class="s1">&#39;CONTROLPARAMETERS&#39;</span><span class="p">,</span> <span class="p">()))</span>
+            <span class="n">derivedparameters</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">par</span><span class="p">,</span> <span class="s1">&#39;DERIVEDPARAMETERS&#39;</span><span class="p">,</span> <span class="p">()))</span>
+        <span class="k">if</span> <span class="n">controlparameters</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">module</span><span class="p">,</span> <span class="s1">&#39;ControlParameters&#39;</span><span class="p">):</span>
+            <span class="n">module</span><span class="o">.</span><span class="n">ControlParameters</span> <span class="o">=</span> <span class="nb">type</span><span class="p">(</span>
+                <span class="s1">&#39;ControlParameters&#39;</span><span class="p">,</span>
+                <span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">SubParameters</span><span class="p">,),</span>
+                <span class="p">{</span><span class="s1">&#39;CLASSES&#39;</span><span class="p">:</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_sort_variables</span><span class="p">(</span><span class="n">controlparameters</span><span class="p">),</span>
+                 <span class="s1">&#39;__doc__&#39;</span><span class="p">:</span> <span class="n">f</span><span class="s1">&#39;Control parameters of model </span><span class="si">{modelname}</span><span class="s1">.&#39;</span><span class="p">,</span>
+                 <span class="s1">&#39;__module__&#39;</span><span class="p">:</span> <span class="n">modulename</span><span class="p">},</span>
+            <span class="p">)</span>
+        <span class="k">if</span> <span class="n">derivedparameters</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">module</span><span class="p">,</span> <span class="s1">&#39;DerivedParameters&#39;</span><span class="p">):</span>
+            <span class="n">module</span><span class="o">.</span><span class="n">DerivedParameters</span> <span class="o">=</span> <span class="nb">type</span><span class="p">(</span>
+                <span class="s1">&#39;DerivedParameters&#39;</span><span class="p">,</span>
+                <span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">SubParameters</span><span class="p">,),</span>
+                <span class="p">{</span><span class="s1">&#39;CLASSES&#39;</span><span class="p">:</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_sort_variables</span><span class="p">(</span><span class="n">derivedparameters</span><span class="p">),</span>
+                 <span class="s1">&#39;__doc__&#39;</span><span class="p">:</span> <span class="n">f</span><span class="s1">&#39;Derived parameters of model </span><span class="si">{modelname}</span><span class="s1">.&#39;</span><span class="p">,</span>
+                 <span class="s1">&#39;__module__&#39;</span><span class="p">:</span> <span class="n">modulename</span><span class="p">},</span>
+            <span class="p">)</span>
+        <span class="k">if</span> <span class="bp">cls</span><span class="o">.</span><span class="n">SOLVERPARAMETERS</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">module</span><span class="p">,</span> <span class="s1">&#39;SolverParameters&#39;</span><span class="p">):</span>
+            <span class="n">module</span><span class="o">.</span><span class="n">SolverParameters</span> <span class="o">=</span> <span class="nb">type</span><span class="p">(</span>
+                <span class="s1">&#39;SolverParameters&#39;</span><span class="p">,</span>
+                <span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">SubParameters</span><span class="p">,),</span>
+                <span class="p">{</span><span class="s1">&#39;CLASSES&#39;</span><span class="p">:</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_sort_variables</span><span class="p">(</span><span class="bp">cls</span><span class="o">.</span><span class="n">SOLVERPARAMETERS</span><span class="p">),</span>
+                 <span class="s1">&#39;__doc__&#39;</span><span class="p">:</span> <span class="n">f</span><span class="s1">&#39;Solver parameters of model </span><span class="si">{modelname}</span><span class="s1">.&#39;</span><span class="p">,</span>
+                 <span class="s1">&#39;__module__&#39;</span><span class="p">:</span> <span class="n">modulename</span><span class="p">},</span>
+            <span class="p">)</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">_sort_variables</span><span class="p">(</span><span class="n">variables</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">Type</span><span class="p">[</span><span class="n">typingtools</span><span class="o">.</span><span class="n">VariableProtocol</span><span class="p">]]</span>
+                        <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Type</span><span class="p">[</span><span class="n">typingtools</span><span class="o">.</span><span class="n">VariableProtocol</span><span class="p">],</span> <span class="o">...</span><span class="p">]:</span>
+        <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">var_</span> <span class="k">for</span> <span class="p">(</span><span class="n">idx</span><span class="p">,</span> <span class="n">var_</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span>
+            <span class="p">(</span><span class="n">inspect</span><span class="o">.</span><span class="n">getsourcelines</span><span class="p">(</span><span class="n">var_</span><span class="p">)[</span><span class="mi">1</span><span class="p">],</span> <span class="n">var_</span><span class="p">)</span> <span class="k">for</span> <span class="n">var_</span> <span class="ow">in</span> <span class="n">variables</span>
+        <span class="p">))</span></div>
+
+    <span class="c1"># sorting with dependencies, or is the definition order always okay?</span>
+    <span class="c1">#</span>
+    <span class="c1"># @classmethod</span>
+    <span class="c1"># def _sort_derivedparameters(</span>
+    <span class="c1">#         cls,</span>
+    <span class="c1">#         parameters: Iterable[Type[parametertools.Parameter]]</span>
+    <span class="c1"># ) -&gt; Tuple[Type[parametertools.Parameter], ...]:</span>
+    <span class="c1">#     dps = []</span>
+    <span class="c1">#     for newpar in parameters:</span>
+    <span class="c1">#         for idx, oldpar in enumerate(dps):</span>
+    <span class="c1">#             print(newpar, oldpar, idx)</span>
+    <span class="c1">#             if newpar in getattr(oldpar, &#39;DERIVEDPARAMETERS&#39;, ()):</span>
+    <span class="c1">#                 dps.insert(idx, newpar)</span>
+    <span class="c1">#                 print(&#39;done&#39;)</span>
+    <span class="c1">#                 break</span>
+    <span class="c1">#         else:</span>
+    <span class="c1">#             dps.append(newpar)</span>
+    <span class="c1">#     return tuple(dps)</span>
+
+
+<div class="viewcode-block" id="AdHocModel"><a class="viewcode-back" href="../../../modeltools.html#hydpy.core.modeltools.AdHocModel">[docs]</a><span class="k">class</span> <span class="nc">AdHocModel</span><span class="p">(</span><span class="n">Model</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Base class for models solving the underlying differential equations</span>
+<span class="sd">    in an &quot;ad hoc manner&quot;.</span>
+
+<span class="sd">    &quot;Ad hoc&quot; stands for the classical approaches in hydrology, to calculate</span>
+<span class="sd">    individual fluxes separately (often sequentially) and without error</span>
+<span class="sd">    control (see `Clark and Kavetski`_).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">RUN_METHODS</span><span class="p">:</span> <span class="n">ClassVar</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="n">Callable</span><span class="p">,</span> <span class="o">...</span><span class="p">]]</span>
+    <span class="n">ADD_METHODS</span><span class="p">:</span> <span class="n">ClassVar</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="n">Callable</span><span class="p">,</span> <span class="o">...</span><span class="p">]]</span>
+    <span class="n">METHOD_GROUPS</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="s1">&#39;RUN_METHODS&#39;</span><span class="p">,</span> <span class="s1">&#39;ADD_METHODS&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;INLET_METHODS&#39;</span><span class="p">,</span> <span class="s1">&#39;OUTLET_METHODS&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;RECEIVER_METHODS&#39;</span><span class="p">,</span> <span class="s1">&#39;SENDER_METHODS&#39;</span><span class="p">)</span>
+
+<div class="viewcode-block" id="AdHocModel.simulate"><a class="viewcode-back" href="../../../modeltools.html#hydpy.core.modeltools.AdHocModel.simulate">[docs]</a>    <span class="k">def</span> <span class="nf">simulate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">idx</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Perform a simulation run over a single simulation time step.</span>
+
+<span class="sd">        The required argument `idx` corresponds to property |Model.idx_sim|.</span>
+
+<span class="sd">        You can integrate method |Model.simulate| into your workflows for</span>
+<span class="sd">        tailor-made simulation runs.  Method |Model.simulate| is complete</span>
+<span class="sd">        enough to allow for consecutive calls.  However, note that it</span>
+<span class="sd">        does neither call |Model.save_data|, |Model.update_receivers|,</span>
+<span class="sd">        nor |Model.update_senders|.  Also, one would have to reset the</span>
+<span class="sd">        related node sequences, as done in the following example:</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.examples import prepare_full_example_2</span>
+<span class="sd">        &gt;&gt;&gt; hp, pub, TestIO = prepare_full_example_2()</span>
+<span class="sd">        &gt;&gt;&gt; model = hp.elements.land_dill.model</span>
+<span class="sd">        &gt;&gt;&gt; for idx in range(4):</span>
+<span class="sd">        ...     model.simulate(idx)</span>
+<span class="sd">        ...     print(hp.nodes.dill.sequences.sim)</span>
+<span class="sd">        ...     hp.nodes.dill.sequences.sim = 0.0</span>
+<span class="sd">        sim(11.658511)</span>
+<span class="sd">        sim(8.842278)</span>
+<span class="sd">        sim(7.103614)</span>
+<span class="sd">        sim(6.00763)</span>
+<span class="sd">        &gt;&gt;&gt; hp.nodes.dill.sequences.sim.series</span>
+<span class="sd">        InfoArray([ nan,  nan,  nan,  nan])</span>
+
+<span class="sd">        The results above are identical to those of method |HydPy.simulate|</span>
+<span class="sd">        of class |HydPy|, which is the standard method to perform simulation</span>
+<span class="sd">        runs (except that method |HydPy.simulate| of class |HydPy| also</span>
+<span class="sd">        performs the steps neglected by method |Model.simulate| of class</span>
+<span class="sd">        |Model| mentioned above):</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy import round_</span>
+<span class="sd">        &gt;&gt;&gt; hp.reset_conditions()</span>
+<span class="sd">        &gt;&gt;&gt; hp.simulate()</span>
+<span class="sd">        &gt;&gt;&gt; round_(hp.nodes.dill.sequences.sim.series)</span>
+<span class="sd">        11.658511, 8.842278, 7.103614, 6.00763</span>
+
+<span class="sd">        When working in Cython mode, the standard model import overrides</span>
+<span class="sd">        this generic Python version with a model-specific Cython version.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">idx_sim</span> <span class="o">=</span> <span class="n">idx</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">load_data</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">update_inlets</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">new2old</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">update_outlets</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="AdHocModel.run"><a class="viewcode-back" href="../../../modeltools.html#hydpy.core.modeltools.AdHocModel.run">[docs]</a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Call all methods defined as &quot;RUN_METHODS&quot; in the defined order.</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.core.modeltools import AdHocModel, Method</span>
+<span class="sd">        &gt;&gt;&gt; class print_1(Method):</span>
+<span class="sd">        ...     @staticmethod</span>
+<span class="sd">        ...     def __call__(self):</span>
+<span class="sd">        ...         print(1)</span>
+<span class="sd">        &gt;&gt;&gt; class print_2(Method):</span>
+<span class="sd">        ...     @staticmethod</span>
+<span class="sd">        ...     def __call__(self):</span>
+<span class="sd">        ...         print(2)</span>
+<span class="sd">        &gt;&gt;&gt; class Test(AdHocModel):</span>
+<span class="sd">        ...     RUN_METHODS = print_1, print_2</span>
+<span class="sd">        &gt;&gt;&gt; Test().run()</span>
+<span class="sd">        1</span>
+<span class="sd">        2</span>
+
+<span class="sd">        When working in Cython mode, the standard model import overrides</span>
+<span class="sd">        this generic Python version with a model-specific Cython version.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">method</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">RUN_METHODS</span><span class="p">:</span>
+            <span class="n">method</span><span class="o">.</span><span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="SolverModel"><a class="viewcode-back" href="../../../modeltools.html#hydpy.core.modeltools.SolverModel">[docs]</a><span class="k">class</span> <span class="nc">SolverModel</span><span class="p">(</span><span class="n">Model</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Base class for hydrological models which solve ordinary differential</span>
+<span class="sd">    equations with numerical integration algorithms.&quot;&quot;&quot;</span>
+
+    <span class="n">PART_ODE_METHODS</span><span class="p">:</span> <span class="n">ClassVar</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="n">Callable</span><span class="p">,</span> <span class="o">...</span><span class="p">]]</span>
+    <span class="n">FULL_ODE_METHODS</span><span class="p">:</span> <span class="n">ClassVar</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="n">Callable</span><span class="p">,</span> <span class="o">...</span><span class="p">]]</span>
+
+<div class="viewcode-block" id="SolverModel.solve"><a class="viewcode-back" href="../../../modeltools.html#hydpy.core.modeltools.SolverModel.solve">[docs]</a>    <span class="nd">@abc</span><span class="o">.</span><span class="n">abstractmethod</span>
+    <span class="k">def</span> <span class="nf">solve</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Solve all `FULL_ODE_METHODS` in parallel.&quot;&quot;&quot;</span></div></div>
+
+
+<div class="viewcode-block" id="NumConstsELS"><a class="viewcode-back" href="../../../modeltools.html#hydpy.core.modeltools.NumConstsELS">[docs]</a><span class="k">class</span> <span class="nc">NumConstsELS</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Configuration options for using the &quot;Explicit Lobatto Sequence&quot;</span>
+<span class="sd">    implemented by class |ELSModel|.</span>
+
+<span class="sd">    You can change the following solver options at your own risk.</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy.core.modeltools import NumConstsELS</span>
+<span class="sd">    &gt;&gt;&gt; consts = NumConstsELS()</span>
+
+<span class="sd">    The maximum number of Runge Kutta submethods to be applied (the</span>
+<span class="sd">    higher, the better the theoretical accuracy, but also the worse</span>
+<span class="sd">    the time spent unsuccessful when the theory does not apply):</span>
+
+<span class="sd">    &gt;&gt;&gt; consts.nmb_methods</span>
+<span class="sd">    10</span>
+
+<span class="sd">    The number of entries to handle the stages of the highest order method</span>
+<span class="sd">    (must agree with the maximum number of methods):</span>
+
+<span class="sd">    &gt;&gt;&gt; consts.nmb_stages</span>
+<span class="sd">    11</span>
+
+<span class="sd">    The maximum increase of the integration step size in case of success:</span>
+
+<span class="sd">    &gt;&gt;&gt; consts.dt_increase</span>
+<span class="sd">    2.0</span>
+
+<span class="sd">    The maximum decrease of the integration step size in case of failure:</span>
+
+<span class="sd">    &gt;&gt;&gt; consts.dt_decrease</span>
+<span class="sd">    10.0</span>
+
+<span class="sd">    The Runge Kutta coefficients, one matrix for each submethod:</span>
+
+<span class="sd">    &gt;&gt;&gt; consts.a_coefs.shape</span>
+<span class="sd">    (11, 12, 11)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">nmb_methods</span><span class="p">:</span> <span class="nb">int</span>
+    <span class="n">nmb_stages</span><span class="p">:</span> <span class="nb">int</span>
+    <span class="n">dt_increase</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="n">dt_decrease</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="n">a_coeffs</span><span class="p">:</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nmb_methods</span> <span class="o">=</span> <span class="mi">10</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nmb_stages</span> <span class="o">=</span> <span class="mi">11</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dt_increase</span> <span class="o">=</span> <span class="mf">2.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dt_decrease</span> <span class="o">=</span> <span class="mf">10.</span>
+        <span class="n">path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+            <span class="n">conf</span><span class="o">.</span><span class="n">__path__</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="s1">&#39;a_coefficients_explicit_lobatto_sequence.npy&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">a_coefs</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">path</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="NumVarsELS"><a class="viewcode-back" href="../../../modeltools.html#hydpy.core.modeltools.NumVarsELS">[docs]</a><span class="k">class</span> <span class="nc">NumVarsELS</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Intermediate results of the &quot;Explicit Lobatto Sequence&quot; implemented</span>
+<span class="sd">    by class |ELSModel|.</span>
+
+<span class="sd">    Class |NumVarsELS| should be of relevance for model developers,</span>
+<span class="sd">    as it helps to evaluate how efficient newly implemented models</span>
+<span class="sd">    are solved (see the documentation on method |ELSModel.solve| of</span>
+<span class="sd">    class |ELSModel| as an example).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">nmb_calls</span><span class="p">:</span> <span class="nb">int</span>
+    <span class="n">t0</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="n">t1</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="n">dt_est</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="n">dt</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="n">idx_method</span><span class="p">:</span> <span class="nb">int</span>
+    <span class="n">idx_stage</span><span class="p">:</span> <span class="nb">int</span>
+    <span class="n">error</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="n">last_error</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="n">extrapolated_error</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="n">f0_ready</span><span class="p">:</span> <span class="nb">bool</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nmb_calls</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">t0</span> <span class="o">=</span> <span class="mf">0.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">t1</span> <span class="o">=</span> <span class="mf">0.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dt_est</span> <span class="o">=</span> <span class="mf">1.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dt</span> <span class="o">=</span> <span class="mf">1.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">idx_method</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">idx_stage</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">error</span> <span class="o">=</span> <span class="mf">0.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">last_error</span> <span class="o">=</span> <span class="mf">0.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">extrapolated_error</span> <span class="o">=</span> <span class="mf">0.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">f0_ready</span> <span class="o">=</span> <span class="kc">False</span></div>
+
+
+<div class="viewcode-block" id="ELSModel"><a class="viewcode-back" href="../../../modeltools.html#hydpy.core.modeltools.ELSModel">[docs]</a><span class="k">class</span> <span class="nc">ELSModel</span><span class="p">(</span><span class="n">SolverModel</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Base class for hydrological models using the &quot;Explicit Lobatto</span>
+<span class="sd">    Sequence&quot; for solving ordinary differential equations.</span>
+
+<span class="sd">    The &quot;Explicit Lobatto Sequence&quot; is a variable order Runge Kutta</span>
+<span class="sd">    method combining different Lobatto methods.  Its main idea is to</span>
+<span class="sd">    first calculate a solution with a lower order method, then to use</span>
+<span class="sd">    these results to apply the next higher order method, and to compare</span>
+<span class="sd">    both results.  If they are close enough, the latter results are</span>
+<span class="sd">    accepted.  If not, the next higher order method is applied (or,</span>
+<span class="sd">    if no higher-order method is available, the step size is</span>
+<span class="sd">    decreased, and the algorithm restarts with the method of the</span>
+<span class="sd">    lowest order).  So far, the `thorough description`_ of the</span>
+<span class="sd">    algorithm is available in German only.</span>
+
+<span class="sd">    Note the strengths and weaknesses of class |ELSModel| discussed</span>
+<span class="sd">    in the documentation on method |ELSModel.solve|.  Model developers</span>
+<span class="sd">    should not derive from class |ELSModel| when trying to implement</span>
+<span class="sd">    models with a high potential for stiff parameterisations.</span>
+<span class="sd">    Discontinuities should be regularised, for example by the</span>
+<span class="sd">    &quot;smoothing functions&quot; provided by module |smoothtools|.  Model</span>
+<span class="sd">    users should be careful not to define two small smoothing factors,</span>
+<span class="sd">    to avoid needlessly long simulation times.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">PART_ODE_METHODS</span><span class="p">:</span> <span class="n">ClassVar</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="n">Callable</span><span class="p">,</span> <span class="o">...</span><span class="p">]]</span>
+    <span class="n">FULL_ODE_METHODS</span><span class="p">:</span> <span class="n">ClassVar</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="n">Callable</span><span class="p">,</span> <span class="o">...</span><span class="p">]]</span>
+    <span class="n">METHOD_GROUPS</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="s1">&#39;INLET_METHODS&#39;</span><span class="p">,</span> <span class="s1">&#39;OUTLET_METHODS&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;RECEIVER_METHODS&#39;</span><span class="p">,</span> <span class="s1">&#39;SENDER_METHODS&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;PART_ODE_METHODS&#39;</span><span class="p">,</span> <span class="s1">&#39;FULL_ODE_METHODS&#39;</span><span class="p">)</span>
+    <span class="n">numconsts</span><span class="p">:</span> <span class="n">NumConstsELS</span>
+    <span class="n">numvars</span><span class="p">:</span> <span class="n">NumVarsELS</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">numconsts</span> <span class="o">=</span> <span class="n">NumConstsELS</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">numvars</span> <span class="o">=</span> <span class="n">NumVarsELS</span><span class="p">()</span>
+
+<div class="viewcode-block" id="ELSModel.simulate"><a class="viewcode-back" href="../../../modeltools.html#hydpy.core.modeltools.ELSModel.simulate">[docs]</a>    <span class="k">def</span> <span class="nf">simulate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">idx</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Similar to method |Model.simulate| of class |AdHocModel| but</span>
+<span class="sd">        calls method |ELSModel.solve| instead of |AdHocModel.run|.</span>
+
+<span class="sd">        When working in Cython mode, the standard model import overrides</span>
+<span class="sd">        this generic Python version with a model-specific Cython version.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">idx_sim</span> <span class="o">=</span> <span class="n">idx</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">load_data</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">update_inlets</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">solve</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">update_outlets</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="ELSModel.solve"><a class="viewcode-back" href="../../../modeltools.html#hydpy.core.modeltools.ELSModel.solve">[docs]</a>    <span class="k">def</span> <span class="nf">solve</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Solve all `FULL_ODE_METHODS` in parallel.</span>
+
+<span class="sd">        Implementing numerical integration algorithms that (hopefully)</span>
+<span class="sd">        always work well in practice is a tricky task.  The following</span>
+<span class="sd">        exhaustive examples show how well our &quot;Explicit Lobatto</span>
+<span class="sd">        Sequence&quot; algorithm performs for the numerical test models</span>
+<span class="sd">        |test_v1| and |test_v2|.  We hope to cover all possible</span>
+<span class="sd">        corner-cases.  Please tell us if you find one we missed.</span>
+
+<span class="sd">        First, we set the value of parameter |test_control.K| to zero,</span>
+<span class="sd">        resulting in no changes at all, and thus defining the simplest</span>
+<span class="sd">        test case possible:</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.test_v1 import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep()</span>
+<span class="sd">        &gt;&gt;&gt; k(0.0)</span>
+
+<span class="sd">        Second, we assign values to the solver parameters</span>
+<span class="sd">        |test_solver.AbsErrorMax| and |test_solver.RelDTMin| to specify</span>
+<span class="sd">        the required numerical accuracy and the smallest internal</span>
+<span class="sd">        step size:</span>
+
+<span class="sd">        &gt;&gt;&gt; solver.abserrormax = 1e-2</span>
+<span class="sd">        &gt;&gt;&gt; solver.reldtmin = 1e-4</span>
+
+<span class="sd">        Calling method |ELSModel.solve| correctly calculates zero</span>
+<span class="sd">        discharge (|test_fluxes.Q|) and thus does not change the water</span>
+<span class="sd">        storage (|test_states.S|):</span>
+
+<span class="sd">        &gt;&gt;&gt; states.s(1.0)</span>
+<span class="sd">        &gt;&gt;&gt; model.numvars.nmb_calls = 0</span>
+<span class="sd">        &gt;&gt;&gt; model.solve()</span>
+<span class="sd">        &gt;&gt;&gt; states.s</span>
+<span class="sd">        s(1.0)</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.q</span>
+<span class="sd">        q(0.0)</span>
+
+<span class="sd">        The achieve the above result, |ELSModel| requires two function</span>
+<span class="sd">        calls, one for the initial guess (using the Explicit Euler Method)</span>
+<span class="sd">        and the other one (extending the Explicit Euler method to the</span>
+<span class="sd">        Explicit Heun method) to confirm the first guess meets the</span>
+<span class="sd">        required accuracy:</span>
+
+<span class="sd">        &gt;&gt;&gt; model.numvars.idx_method</span>
+<span class="sd">        2</span>
+<span class="sd">        &gt;&gt;&gt; model.numvars.dt</span>
+<span class="sd">        1.0</span>
+<span class="sd">        &gt;&gt;&gt; model.numvars.nmb_calls</span>
+<span class="sd">        2</span>
+
+<span class="sd">        With moderate changes due to setting the value of parameter</span>
+<span class="sd">        |test_control.K| to 0.1, two method calls are still sufficient:</span>
+
+<span class="sd">        &gt;&gt;&gt; k(0.1)</span>
+<span class="sd">        &gt;&gt;&gt; states.s(1.0)</span>
+<span class="sd">        &gt;&gt;&gt; model.numvars.nmb_calls = 0</span>
+<span class="sd">        &gt;&gt;&gt; model.solve()</span>
+<span class="sd">        &gt;&gt;&gt; states.s</span>
+<span class="sd">        s(0.905)</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.q</span>
+<span class="sd">        q(0.095)</span>
+<span class="sd">        &gt;&gt;&gt; model.numvars.idx_method</span>
+<span class="sd">        2</span>
+<span class="sd">        &gt;&gt;&gt; model.numvars.nmb_calls</span>
+<span class="sd">        2</span>
+
+<span class="sd">        Calculating the analytical solution shows |ELSModel| did not</span>
+<span class="sd">        exceed the given tolerance value:</span>
+
+<span class="sd">        &gt;&gt;&gt; import numpy</span>
+<span class="sd">        &gt;&gt;&gt; from hydpy import round_</span>
+<span class="sd">        &gt;&gt;&gt; round_(numpy.exp(-k))</span>
+<span class="sd">        0.904837</span>
+
+<span class="sd">        After decreasing the allowed error by one order of magnitude,</span>
+<span class="sd">        |ELSModel| requires four method calls (again, one for the</span>
+<span class="sd">        first order and one for the second order method, and two</span>
+<span class="sd">        additional calls for the third order method):</span>
+
+<span class="sd">        &gt;&gt;&gt; solver.abserrormax = 1e-3</span>
+<span class="sd">        &gt;&gt;&gt; states.s(1.0)</span>
+<span class="sd">        &gt;&gt;&gt; model.numvars.nmb_calls = 0</span>
+<span class="sd">        &gt;&gt;&gt; model.solve()</span>
+<span class="sd">        &gt;&gt;&gt; states.s</span>
+<span class="sd">        s(0.904833)</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.q</span>
+<span class="sd">        q(0.095167)</span>
+<span class="sd">        &gt;&gt;&gt; model.numvars.idx_method</span>
+<span class="sd">        3</span>
+<span class="sd">        &gt;&gt;&gt; model.numvars.nmb_calls</span>
+<span class="sd">        4</span>
+
+<span class="sd">        After decreasing |test_solver.AbsErrorMax| by a factor of ten</span>
+<span class="sd">        again, |ELSModel| needs one further higher order method, which</span>
+<span class="sd">        requires three additional calls, making a sum of seven:</span>
+
+<span class="sd">        &gt;&gt;&gt; solver.abserrormax = 1e-4</span>
+<span class="sd">        &gt;&gt;&gt; states.s(1.0)</span>
+<span class="sd">        &gt;&gt;&gt; model.numvars.nmb_calls = 0</span>
+<span class="sd">        &gt;&gt;&gt; model.solve()</span>
+<span class="sd">        &gt;&gt;&gt; states.s</span>
+<span class="sd">        s(0.904837)</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.q</span>
+<span class="sd">        q(0.095163)</span>
+<span class="sd">        &gt;&gt;&gt; model.numvars.idx_method</span>
+<span class="sd">        4</span>
+<span class="sd">        &gt;&gt;&gt; model.numvars.nmb_calls</span>
+<span class="sd">        7</span>
+
+<span class="sd">        |ELSModel| achieves even a very extreme numerical precision</span>
+<span class="sd">        (just for testing, way beyond hydrological requirements), in</span>
+<span class="sd">        one single step, but now requires a total of 29 method calls:</span>
+
+<span class="sd">        &gt;&gt;&gt; solver.abserrormax = 1e-12</span>
+<span class="sd">        &gt;&gt;&gt; states.s(1.0)</span>
+<span class="sd">        &gt;&gt;&gt; model.numvars.nmb_calls = 0</span>
+<span class="sd">        &gt;&gt;&gt; model.solve()</span>
+<span class="sd">        &gt;&gt;&gt; states.s</span>
+<span class="sd">        s(0.904837)</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.q</span>
+<span class="sd">        q(0.095163)</span>
+<span class="sd">        &gt;&gt;&gt; model.numvars.dt</span>
+<span class="sd">        1.0</span>
+<span class="sd">        &gt;&gt;&gt; model.numvars.idx_method</span>
+<span class="sd">        8</span>
+<span class="sd">        &gt;&gt;&gt; model.numvars.nmb_calls</span>
+<span class="sd">        29</span>
+
+<span class="sd">        With a more dynamical parameterisation, where the storage decreases</span>
+<span class="sd">        by about 40% per time step, |ELSModel| needs seven method calls</span>
+<span class="sd">        to meet a &quot;normal&quot; error tolerance:</span>
+
+<span class="sd">        &gt;&gt;&gt; solver.abserrormax = 1e-2</span>
+<span class="sd">        &gt;&gt;&gt; k(0.5)</span>
+<span class="sd">        &gt;&gt;&gt; states.s(1.0)</span>
+<span class="sd">        &gt;&gt;&gt; model.numvars.nmb_calls = 0</span>
+<span class="sd">        &gt;&gt;&gt; model.solve()</span>
+<span class="sd">        &gt;&gt;&gt; states.s</span>
+<span class="sd">        s(0.606771)</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.q</span>
+<span class="sd">        q(0.393229)</span>
+<span class="sd">        &gt;&gt;&gt; model.numvars.idx_method</span>
+<span class="sd">        4</span>
+<span class="sd">        &gt;&gt;&gt; model.numvars.nmb_calls</span>
+<span class="sd">        7</span>
+<span class="sd">        &gt;&gt;&gt; round_(numpy.exp(-k))</span>
+<span class="sd">        0.606531</span>
+
+<span class="sd">        Being an explicit integration method, the &quot;Explicit Lobatto</span>
+<span class="sd">        Sequence&quot; can be inefficient for solving stiff initial value</span>
+<span class="sd">        problems.  Setting |test_control.K| to 2.0 forces |ELSModel|</span>
+<span class="sd">        to solve the problem in two substeps, requiring a total of</span>
+<span class="sd">        22 method calls:</span>
+
+<span class="sd">        &gt;&gt;&gt; k(2.0)</span>
+<span class="sd">        &gt;&gt;&gt; round_(numpy.exp(-k))</span>
+<span class="sd">        0.135335</span>
+<span class="sd">        &gt;&gt;&gt; states.s(1.0)</span>
+<span class="sd">        &gt;&gt;&gt; model.numvars.nmb_calls = 0</span>
+<span class="sd">        &gt;&gt;&gt; model.solve()</span>
+<span class="sd">        &gt;&gt;&gt; states.s</span>
+<span class="sd">        s(0.134658)</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.q</span>
+<span class="sd">        q(0.865342)</span>
+<span class="sd">        &gt;&gt;&gt; round_(model.numvars.dt)</span>
+<span class="sd">        0.3</span>
+<span class="sd">        &gt;&gt;&gt; model.numvars.nmb_calls</span>
+<span class="sd">        22</span>
+
+<span class="sd">        Increasing the stiffness of the initial value problem further</span>
+<span class="sd">        can increase computation times rapidly:</span>
+
+<span class="sd">        &gt;&gt;&gt; k(4.0)</span>
+<span class="sd">        &gt;&gt;&gt; round_(numpy.exp(-k))</span>
+<span class="sd">        0.018316</span>
+<span class="sd">        &gt;&gt;&gt; states.s(1.0)</span>
+<span class="sd">        &gt;&gt;&gt; model.numvars.nmb_calls = 0</span>
+<span class="sd">        &gt;&gt;&gt; model.solve()</span>
+<span class="sd">        &gt;&gt;&gt; states.s</span>
+<span class="sd">        s(0.019774)</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.q</span>
+<span class="sd">        q(0.980226)</span>
+<span class="sd">        &gt;&gt;&gt; round_(model.numvars.dt)</span>
+<span class="sd">        0.3</span>
+<span class="sd">        &gt;&gt;&gt; model.numvars.nmb_calls</span>
+<span class="sd">        44</span>
+
+<span class="sd">        If we prevent |ELSModel| from compensating its problems by</span>
+<span class="sd">        decreasing the step size, it does not achieve satisfying results:</span>
+
+<span class="sd">        &gt;&gt;&gt; solver.reldtmin = 1.0</span>
+<span class="sd">        &gt;&gt;&gt; states.s(1.0)</span>
+<span class="sd">        &gt;&gt;&gt; model.numvars.nmb_calls = 0</span>
+<span class="sd">        &gt;&gt;&gt; model.solve()</span>
+<span class="sd">        &gt;&gt;&gt; states.s</span>
+<span class="sd">        s(0.09672)</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.q</span>
+<span class="sd">        q(0.90328)</span>
+<span class="sd">        &gt;&gt;&gt; round_(model.numvars.dt)</span>
+<span class="sd">        1.0</span>
+<span class="sd">        &gt;&gt;&gt; model.numvars.nmb_calls</span>
+<span class="sd">        46</span>
+
+<span class="sd">        You can restrict the number of Lobatto methods that are allowed</span>
+<span class="sd">        to be used.  Using two methods only is an inefficient choice for</span>
+<span class="sd">        the given initial value problem, but at least solves it with the</span>
+<span class="sd">        required accuracy:</span>
+
+<span class="sd">        &gt;&gt;&gt; solver.reldtmin = 1e-4</span>
+<span class="sd">        &gt;&gt;&gt; model.numconsts.nmb_methods = 2</span>
+<span class="sd">        &gt;&gt;&gt; states.s(1.0)</span>
+<span class="sd">        &gt;&gt;&gt; model.numvars.nmb_calls = 0</span>
+<span class="sd">        &gt;&gt;&gt; model.solve()</span>
+<span class="sd">        &gt;&gt;&gt; states.s</span>
+<span class="sd">        s(0.020284)</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.q</span>
+<span class="sd">        q(0.979716)</span>
+<span class="sd">        &gt;&gt;&gt; round_(model.numvars.dt)</span>
+<span class="sd">        0.156698</span>
+<span class="sd">        &gt;&gt;&gt; model.numvars.nmb_calls</span>
+<span class="sd">        74</span>
+
+<span class="sd">        Besides its weaknesses with stiff problems, |ELSModel| cannot</span>
+<span class="sd">        solve discontinuous problems well.  We use the |test_v1| example</span>
+<span class="sd">        model to demonstrate how |ELSModel| sbehaves when confronted</span>
+<span class="sd">        with such a problem.</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy import reverse_model_wildcard_import</span>
+<span class="sd">        &gt;&gt;&gt; reverse_model_wildcard_import()</span>
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.test_v2 import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep()</span>
+
+<span class="sd">        Everything works fine, as long as the discontinuity does not</span>
+<span class="sd">        affect the considered simulation step:</span>
+
+<span class="sd">        &gt;&gt;&gt; k(0.5)</span>
+<span class="sd">        &gt;&gt;&gt; solver.abserrormax = 1e-2</span>
+<span class="sd">        &gt;&gt;&gt; solver.reldtmin = 1e-4</span>
+<span class="sd">        &gt;&gt;&gt; states.s(1.0)</span>
+<span class="sd">        &gt;&gt;&gt; model.numvars.nmb_calls = 0</span>
+<span class="sd">        &gt;&gt;&gt; model.solve()</span>
+<span class="sd">        &gt;&gt;&gt; states.s</span>
+<span class="sd">        s(0.5)</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.q</span>
+<span class="sd">        q(0.5)</span>
+<span class="sd">        &gt;&gt;&gt; model.numvars.idx_method</span>
+<span class="sd">        2</span>
+<span class="sd">        &gt;&gt;&gt; model.numvars.dt</span>
+<span class="sd">        1.0</span>
+<span class="sd">        &gt;&gt;&gt; model.numvars.nmb_calls</span>
+<span class="sd">        2</span>
+
+<span class="sd">        The occurrence of a discontinuity within the simulation step</span>
+<span class="sd">        often increases computation times more than a stiff parameterisation:</span>
+
+<span class="sd">        &gt;&gt;&gt; k(2.0)</span>
+<span class="sd">        &gt;&gt;&gt; states.s(1.0)</span>
+<span class="sd">        &gt;&gt;&gt; model.numvars.nmb_calls = 0</span>
+<span class="sd">        &gt;&gt;&gt; model.solve()</span>
+<span class="sd">        &gt;&gt;&gt; states.s</span>
+<span class="sd">        s(-0.006827)</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.q</span>
+<span class="sd">        q(1.006827)</span>
+<span class="sd">        &gt;&gt;&gt; model.numvars.nmb_calls</span>
+<span class="sd">        58</span>
+
+<span class="sd">        &gt;&gt;&gt; k(2.1)</span>
+<span class="sd">        &gt;&gt;&gt; states.s(1.0)</span>
+<span class="sd">        &gt;&gt;&gt; model.numvars.nmb_calls = 0</span>
+<span class="sd">        &gt;&gt;&gt; model.solve()</span>
+<span class="sd">        &gt;&gt;&gt; states.s</span>
+<span class="sd">        s(-0.00072)</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.q</span>
+<span class="sd">        q(1.00072)</span>
+<span class="sd">        &gt;&gt;&gt; model.numvars.nmb_calls</span>
+<span class="sd">        50</span>
+
+<span class="sd">        When working in Cython mode, the standard model import overrides</span>
+<span class="sd">        this generic Python version with a model-specific Cython version.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">numvars</span><span class="o">.</span><span class="n">t0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">numvars</span><span class="o">.</span><span class="n">t1</span> <span class="o">=</span> <span class="mf">0.</span><span class="p">,</span> <span class="mf">1.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">numvars</span><span class="o">.</span><span class="n">dt_est</span> <span class="o">=</span> <span class="mf">1.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">numvars</span><span class="o">.</span><span class="n">f0_ready</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">reset_sum_fluxes</span><span class="p">()</span>
+        <span class="k">while</span> <span class="bp">self</span><span class="o">.</span><span class="n">numvars</span><span class="o">.</span><span class="n">t0</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">numvars</span><span class="o">.</span><span class="n">t1</span><span class="o">-</span><span class="mf">1e-14</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">numvars</span><span class="o">.</span><span class="n">last_error</span> <span class="o">=</span> <span class="mf">999999.</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">numvars</span><span class="o">.</span><span class="n">dt</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">numvars</span><span class="o">.</span><span class="n">t1</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">numvars</span><span class="o">.</span><span class="n">t0</span><span class="p">,</span>
+                <span class="nb">max</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">numvars</span><span class="o">.</span><span class="n">dt_est</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">reldtmin</span><span class="p">))</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">numvars</span><span class="o">.</span><span class="n">f0_ready</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">calculate_single_terms</span><span class="p">()</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">numvars</span><span class="o">.</span><span class="n">idx_method</span> <span class="o">=</span> <span class="mi">0</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">numvars</span><span class="o">.</span><span class="n">idx_stage</span> <span class="o">=</span> <span class="mi">0</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">set_point_fluxes</span><span class="p">()</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">set_point_states</span><span class="p">()</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">set_result_states</span><span class="p">()</span>
+            <span class="k">for</span> <span class="bp">self</span><span class="o">.</span><span class="n">numvars</span><span class="o">.</span><span class="n">idx_method</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span>
+                    <span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">numconsts</span><span class="o">.</span><span class="n">nmb_methods</span><span class="o">+</span><span class="mi">1</span><span class="p">):</span>
+                <span class="k">for</span> <span class="bp">self</span><span class="o">.</span><span class="n">numvars</span><span class="o">.</span><span class="n">idx_stage</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span>
+                        <span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">numvars</span><span class="o">.</span><span class="n">idx_method</span><span class="p">):</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">get_point_states</span><span class="p">()</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">calculate_single_terms</span><span class="p">()</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">set_point_fluxes</span><span class="p">()</span>
+                <span class="k">for</span> <span class="bp">self</span><span class="o">.</span><span class="n">numvars</span><span class="o">.</span><span class="n">idx_stage</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span>
+                        <span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">numvars</span><span class="o">.</span><span class="n">idx_method</span><span class="o">+</span><span class="mi">1</span><span class="p">):</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">integrate_fluxes</span><span class="p">()</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">calculate_full_terms</span><span class="p">()</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">set_point_states</span><span class="p">()</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">set_result_fluxes</span><span class="p">()</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">set_result_states</span><span class="p">()</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">calculate_error</span><span class="p">()</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">extrapolate_error</span><span class="p">()</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">numvars</span><span class="o">.</span><span class="n">idx_method</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                    <span class="k">continue</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">numvars</span><span class="o">.</span><span class="n">error</span> <span class="o">&lt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">abserrormax</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">numvars</span><span class="o">.</span><span class="n">dt_est</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">numconsts</span><span class="o">.</span><span class="n">dt_increase</span> <span class="o">*</span>
+                                           <span class="bp">self</span><span class="o">.</span><span class="n">numvars</span><span class="o">.</span><span class="n">dt</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">numvars</span><span class="o">.</span><span class="n">f0_ready</span> <span class="o">=</span> <span class="kc">False</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">addup_fluxes</span><span class="p">()</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">numvars</span><span class="o">.</span><span class="n">t0</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">numvars</span><span class="o">.</span><span class="n">t0</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">numvars</span><span class="o">.</span><span class="n">dt</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">new2old</span><span class="p">()</span>
+                    <span class="k">break</span>
+                <span class="k">if</span> <span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">numvars</span><span class="o">.</span><span class="n">extrapolated_error</span> <span class="o">&gt;</span>
+                     <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">abserrormax</span><span class="p">)</span> <span class="ow">and</span>
+                        <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">numvars</span><span class="o">.</span><span class="n">dt</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">reldtmin</span><span class="p">)):</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">numvars</span><span class="o">.</span><span class="n">f0_ready</span> <span class="o">=</span> <span class="kc">True</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">numvars</span><span class="o">.</span><span class="n">dt_est</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">numvars</span><span class="o">.</span><span class="n">dt</span> <span class="o">/</span>
+                                           <span class="bp">self</span><span class="o">.</span><span class="n">numconsts</span><span class="o">.</span><span class="n">dt_decrease</span><span class="p">)</span>
+                    <span class="k">break</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">numvars</span><span class="o">.</span><span class="n">last_error</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">numvars</span><span class="o">.</span><span class="n">error</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">numvars</span><span class="o">.</span><span class="n">f0_ready</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">numvars</span><span class="o">.</span><span class="n">dt</span> <span class="o">&lt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">reldtmin</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">numvars</span><span class="o">.</span><span class="n">f0_ready</span> <span class="o">=</span> <span class="kc">False</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">addup_fluxes</span><span class="p">()</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">numvars</span><span class="o">.</span><span class="n">t0</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">numvars</span><span class="o">.</span><span class="n">t0</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">numvars</span><span class="o">.</span><span class="n">dt</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">new2old</span><span class="p">()</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">numvars</span><span class="o">.</span><span class="n">f0_ready</span> <span class="o">=</span> <span class="kc">True</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">numvars</span><span class="o">.</span><span class="n">dt_est</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">numvars</span><span class="o">.</span><span class="n">dt</span> <span class="o">/</span>
+                                           <span class="bp">self</span><span class="o">.</span><span class="n">numconsts</span><span class="o">.</span><span class="n">dt_decrease</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">get_sum_fluxes</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="ELSModel.calculate_single_terms"><a class="viewcode-back" href="../../../modeltools.html#hydpy.core.modeltools.ELSModel.calculate_single_terms">[docs]</a>    <span class="k">def</span> <span class="nf">calculate_single_terms</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Apply all methods stored in the `PART_ODE_METHODS` tuple.</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.test_v1 import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep()</span>
+<span class="sd">        &gt;&gt;&gt; k(0.25)</span>
+<span class="sd">        &gt;&gt;&gt; states.s = 1.0</span>
+<span class="sd">        &gt;&gt;&gt; model.calculate_single_terms()</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.q</span>
+<span class="sd">        q(0.25)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">numvars</span><span class="o">.</span><span class="n">nmb_calls</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">numvars</span><span class="o">.</span><span class="n">nmb_calls</span><span class="o">+</span><span class="mi">1</span>
+        <span class="k">for</span> <span class="n">method</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">PART_ODE_METHODS</span><span class="p">:</span>
+            <span class="n">method</span><span class="o">.</span><span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="ELSModel.calculate_full_terms"><a class="viewcode-back" href="../../../modeltools.html#hydpy.core.modeltools.ELSModel.calculate_full_terms">[docs]</a>    <span class="k">def</span> <span class="nf">calculate_full_terms</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Apply all methods stored in the `FULL_ODE_METHODS` tuple.</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.test_v1 import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep()</span>
+<span class="sd">        &gt;&gt;&gt; k(0.25)</span>
+<span class="sd">        &gt;&gt;&gt; states.s.old = 1.0</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.q = 0.25</span>
+<span class="sd">        &gt;&gt;&gt; model.calculate_full_terms()</span>
+<span class="sd">        &gt;&gt;&gt; states.s.old</span>
+<span class="sd">        1.0</span>
+<span class="sd">        &gt;&gt;&gt; states.s.new</span>
+<span class="sd">        0.75</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">method</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">FULL_ODE_METHODS</span><span class="p">:</span>
+            <span class="n">method</span><span class="o">.</span><span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="ELSModel.get_point_states"><a class="viewcode-back" href="../../../modeltools.html#hydpy.core.modeltools.ELSModel.get_point_states">[docs]</a>    <span class="k">def</span> <span class="nf">get_point_states</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Load the states corresponding to the actual stage.</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.test_v1 import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep()</span>
+<span class="sd">        &gt;&gt;&gt; states.s.old = 2.0</span>
+<span class="sd">        &gt;&gt;&gt; states.s.new = 2.0</span>
+<span class="sd">        &gt;&gt;&gt; model.numvars.idx_stage = 2</span>
+<span class="sd">        &gt;&gt;&gt; points = numpy.asarray(states.fastaccess._s_points)</span>
+<span class="sd">        &gt;&gt;&gt; points[:4] = 0.0, 0.0, 1.0, 0.0</span>
+<span class="sd">        &gt;&gt;&gt; model.get_point_states()</span>
+<span class="sd">        &gt;&gt;&gt; states.s.old</span>
+<span class="sd">        2.0</span>
+<span class="sd">        &gt;&gt;&gt; states.s.new</span>
+<span class="sd">        1.0</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_get_states</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">numvars</span><span class="o">.</span><span class="n">idx_stage</span><span class="p">,</span> <span class="s1">&#39;points&#39;</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="nf">_get_states</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">idx</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">type_</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">states</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">states</span>
+        <span class="k">for</span> <span class="n">state</span> <span class="ow">in</span> <span class="n">states</span><span class="p">:</span>
+            <span class="n">temp</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">states</span><span class="o">.</span><span class="n">fastaccess</span><span class="p">,</span> <span class="n">f</span><span class="s1">&#39;_</span><span class="si">{state.name}</span><span class="s1">_</span><span class="si">{type_}</span><span class="s1">&#39;</span><span class="p">)</span>
+            <span class="n">state</span><span class="o">.</span><span class="n">new</span> <span class="o">=</span> <span class="n">temp</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span>
+
+<div class="viewcode-block" id="ELSModel.set_point_states"><a class="viewcode-back" href="../../../modeltools.html#hydpy.core.modeltools.ELSModel.set_point_states">[docs]</a>    <span class="k">def</span> <span class="nf">set_point_states</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Save the states corresponding to the actual stage.</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.test_v1 import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep()</span>
+<span class="sd">        &gt;&gt;&gt; states.s.old = 2.0</span>
+<span class="sd">        &gt;&gt;&gt; states.s.new = 1.0</span>
+<span class="sd">        &gt;&gt;&gt; model.numvars.idx_stage = 2</span>
+<span class="sd">        &gt;&gt;&gt; points = numpy.asarray(states.fastaccess._s_points)</span>
+<span class="sd">        &gt;&gt;&gt; points[:] = 0.</span>
+<span class="sd">        &gt;&gt;&gt; model.set_point_states()</span>
+<span class="sd">        &gt;&gt;&gt; from hydpy import round_</span>
+<span class="sd">        &gt;&gt;&gt; round_(points[:4])</span>
+<span class="sd">        0.0, 0.0, 1.0, 0.0</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_set_states</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">numvars</span><span class="o">.</span><span class="n">idx_stage</span><span class="p">,</span> <span class="s1">&#39;points&#39;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="ELSModel.set_result_states"><a class="viewcode-back" href="../../../modeltools.html#hydpy.core.modeltools.ELSModel.set_result_states">[docs]</a>    <span class="k">def</span> <span class="nf">set_result_states</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Save the final states of the actual method.</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.test_v1 import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep()</span>
+<span class="sd">        &gt;&gt;&gt; states.s.old = 2.0</span>
+<span class="sd">        &gt;&gt;&gt; states.s.new = 1.0</span>
+<span class="sd">        &gt;&gt;&gt; model.numvars.idx_method = 2</span>
+<span class="sd">        &gt;&gt;&gt; results = numpy.asarray(states.fastaccess._s_results)</span>
+<span class="sd">        &gt;&gt;&gt; results[:] = 0.0</span>
+<span class="sd">        &gt;&gt;&gt; model.set_result_states()</span>
+<span class="sd">        &gt;&gt;&gt; from hydpy import round_</span>
+<span class="sd">        &gt;&gt;&gt; round_(results[:4])</span>
+<span class="sd">        0.0, 0.0, 1.0, 0.0</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_set_states</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">numvars</span><span class="o">.</span><span class="n">idx_method</span><span class="p">,</span> <span class="s1">&#39;results&#39;</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="nf">_set_states</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">idx</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">type_</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">states</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">states</span>
+        <span class="k">for</span> <span class="n">state</span> <span class="ow">in</span> <span class="n">states</span><span class="p">:</span>
+            <span class="n">temp</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">states</span><span class="o">.</span><span class="n">fastaccess</span><span class="p">,</span> <span class="n">f</span><span class="s1">&#39;_</span><span class="si">{state.name}</span><span class="s1">_</span><span class="si">{type_}</span><span class="s1">&#39;</span><span class="p">)</span>
+            <span class="n">temp</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">=</span> <span class="n">state</span><span class="o">.</span><span class="n">new</span>
+
+<div class="viewcode-block" id="ELSModel.get_sum_fluxes"><a class="viewcode-back" href="../../../modeltools.html#hydpy.core.modeltools.ELSModel.get_sum_fluxes">[docs]</a>    <span class="k">def</span> <span class="nf">get_sum_fluxes</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Get the sum of the fluxes calculated so far.</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.test_v1 import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep()</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.q = 0.0</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.fastaccess._q_sum = 1.0</span>
+<span class="sd">        &gt;&gt;&gt; model.get_sum_fluxes()</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.q</span>
+<span class="sd">        q(1.0)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">fluxes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">fluxes</span>
+        <span class="k">for</span> <span class="n">flux</span> <span class="ow">in</span> <span class="n">fluxes</span><span class="o">.</span><span class="n">numericsequences</span><span class="p">:</span>
+            <span class="n">flux</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">fluxes</span><span class="o">.</span><span class="n">fastaccess</span><span class="p">,</span> <span class="n">f</span><span class="s1">&#39;_</span><span class="si">{flux.name}</span><span class="s1">_sum&#39;</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="ELSModel.set_point_fluxes"><a class="viewcode-back" href="../../../modeltools.html#hydpy.core.modeltools.ELSModel.set_point_fluxes">[docs]</a>    <span class="k">def</span> <span class="nf">set_point_fluxes</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Save the fluxes corresponding to the actual stage.</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.test_v1 import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep()</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.q = 1.</span>
+<span class="sd">        &gt;&gt;&gt; model.numvars.idx_stage = 2</span>
+<span class="sd">        &gt;&gt;&gt; points = numpy.asarray(fluxes.fastaccess._q_points)</span>
+<span class="sd">        &gt;&gt;&gt; points[:] = 0.</span>
+<span class="sd">        &gt;&gt;&gt; model.set_point_fluxes()</span>
+<span class="sd">        &gt;&gt;&gt; from hydpy import round_</span>
+<span class="sd">        &gt;&gt;&gt; round_(points[:4])</span>
+<span class="sd">        0.0, 0.0, 1.0, 0.0</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_set_fluxes</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">numvars</span><span class="o">.</span><span class="n">idx_stage</span><span class="p">,</span> <span class="s1">&#39;points&#39;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="ELSModel.set_result_fluxes"><a class="viewcode-back" href="../../../modeltools.html#hydpy.core.modeltools.ELSModel.set_result_fluxes">[docs]</a>    <span class="k">def</span> <span class="nf">set_result_fluxes</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Save the final fluxes of the actual method.</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.test_v1 import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep()</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.q = 1.</span>
+<span class="sd">        &gt;&gt;&gt; model.numvars.idx_method = 2</span>
+<span class="sd">        &gt;&gt;&gt; results = numpy.asarray(fluxes.fastaccess._q_results)</span>
+<span class="sd">        &gt;&gt;&gt; results[:] = 0.</span>
+<span class="sd">        &gt;&gt;&gt; model.set_result_fluxes()</span>
+<span class="sd">        &gt;&gt;&gt; from hydpy import round_</span>
+<span class="sd">        &gt;&gt;&gt; round_(results[:4])</span>
+<span class="sd">        0.0, 0.0, 1.0, 0.0</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_set_fluxes</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">numvars</span><span class="o">.</span><span class="n">idx_method</span><span class="p">,</span> <span class="s1">&#39;results&#39;</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="nf">_set_fluxes</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">idx</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">type_</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">fluxes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">fluxes</span>
+        <span class="k">for</span> <span class="n">flux</span> <span class="ow">in</span> <span class="n">fluxes</span><span class="o">.</span><span class="n">numericsequences</span><span class="p">:</span>
+            <span class="n">temp</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">fluxes</span><span class="o">.</span><span class="n">fastaccess</span><span class="p">,</span> <span class="n">f</span><span class="s1">&#39;_</span><span class="si">{flux.name}</span><span class="s1">_</span><span class="si">{type_}</span><span class="s1">&#39;</span><span class="p">)</span>
+            <span class="n">temp</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">=</span> <span class="n">flux</span>
+
+<div class="viewcode-block" id="ELSModel.integrate_fluxes"><a class="viewcode-back" href="../../../modeltools.html#hydpy.core.modeltools.ELSModel.integrate_fluxes">[docs]</a>    <span class="k">def</span> <span class="nf">integrate_fluxes</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Perform a dot multiplication between the fluxes and the</span>
+<span class="sd">        A coefficients associated with the different stages of the</span>
+<span class="sd">        actual method.</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.test_v1 import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep()</span>
+<span class="sd">        &gt;&gt;&gt; model.numvars.idx_method = 2</span>
+<span class="sd">        &gt;&gt;&gt; model.numvars.idx_stage = 1</span>
+<span class="sd">        &gt;&gt;&gt; model.numvars.dt = 0.5</span>
+<span class="sd">        &gt;&gt;&gt; points = numpy.asarray(fluxes.fastaccess._q_points)</span>
+<span class="sd">        &gt;&gt;&gt; points[:4] = 15., 2., -999., 0.</span>
+<span class="sd">        &gt;&gt;&gt; model.integrate_fluxes()</span>
+<span class="sd">        &gt;&gt;&gt; from hydpy import round_</span>
+<span class="sd">        &gt;&gt;&gt; from hydpy import pub</span>
+<span class="sd">        &gt;&gt;&gt; round_(numpy.asarray(model.numconsts.a_coefs)[1, 1, :2])</span>
+<span class="sd">        0.375, 0.125</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.q</span>
+<span class="sd">        q(2.9375)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">fluxes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">fluxes</span>
+        <span class="k">for</span> <span class="n">flux</span> <span class="ow">in</span> <span class="n">fluxes</span><span class="o">.</span><span class="n">numericsequences</span><span class="p">:</span>
+            <span class="n">points</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">fluxes</span><span class="o">.</span><span class="n">fastaccess</span><span class="p">,</span> <span class="n">f</span><span class="s1">&#39;_</span><span class="si">{flux.name}</span><span class="s1">_points&#39;</span><span class="p">)</span>
+            <span class="n">coefs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">numconsts</span><span class="o">.</span><span class="n">a_coefs</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">numvars</span><span class="o">.</span><span class="n">idx_method</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span>
+                                           <span class="bp">self</span><span class="o">.</span><span class="n">numvars</span><span class="o">.</span><span class="n">idx_stage</span><span class="p">,</span>
+                                           <span class="p">:</span><span class="bp">self</span><span class="o">.</span><span class="n">numvars</span><span class="o">.</span><span class="n">idx_method</span><span class="p">]</span>
+            <span class="n">flux</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">numvars</span><span class="o">.</span><span class="n">dt</span> <span class="o">*</span>
+                 <span class="n">numpy</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">coefs</span><span class="p">,</span> <span class="n">points</span><span class="p">[:</span><span class="bp">self</span><span class="o">.</span><span class="n">numvars</span><span class="o">.</span><span class="n">idx_method</span><span class="p">]))</span></div>
+
+<div class="viewcode-block" id="ELSModel.reset_sum_fluxes"><a class="viewcode-back" href="../../../modeltools.html#hydpy.core.modeltools.ELSModel.reset_sum_fluxes">[docs]</a>    <span class="k">def</span> <span class="nf">reset_sum_fluxes</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Set the sum of the fluxes calculated so far to zero.</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.test_v1 import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep()</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.fastaccess._q_sum = 5.</span>
+<span class="sd">        &gt;&gt;&gt; model.reset_sum_fluxes()</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.fastaccess._q_sum</span>
+<span class="sd">        0.0</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">fluxes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">fluxes</span>
+        <span class="k">for</span> <span class="n">flux</span> <span class="ow">in</span> <span class="n">fluxes</span><span class="o">.</span><span class="n">numericsequences</span><span class="p">:</span>
+            <span class="nb">setattr</span><span class="p">(</span><span class="n">fluxes</span><span class="o">.</span><span class="n">fastaccess</span><span class="p">,</span> <span class="n">f</span><span class="s1">&#39;_</span><span class="si">{flux.name}</span><span class="s1">_sum&#39;</span><span class="p">,</span> <span class="mf">0.</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="ELSModel.addup_fluxes"><a class="viewcode-back" href="../../../modeltools.html#hydpy.core.modeltools.ELSModel.addup_fluxes">[docs]</a>    <span class="k">def</span> <span class="nf">addup_fluxes</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Add up the sum of the fluxes calculated so far.</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.test_v1 import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep()</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.fastaccess._q_sum = 1.0</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.q(2.0)</span>
+<span class="sd">        &gt;&gt;&gt; model.addup_fluxes()</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.fastaccess._q_sum</span>
+<span class="sd">        3.0</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">fluxes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">fluxes</span>
+        <span class="k">for</span> <span class="n">flux</span> <span class="ow">in</span> <span class="n">fluxes</span><span class="o">.</span><span class="n">numericsequences</span><span class="p">:</span>
+            <span class="n">sum_</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">fluxes</span><span class="o">.</span><span class="n">fastaccess</span><span class="p">,</span> <span class="n">f</span><span class="s1">&#39;_</span><span class="si">{flux.name}</span><span class="s1">_sum&#39;</span><span class="p">)</span>
+            <span class="n">sum_</span> <span class="o">+=</span> <span class="n">flux</span>
+            <span class="nb">setattr</span><span class="p">(</span><span class="n">fluxes</span><span class="o">.</span><span class="n">fastaccess</span><span class="p">,</span> <span class="n">f</span><span class="s1">&#39;_</span><span class="si">{flux.name}</span><span class="s1">_sum&#39;</span><span class="p">,</span> <span class="n">sum_</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="ELSModel.calculate_error"><a class="viewcode-back" href="../../../modeltools.html#hydpy.core.modeltools.ELSModel.calculate_error">[docs]</a>    <span class="k">def</span> <span class="nf">calculate_error</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Estimate the numerical error based on the fluxes calculated</span>
+<span class="sd">        by the current and the last method.</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.test_v1 import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep()</span>
+<span class="sd">        &gt;&gt;&gt; model.numvars.idx_method = 2</span>
+<span class="sd">        &gt;&gt;&gt; results = numpy.asarray(fluxes.fastaccess._q_results)</span>
+<span class="sd">        &gt;&gt;&gt; results[:4] = 0., 3., 4., 0.</span>
+<span class="sd">        &gt;&gt;&gt; model.calculate_error()</span>
+<span class="sd">        &gt;&gt;&gt; from hydpy import round_</span>
+<span class="sd">        &gt;&gt;&gt; round_(model.numvars.error)</span>
+<span class="sd">        1.0</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">numvars</span><span class="o">.</span><span class="n">error</span> <span class="o">=</span> <span class="mf">0.</span>
+        <span class="n">fluxes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">fluxes</span>
+        <span class="k">for</span> <span class="n">flux</span> <span class="ow">in</span> <span class="n">fluxes</span><span class="o">.</span><span class="n">numericsequences</span><span class="p">:</span>
+            <span class="n">results</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">fluxes</span><span class="o">.</span><span class="n">fastaccess</span><span class="p">,</span> <span class="n">f</span><span class="s1">&#39;_</span><span class="si">{flux.name}</span><span class="s1">_results&#39;</span><span class="p">)</span>
+            <span class="n">diff</span> <span class="o">=</span> <span class="p">(</span><span class="n">results</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">numvars</span><span class="o">.</span><span class="n">idx_method</span><span class="p">]</span> <span class="o">-</span>
+                    <span class="n">results</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">numvars</span><span class="o">.</span><span class="n">idx_method</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">numvars</span><span class="o">.</span><span class="n">error</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">numvars</span><span class="o">.</span><span class="n">error</span><span class="p">,</span>
+                                     <span class="n">numpy</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">diff</span><span class="p">)))</span></div>
+
+<div class="viewcode-block" id="ELSModel.extrapolate_error"><a class="viewcode-back" href="../../../modeltools.html#hydpy.core.modeltools.ELSModel.extrapolate_error">[docs]</a>    <span class="k">def</span> <span class="nf">extrapolate_error</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Estimate the numerical error expected when applying all methods</span>
+<span class="sd">        available based on the results of the current and the last method.</span>
+
+<span class="sd">       Note that you cannot apply this extrapolation strategy on the first</span>
+<span class="sd">       method.   If the current method is the first one, method</span>
+<span class="sd">       |ELSModel.extrapolate_error| returns `-999.9`:</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.test_v1 import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep()</span>
+<span class="sd">        &gt;&gt;&gt; model.numvars.error = 1e-2</span>
+<span class="sd">        &gt;&gt;&gt; model.numvars.last_error = 1e-1</span>
+<span class="sd">        &gt;&gt;&gt; model.numvars.idx_method = 10</span>
+<span class="sd">        &gt;&gt;&gt; model.extrapolate_error()</span>
+<span class="sd">        &gt;&gt;&gt; from hydpy import round_</span>
+<span class="sd">        &gt;&gt;&gt; round_(model.numvars.extrapolated_error)</span>
+<span class="sd">        0.01</span>
+<span class="sd">        &gt;&gt;&gt; model.numvars.idx_method = 9</span>
+<span class="sd">        &gt;&gt;&gt; model.extrapolate_error()</span>
+<span class="sd">        &gt;&gt;&gt; round_(model.numvars.extrapolated_error)</span>
+<span class="sd">        0.001</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">numvars</span><span class="o">.</span><span class="n">idx_method</span> <span class="o">&gt;</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">numvars</span><span class="o">.</span><span class="n">extrapolated_error</span> <span class="o">=</span> <span class="n">modelutils</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span>
+                <span class="n">modelutils</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">numvars</span><span class="o">.</span><span class="n">error</span><span class="p">)</span> <span class="o">+</span>
+                <span class="p">(</span><span class="n">modelutils</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">numvars</span><span class="o">.</span><span class="n">error</span><span class="p">)</span> <span class="o">-</span>
+                 <span class="n">modelutils</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">numvars</span><span class="o">.</span><span class="n">last_error</span><span class="p">))</span> <span class="o">*</span>
+                <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">numconsts</span><span class="o">.</span><span class="n">nmb_methods</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">numvars</span><span class="o">.</span><span class="n">idx_method</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">numvars</span><span class="o">.</span><span class="n">extrapolated_error</span> <span class="o">=</span> <span class="o">-</span><span class="mf">999.9</span></div></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../../index.html">
+              <img class="logo" src="../../../_static/HydPy_Logo.png" alt="Logo"/>
+            </a></p>
+  <h3><a href="../../../index.html">Table of Contents</a></h3>
+  <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../install.html">Installation Instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../framework.html">Framework Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../modelcollection.html">Model Collection</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../development.html">Development</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../examples.html">Example Projects</a></li>
+</ul>
+
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">HydPy 4.0a11 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2019, HydPy Developers.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.2.1.
+    </div>
+  </body>
+</html>

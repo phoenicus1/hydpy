@@ -1,0 +1,43 @@
+.. |Element| replace:: :class:`~hydpy.core.devicetools.Element`
+.. |Node| replace:: :class:`~hydpy.core.devicetools.Node`
+.. |None| replace:: :const:`None`
+.. |Options.reprdigits| replace:: :const:`~hydpy.core.optiontools.Options.reprdigits`
+.. |ResetAttrFuncs.funcnames| replace:: :const:`~hydpy.core.objecttools.ResetAttrFuncs.funcnames`
+.. |ResetAttrFuncs| replace:: :class:`~hydpy.core.objecttools.ResetAttrFuncs`
+.. |ValueError| replace:: :class:`ValueError`
+.. |assignrepr_list2| replace:: :func:`~hydpy.core.objecttools.assignrepr_list2`
+.. |assignrepr_list3| replace:: :func:`~hydpy.core.objecttools.assignrepr_list3`
+.. |assignrepr_list| replace:: :const:`~hydpy.core.objecttools.assignrepr_list`
+.. |assignrepr_tuple2| replace:: :func:`~hydpy.core.objecttools.assignrepr_tuple2`
+.. |assignrepr_tuple3| replace:: :func:`~hydpy.core.objecttools.assignrepr_tuple3`
+.. |assignrepr_tuple| replace:: :const:`~hydpy.core.objecttools.assignrepr_tuple`
+.. |assignrepr_values2| replace:: :func:`~hydpy.core.objecttools.assignrepr_values2`
+.. |augment_excmessage| replace:: :func:`~hydpy.core.objecttools.augment_excmessage`
+.. |classname| replace:: :func:`~hydpy.core.objecttools.classname`
+.. |copy_| replace:: :func:`~hydpy.core.objecttools.copy_`
+.. |deepcopy_| replace:: :func:`~hydpy.core.objecttools.deepcopy_`
+.. |dir_| replace:: :func:`~hydpy.core.objecttools.dir_`
+.. |dir| replace:: :func:`dir`
+.. |doctest| replace:: :mod:`~doctest`
+.. |enumeration| replace:: :func:`~hydpy.core.objecttools.enumeration`
+.. |excmessage_decorator| replace:: :func:`~hydpy.core.objecttools.excmessage_decorator`
+.. |extract| replace:: :func:`~hydpy.core.objecttools.extract`
+.. |flatten_repr| replace:: :func:`~hydpy.core.objecttools.flatten_repr`
+.. |objecttools| replace:: :mod:`~hydpy.core.objecttools`
+.. |repr_numbers| replace:: :func:`~hydpy.core.objecttools.repr_numbers`
+.. |repr_| replace:: :const:`~hydpy.core.objecttools.repr_`
+.. |repr| replace:: :func:`repr`
+.. |round_| replace:: :func:`~hydpy.core.objecttools.round_`
+.. |str| replace:: :class:`str`
+.. |typing| replace:: :mod:`~typing`
+.. |numpy.float16| replace:: :class:`~numpy.float16`
+
+.. _objecttools:
+
+objecttools
+===========
+
+.. automodule:: hydpy.core.objecttools
+    :members:
+    :show-inheritance:
+    :exclude-members: CLASSES, RUN_METHODS, ADD_METHODS, INLET_METHODS, OUTLET_METHODS, RECEIVER_METHODS, SENDER_METHODS, PART_ODE_METHODS, FULL_ODE_METHODS, CONTROLPARAMETERS, DERIVEDPARAMETERS, REQUIREDSEQUENCES, UPDATESSEQUENCES, RESULTSEQUENCES

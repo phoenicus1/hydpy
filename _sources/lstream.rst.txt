@@ -1,0 +1,29 @@
+.. |AG| replace:: :class:`~hydpy.models.lstream.lstream_fluxes.AG`
+.. |AM| replace:: :class:`~hydpy.models.lstream.lstream_fluxes.AM`
+.. |AVR| replace:: :class:`~hydpy.models.lstream.lstream_fluxes.AVR`
+.. |AV| replace:: :class:`~hydpy.models.lstream.lstream_fluxes.AV`
+.. |Calc_HMin_QMin_HMax_QMax_V1| replace:: :class:`~hydpy.models.lstream.lstream_model.Calc_HMin_QMin_HMax_QMax_V1`
+.. |Calc_H_V1| replace:: :class:`~hydpy.models.lstream.lstream_model.Calc_H_V1`
+.. |Calc_QG_V1| replace:: :class:`~hydpy.models.lstream.lstream_model.Calc_QG_V1`
+.. |HM| replace:: :class:`~hydpy.models.lstream.lstream_control.HM`
+.. |HV| replace:: :class:`~hydpy.models.lstream.lstream_derived.HV`
+.. |H| replace:: :class:`~hydpy.models.lstream.lstream_fluxes.H`
+.. |Parameter.simulationstep| replace:: :const:`~hydpy.core.parametertools.Parameter.simulationstep`
+.. |QRef| replace:: :class:`~hydpy.models.lstream.lstream_fluxes.QRef`
+.. |QTol| replace:: :class:`~hydpy.models.lstream.lstream_control.QTol`
+.. |RK| replace:: :class:`~hydpy.models.lstream.lstream_fluxes.RK`
+.. |UM| replace:: :class:`~hydpy.models.lstream.lstream_fluxes.UM`
+.. |UVR| replace:: :class:`~hydpy.models.lstream.lstream_fluxes.UVR`
+.. |UV| replace:: :class:`~hydpy.models.lstream.lstream_fluxes.UV`
+.. |lstream_derived.QM| replace:: :class:`~hydpy.models.lstream.lstream_derived.QM`
+.. |lstream_derived.QV| replace:: :class:`~hydpy.models.lstream.lstream_derived.QV`
+
+.. _lstream:
+
+lstream
+=======
+
+.. automodule:: hydpy.models.lstream
+    :members:
+    :show-inheritance:
+    :exclude-members: CLASSES, RUN_METHODS, ADD_METHODS, INLET_METHODS, OUTLET_METHODS, RECEIVER_METHODS, SENDER_METHODS, PART_ODE_METHODS, FULL_ODE_METHODS, CONTROLPARAMETERS, DERIVEDPARAMETERS, REQUIREDSEQUENCES, UPDATESSEQUENCES, RESULTSEQUENCES

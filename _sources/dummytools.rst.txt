@@ -1,0 +1,11 @@
+.. |Dummies| replace:: :class:`~hydpy.core.dummytools.Dummies`
+
+.. _dummytools:
+
+dummytools
+==========
+
+.. automodule:: hydpy.core.dummytools
+    :members:
+    :show-inheritance:
+    :exclude-members: CLASSES, RUN_METHODS, ADD_METHODS, INLET_METHODS, OUTLET_METHODS, RECEIVER_METHODS, SENDER_METHODS, PART_ODE_METHODS, FULL_ODE_METHODS, CONTROLPARAMETERS, DERIVEDPARAMETERS, REQUIREDSEQUENCES, UPDATESSEQUENCES, RESULTSEQUENCES

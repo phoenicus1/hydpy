@@ -1,0 +1,17 @@
+.. |Elements| replace:: :class:`~hydpy.core.devicetools.Elements`
+.. |Nodes| replace:: :class:`~hydpy.core.devicetools.Nodes`
+.. |None| replace:: :const:`None`
+.. |RiverBasinNumbers2Selection| replace:: :class:`~hydpy.auxs.networktools.RiverBasinNumbers2Selection`
+.. |RiverBasinNumbers| replace:: :class:`~hydpy.auxs.networktools.RiverBasinNumbers`
+.. |RiverBasinNumber| replace:: :class:`~hydpy.auxs.networktools.RiverBasinNumber`
+.. |Selection| replace:: :class:`~hydpy.core.selectiontools.Selection`
+
+.. _networktools:
+
+networktools
+============
+
+.. automodule:: hydpy.auxs.networktools
+    :members:
+    :show-inheritance:
+    :exclude-members: CLASSES, RUN_METHODS, ADD_METHODS, INLET_METHODS, OUTLET_METHODS, RECEIVER_METHODS, SENDER_METHODS, PART_ODE_METHODS, FULL_ODE_METHODS, CONTROLPARAMETERS, DERIVEDPARAMETERS, REQUIREDSEQUENCES, UPDATESSEQUENCES, RESULTSEQUENCES

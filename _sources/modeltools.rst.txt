@@ -1,0 +1,52 @@
+.. |AdHocModel.run| replace:: :func:`~hydpy.core.modeltools.AdHocModel.run`
+.. |AdHocModel| replace:: :class:`~hydpy.core.modeltools.AdHocModel`
+.. |ELSModel.extrapolate_error| replace:: :func:`~hydpy.core.modeltools.ELSModel.extrapolate_error`
+.. |ELSModel.solve| replace:: :func:`~hydpy.core.modeltools.ELSModel.solve`
+.. |ELSModel| replace:: :class:`~hydpy.core.modeltools.ELSModel`
+.. |Element.model| replace:: :const:`~hydpy.core.devicetools.Element.model`
+.. |Element| replace:: :class:`~hydpy.core.devicetools.Element`
+.. |HydPy.simulate| replace:: :func:`~hydpy.core.hydpytools.HydPy.simulate`
+.. |HydPy| replace:: :class:`~hydpy.core.hydpytools.HydPy`
+.. |LinkSequence| replace:: :class:`~hydpy.core.sequencetools.LinkSequence`
+.. |Masks| replace:: :class:`~hydpy.core.masktools.Masks`
+.. |Method| replace:: :class:`~hydpy.core.modeltools.Method`
+.. |Model.connect| replace:: :func:`~hydpy.core.modeltools.Model.connect`
+.. |Model.get_methods| replace:: :func:`~hydpy.core.modeltools.Model.get_methods`
+.. |Model.idx_sim| replace:: :const:`~hydpy.core.modeltools.Model.idx_sim`
+.. |Model.name| replace:: :const:`~hydpy.core.modeltools.Model.name`
+.. |Model.save_data| replace:: :func:`~hydpy.core.modeltools.Model.save_data`
+.. |Model.simulate| replace:: :func:`~hydpy.core.modeltools.Model.simulate`
+.. |Model.update_receivers| replace:: :func:`~hydpy.core.modeltools.Model.update_receivers`
+.. |Model.update_senders| replace:: :func:`~hydpy.core.modeltools.Model.update_senders`
+.. |Model| replace:: :class:`~hydpy.core.modeltools.Model`
+.. |NodeSequence| replace:: :class:`~hydpy.core.sequencetools.NodeSequence`
+.. |Node| replace:: :class:`~hydpy.core.devicetools.Node`
+.. |NumVarsELS| replace:: :class:`~hydpy.core.modeltools.NumVarsELS`
+.. |Sequences.load_data| replace:: :func:`~hydpy.core.sequencetools.Sequences.load_data`
+.. |Sequences.save_data| replace:: :func:`~hydpy.core.sequencetools.Sequences.save_data`
+.. |StateSequences.new2old| replace:: :func:`~hydpy.core.sequencetools.StateSequences.new2old`
+.. |Variable.average_values| replace:: :func:`~hydpy.core.variabletools.Variable.average_values`
+.. |hland_v1| replace:: :mod:`~hydpy.models.hland_v1`
+.. |hstream_v1| replace:: :mod:`~hydpy.models.hstream_v1`
+.. |parameterstep| replace:: :func:`~hydpy.core.importtools.parameterstep`
+.. |prepare_model| replace:: :func:`~hydpy.core.importtools.prepare_model`
+.. |smoothtools| replace:: :mod:`~hydpy.auxs.smoothtools`
+.. |test_v1| replace:: :mod:`~hydpy.models.test_v1`
+.. |test_v2| replace:: :mod:`~hydpy.models.test_v2`
+.. |hland_constants.ILAKE| replace:: :const:`~hydpy.models.hland.hland_constants.ILAKE`
+.. |hland_fluxes.PC| replace:: :class:`~hydpy.models.hland.hland_fluxes.PC`
+.. |test_control.K| replace:: :class:`~hydpy.models.test.test_control.K`
+.. |test_fluxes.Q| replace:: :class:`~hydpy.models.test.test_fluxes.Q`
+.. |test_solver.AbsErrorMax| replace:: :class:`~hydpy.models.test.test_solver.AbsErrorMax`
+.. |test_solver.RelDTMin| replace:: :class:`~hydpy.models.test.test_solver.RelDTMin`
+.. |test_states.S| replace:: :class:`~hydpy.models.test.test_states.S`
+
+.. _modeltools:
+
+modeltools
+==========
+
+.. automodule:: hydpy.core.modeltools
+    :members:
+    :show-inheritance:
+    :exclude-members: CLASSES, RUN_METHODS, ADD_METHODS, INLET_METHODS, OUTLET_METHODS, RECEIVER_METHODS, SENDER_METHODS, PART_ODE_METHODS, FULL_ODE_METHODS, CONTROLPARAMETERS, DERIVEDPARAMETERS, REQUIREDSEQUENCES, UPDATESSEQUENCES, RESULTSEQUENCES

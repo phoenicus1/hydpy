@@ -1,0 +1,26 @@
+.. |Auxfiler| replace:: :class:`~hydpy.core.auxfiletools.Auxfiler`
+.. |ControlManager| replace:: :class:`~hydpy.core.filetools.ControlManager`
+.. |Dummies| replace:: :class:`~hydpy.core.dummytools.Dummies`
+.. |None| replace:: :const:`None`
+.. |Open| replace:: :class:`~hydpy.core.testtools.Open`
+.. |Variable2Auxfile.remove| replace:: :func:`~hydpy.core.auxfiletools.Variable2Auxfile.remove`
+.. |Variable2Auxfile| replace:: :class:`~hydpy.core.auxfiletools.Variable2Auxfile`
+.. |Variable| replace:: :class:`~hydpy.core.variabletools.Variable`
+.. |auxfiletools| replace:: :mod:`~hydpy.core.auxfiletools`
+.. |lland_v1| replace:: :mod:`~hydpy.models.lland_v1`
+.. |lland_v2| replace:: :mod:`~hydpy.models.lland_v2`
+.. |lstream_v1| replace:: :mod:`~hydpy.models.lstream_v1`
+.. |property| replace:: :class:`property`
+.. |pub| replace:: :mod:`~hydpy.pub`
+.. |selectiontools| replace:: :mod:`~hydpy.core.selectiontools`
+.. |str| replace:: :class:`str`
+
+.. _auxfiletools:
+
+auxfiletools
+============
+
+.. automodule:: hydpy.core.auxfiletools
+    :members:
+    :show-inheritance:
+    :exclude-members: CLASSES, RUN_METHODS, ADD_METHODS, INLET_METHODS, OUTLET_METHODS, RECEIVER_METHODS, SENDER_METHODS, PART_ODE_METHODS, FULL_ODE_METHODS, CONTROLPARAMETERS, DERIVEDPARAMETERS, REQUIREDSEQUENCES, UPDATESSEQUENCES, RESULTSEQUENCES

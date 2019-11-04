@@ -1,0 +1,263 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>dummytools &#8212; HydPy 4.0a11 documentation</title>
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="_static/graphviz.css" />
+    
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="_static/language_data.js"></script>
+    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="exceptiontools" href="exceptiontools.html" />
+    <link rel="prev" title="devicetools" href="devicetools.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="exceptiontools.html" title="exceptiontools"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="devicetools.html" title="devicetools"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">HydPy 4.0a11 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="framework.html" >Framework Tools</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="core.html" accesskey="U">Core Tools</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="dummytools">
+<span id="id1"></span><h1>dummytools<a class="headerlink" href="#dummytools" title="Permalink to this headline">¶</a></h1>
+<span class="target" id="module-hydpy.core.dummytools"></span><p>This module is thought for easing doctests only.</p>
+<p>Module <a class="reference internal" href="#module-hydpy.core.dummytools" title="hydpy.core.dummytools"><code class="xref py py-mod docutils literal notranslate"><span class="pre">dummytools</span></code></a> implements the following members:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><a class="reference internal" href="#hydpy.core.dummytools.Dummies" title="hydpy.core.dummytools.Dummies"><code class="xref py py-class docutils literal notranslate"><span class="pre">Dummies</span></code></a> Handles “global” doctest data.</p></li>
+</ul>
+</div></blockquote>
+<hr class="docutils" />
+<dl class="class">
+<dt id="hydpy.core.dummytools.Dummies">
+<em class="property">class </em><code class="sig-prename descclassname">hydpy.core.dummytools.</code><code class="sig-name descname">Dummies</code><a class="reference internal" href="_modules/hydpy/core/dummytools.html#Dummies"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hydpy.core.dummytools.Dummies" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Handles “global” doctest data.</p>
+<p>A typical use pattern is to generated the instance of a class in the
+main docstring of the class and to test the different class methods
+based on this instance in separate docstrings afterwards.</p>
+<p>Class <a class="reference internal" href="#hydpy.core.dummytools.Dummies" title="hydpy.core.dummytools.Dummies"><code class="xref py py-class docutils literal notranslate"><span class="pre">Dummies</span></code></a> tries to ensure that the original objects are
+not altered due to performing different tests.  This protection
+mechanism is successfull for the simple following test class:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">class</span> <span class="nc">Test</span><span class="p">:</span>
+<span class="gp">...</span>
+<span class="gp">... </span>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="gp">... </span>        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;some_name&#39;</span>
+<span class="gp">... </span>        <span class="bp">self</span><span class="o">.</span><span class="n">values</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">]</span>
+</pre></div>
+</div>
+<p>As shown by the following results, neither the name nor the values of
+<cite>dummies.test</cite> can be altered by changing the respective
+attributes of the local object <cite>test</cite>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy</span> <span class="k">import</span> <span class="n">dummies</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dummies</span><span class="o">.</span><span class="n">test</span> <span class="o">=</span> <span class="n">Test</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">test</span> <span class="o">=</span> <span class="n">dummies</span><span class="o">.</span><span class="n">test</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">test</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;different_name&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dummies</span><span class="o">.</span><span class="n">test</span><span class="o">.</span><span class="n">name</span>
+<span class="go">&#39;some_name&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">test</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="mi">4</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dummies</span><span class="o">.</span><span class="n">test</span><span class="o">.</span><span class="n">values</span>
+<span class="go">[1, 2, 3]</span>
+</pre></div>
+</div>
+<p>The show pretection mechanism is implemented via making “deep copies”
+of objects handled by <a class="reference internal" href="#hydpy.core.dummytools.Dummies" title="hydpy.core.dummytools.Dummies"><code class="xref py py-class docutils literal notranslate"><span class="pre">Dummies</span></code></a> objects.  So lets see what happens
+when we subclass the test class and disable deep copying:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">class</span> <span class="nc">Test</span><span class="p">(</span><span class="n">Test</span><span class="p">):</span>
+<span class="gp">...</span>
+<span class="gp">... </span>    <span class="k">def</span> <span class="nf">__deepcopy__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dict_</span><span class="p">):</span>
+<span class="gp">... </span>        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>Repeating the the above examples still shows that attribute <cite>name</cite> is
+still protected but attribute <cite>values</cite> is not, meaning <cite>test</cite> is only
+a flat copy of <cite>dummies.test</cite>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy</span> <span class="k">import</span> <span class="n">dummies</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dummies</span><span class="o">.</span><span class="n">test</span> <span class="o">=</span> <span class="n">Test</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">test</span> <span class="o">=</span> <span class="n">dummies</span><span class="o">.</span><span class="n">test</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">test</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;different_name&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dummies</span><span class="o">.</span><span class="n">test</span><span class="o">.</span><span class="n">name</span>
+<span class="go">&#39;some_name&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">test</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="mi">4</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dummies</span><span class="o">.</span><span class="n">test</span><span class="o">.</span><span class="n">values</span>
+<span class="go">[1, 4, 3]</span>
+</pre></div>
+</div>
+<p>When we also disable flat copying, neither the name nor the values
+of <cite>dummies.test</cite> are protected:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">class</span> <span class="nc">Test</span><span class="p">(</span><span class="n">Test</span><span class="p">):</span>
+<span class="gp">...</span>
+<span class="gp">... </span>    <span class="k">def</span> <span class="nf">__copy__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="gp">... </span>        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">()</span>
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy</span> <span class="k">import</span> <span class="n">dummies</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dummies</span><span class="o">.</span><span class="n">test</span> <span class="o">=</span> <span class="n">Test</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">test</span> <span class="o">=</span> <span class="n">dummies</span><span class="o">.</span><span class="n">test</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">test</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;different_name&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dummies</span><span class="o">.</span><span class="n">test</span><span class="o">.</span><span class="n">name</span>
+<span class="go">&#39;different_name&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">test</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="mi">4</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dummies</span><span class="o">.</span><span class="n">test</span><span class="o">.</span><span class="n">values</span>
+<span class="go">[1, 4, 3]</span>
+</pre></div>
+</div>
+<p>After each test of a complete module, the dummy object is empty again
+(except for variable names starting with two underscores).</p>
+<dl class="method">
+<dt id="hydpy.core.dummytools.Dummies.clear">
+<code class="sig-name descname">clear</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/core/dummytools.html#Dummies.clear"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hydpy.core.dummytools.Dummies.clear" title="Permalink to this definition">¶</a></dt>
+<dd><p>Remove all currently handled attributes.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy</span> <span class="k">import</span> <span class="n">dummies</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dummies</span><span class="o">.</span><span class="n">x</span> <span class="o">=</span> <span class="mi">1</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dummies</span><span class="o">.</span><span class="n">y</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dummies</span><span class="o">.</span><span class="n">x</span>
+<span class="go">1</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">hasattr</span><span class="p">(</span><span class="n">dummies</span><span class="p">,</span> <span class="s1">&#39;y&#39;</span><span class="p">)</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dummies</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">hasattr</span><span class="p">(</span><span class="n">dummies</span><span class="p">,</span> <span class="s1">&#39;x&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">dummies</span><span class="p">,</span> <span class="s1">&#39;y&#39;</span><span class="p">)</span>
+<span class="go">False</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/HydPy_Logo.png" alt="Logo"/>
+            </a></p>
+  <h3><a href="index.html">Table of Contents</a></h3>
+  <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="install.html">Installation Instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quick Start</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="framework.html">Framework Tools</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="core.html">Core Tools</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="autodoctools.html">autodoctools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="auxfiletools.html">auxfiletools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="devicetools.html">devicetools</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">dummytools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="exceptiontools.html">exceptiontools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="filetools.html">filetools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="hydpytools.html">hydpytools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="importtools.html">importtools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="indextools.html">indextools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="itemtools.html">itemtools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="masktools.html">masktools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="modeltools.html">modeltools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="netcdftools.html">netcdftools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="objecttools.html">objecttools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="optiontools.html">optiontools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="parametertools.html">parametertools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="printtools.html">printtools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="propertytools.html">propertytools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="pubtools.html">pubtools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="selectiontools.html">selectiontools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="sequencetools.html">sequencetools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="testtools.html">testtools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="timetools.html">timetools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="typingtools.html">typingtools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="variabletools.html">variabletools</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="execution.html">Execution Tools</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cythons.html">Cython Tools</a></li>
+<li class="toctree-l2"><a class="reference internal" href="auxiliaries.html">Auxiliary Tools</a></li>
+<li class="toctree-l2"><a class="reference internal" href="configuration.html">Configuration Tools</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="modelcollection.html">Model Collection</a></li>
+<li class="toctree-l1"><a class="reference internal" href="development.html">Development</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples.html">Example Projects</a></li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="devicetools.html"
+                        title="previous chapter">devicetools</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="exceptiontools.html"
+                        title="next chapter">exceptiontools</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/dummytools.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="exceptiontools.html" title="exceptiontools"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="devicetools.html" title="devicetools"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">HydPy 4.0a11 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="framework.html" >Framework Tools</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="core.html" >Core Tools</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2019, HydPy Developers.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.2.1.
+    </div>
+  </body>
+</html>

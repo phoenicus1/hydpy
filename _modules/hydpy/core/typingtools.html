@@ -1,0 +1,302 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>hydpy.core.typingtools &#8212; HydPy 4.0a11 documentation</title>
+    <link rel="stylesheet" href="../../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css" />
+    
+    <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="../../../_static/language_data.js"></script>
+    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">HydPy 4.0a11 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for hydpy.core.typingtools</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;This module implements some &quot;types&quot; to be used for static (and</span>
+<span class="sd">eventually dynamical) typing.&quot;&quot;&quot;</span>
+<span class="c1"># import...</span>
+<span class="c1"># ...from standard library</span>
+<span class="kn">import</span> <span class="nn">abc</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="k">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">typing_extensions</span> <span class="k">import</span> <span class="n">Protocol</span>
+<span class="c1"># ...from site-packages</span>
+<span class="kn">import</span> <span class="nn">numpy</span>
+<span class="c1"># ...from hydpy</span>
+<span class="k">if</span> <span class="n">TYPE_CHECKING</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">hydpy.core</span> <span class="k">import</span> <span class="n">devicetools</span>
+    <span class="kn">from</span> <span class="nn">hydpy.core</span> <span class="k">import</span> <span class="n">parametertools</span>
+    <span class="kn">from</span> <span class="nn">hydpy.core</span> <span class="k">import</span> <span class="n">sequencetools</span>
+    <span class="kn">from</span> <span class="nn">hydpy.core</span> <span class="k">import</span> <span class="n">timetools</span>
+    <span class="kn">from</span> <span class="nn">hydpy.cythons.autogen</span> <span class="k">import</span> <span class="n">pointerutils</span>
+
+<span class="n">T</span> <span class="o">=</span> <span class="n">TypeVar</span><span class="p">(</span><span class="s1">&#39;T&#39;</span><span class="p">)</span>
+<span class="n">T1</span> <span class="o">=</span> <span class="n">TypeVar</span><span class="p">(</span><span class="s1">&#39;T1&#39;</span><span class="p">)</span>
+<span class="n">T2</span> <span class="o">=</span> <span class="n">TypeVar</span><span class="p">(</span><span class="s1">&#39;T2&#39;</span><span class="p">)</span>
+<span class="n">T3</span> <span class="o">=</span> <span class="n">TypeVar</span><span class="p">(</span><span class="s1">&#39;T3&#39;</span><span class="p">)</span>
+
+<span class="n">Mayberable1</span> <span class="o">=</span> <span class="n">Union</span><span class="p">[</span><span class="n">T</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">T</span><span class="p">]]</span>
+<span class="n">Mayberable2</span> <span class="o">=</span> <span class="n">Union</span><span class="p">[</span><span class="n">T1</span><span class="p">,</span> <span class="n">T2</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="n">T1</span><span class="p">,</span> <span class="n">T2</span><span class="p">]]]</span>
+<span class="n">Mayberable3</span> <span class="o">=</span> <span class="n">Union</span><span class="p">[</span><span class="n">T1</span><span class="p">,</span> <span class="n">T2</span><span class="p">,</span> <span class="n">T3</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="n">T1</span><span class="p">,</span> <span class="n">T2</span><span class="p">,</span> <span class="n">T3</span><span class="p">]]]</span>
+<span class="n">MayNonerable1</span> <span class="o">=</span> <span class="n">Union</span><span class="p">[</span><span class="n">T</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">T</span><span class="p">],</span> <span class="kc">None</span><span class="p">]</span>
+<span class="n">MayNonerable2</span> <span class="o">=</span> <span class="n">Union</span><span class="p">[</span><span class="n">T1</span><span class="p">,</span> <span class="n">T2</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="n">T1</span><span class="p">,</span> <span class="n">T2</span><span class="p">]],</span> <span class="kc">None</span><span class="p">]</span>
+<span class="n">MayNonerable3</span> <span class="o">=</span> <span class="n">Union</span><span class="p">[</span><span class="n">T1</span><span class="p">,</span> <span class="n">T2</span><span class="p">,</span> <span class="n">T3</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="n">T1</span><span class="p">,</span> <span class="n">T2</span><span class="p">,</span> <span class="n">T3</span><span class="p">]],</span> <span class="kc">None</span><span class="p">]</span>
+
+
+<div class="viewcode-block" id="IterableNonString"><a class="viewcode-back" href="../../../typingtools.html#hydpy.core.typingtools.IterableNonString">[docs]</a><span class="k">class</span> <span class="nc">IterableNonString</span><span class="p">(</span><span class="n">abc</span><span class="o">.</span><span class="n">ABC</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Abstract base class for checking if an object is iterable but not a</span>
+<span class="sd">    string.</span>
+<span class="sd">    </span>
+<span class="sd">    &gt;&gt;&gt; from hydpy.core.typingtools import IterableNonString</span>
+<span class="sd">    &gt;&gt;&gt; isinstance(&#39;asdf&#39;, IterableNonString)</span>
+<span class="sd">    False</span>
+<span class="sd">    &gt;&gt;&gt; isinstance([&#39;asdf&#39;], IterableNonString)</span>
+<span class="sd">    True</span>
+<span class="sd">    &gt;&gt;&gt; issubclass(str, IterableNonString)</span>
+<span class="sd">    False</span>
+<span class="sd">    &gt;&gt;&gt; issubclass(list, IterableNonString)</span>
+<span class="sd">    True</span>
+<span class="sd">    &gt;&gt;&gt;</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">__subclasshook__</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">subclass</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">(</span><span class="nb">hasattr</span><span class="p">(</span><span class="n">subclass</span><span class="p">,</span> <span class="s1">&#39;__iter__&#39;</span><span class="p">)</span> <span class="ow">and</span>
+                <span class="ow">not</span> <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">subclass</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">or</span>
+                     <span class="nb">issubclass</span><span class="p">(</span><span class="n">subclass</span><span class="p">,</span> <span class="nb">str</span><span class="p">)))</span></div>
+
+
+<div class="viewcode-block" id="DevicesHandlerProtocol"><a class="viewcode-back" href="../../../typingtools.html#hydpy.core.typingtools.DevicesHandlerProtocol">[docs]</a><span class="k">class</span> <span class="nc">DevicesHandlerProtocol</span><span class="p">(</span><span class="n">Protocol</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Without concrete implementation.&quot;&quot;&quot;</span>
+
+    <span class="n">nodes</span><span class="p">:</span> <span class="s1">&#39;devicetools.Nodes&#39;</span>
+    <span class="n">elements</span><span class="p">:</span> <span class="s1">&#39;devicetools.Elements&#39;</span></div>
+
+
+<div class="viewcode-block" id="VariableProtocol"><a class="viewcode-back" href="../../../typingtools.html#hydpy.core.typingtools.VariableProtocol">[docs]</a><span class="k">class</span> <span class="nc">VariableProtocol</span><span class="p">(</span><span class="n">Protocol</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Protocol to identify objects as &quot;variables&quot;.&quot;&quot;&quot;</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">name</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;The name of the actual variable object.&quot;&quot;&quot;</span>
+
+    <span class="c1"># def __init__(</span>
+    <span class="c1">#         self,</span>
+    <span class="c1">#         subvars: Union[&#39;parametertools.SubParameters&#39;,</span>
+    <span class="c1">#                        &#39;sequencetools.SubSequences&#39;]) -&gt; None:</span>
+    <span class="c1">#     &quot;&quot;&quot;See class |Parameter| and class |Sequence|.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__hydpy__connect_variable2subgroup__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;To be called by the |SubVariables| object when preparing a</span>
+<span class="sd">        new |Variable| object.&quot;&quot;&quot;</span></div>
+
+
+<span class="k">class</span> <span class="nc">CyParametersProtocol</span><span class="p">(</span><span class="n">Protocol</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;The protocol for the `parameters` attribute of Cython extension classes.</span>
+
+<span class="sd">    Class |Cythonizer| generates the actual, model specific</span>
+<span class="sd">    implementations automatically.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+
+<span class="k">class</span> <span class="nc">CySequencesProtocol</span><span class="p">(</span><span class="n">Protocol</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;The protocol for the `sequences` attribute of Cython extension classes.</span>
+
+<span class="sd">    Class |Cythonizer| generates the actual, model specific</span>
+<span class="sd">    implementations automatically.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+
+<div class="viewcode-block" id="CyModelProtocol"><a class="viewcode-back" href="../../../typingtools.html#hydpy.core.typingtools.CyModelProtocol">[docs]</a><span class="k">class</span> <span class="nc">CyModelProtocol</span><span class="p">(</span><span class="n">Protocol</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;The protocol of Cython extension classes for defining</span>
+<span class="sd">    efficient model implementations.</span>
+
+<span class="sd">    Class |Cythonizer| generates the actual, model specific</span>
+<span class="sd">    implementations automatically.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">idx_sim</span><span class="p">:</span> <span class="nb">int</span>
+    <span class="n">parameters</span><span class="p">:</span> <span class="n">CyParametersProtocol</span>
+    <span class="n">sequences</span><span class="p">:</span> <span class="n">CySequencesProtocol</span></div>
+
+
+<span class="k">class</span> <span class="nc">FastAccessParameterProtocol</span><span class="p">(</span><span class="n">Protocol</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;The protocol of Cython extension classes for replacing</span>
+<span class="sd">    the Python surrogate class |FastAccessParameter|.&quot;&quot;&quot;</span>
+
+
+<div class="viewcode-block" id="FastAccessModelSequenceProtocol"><a class="viewcode-back" href="../../../typingtools.html#hydpy.core.typingtools.FastAccessModelSequenceProtocol">[docs]</a><span class="k">class</span> <span class="nc">FastAccessModelSequenceProtocol</span><span class="p">(</span><span class="n">Protocol</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;The protocol of Cython extension classes for replacing</span>
+<span class="sd">    the Python surrogate class |FastAccessModelSequence|.</span>
+
+<span class="sd">    Class |Cythonizer| generates the actual, model specific</span>
+<span class="sd">    implementations automatically.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="FastAccessModelSequenceProtocol.open_files"><a class="viewcode-back" href="../../../typingtools.html#hydpy.core.typingtools.FastAccessModelSequenceProtocol.open_files">[docs]</a>    <span class="k">def</span> <span class="nf">open_files</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">idx</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Open the internal data files of all handled sequences with</span>
+<span class="sd">        an activated |IOSequence.diskflag| and seek the position</span>
+<span class="sd">        indicated by the given index.&quot;&quot;&quot;</span></div>
+
+<div class="viewcode-block" id="FastAccessModelSequenceProtocol.close_files"><a class="viewcode-back" href="../../../typingtools.html#hydpy.core.typingtools.FastAccessModelSequenceProtocol.close_files">[docs]</a>    <span class="k">def</span> <span class="nf">close_files</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Close the internal data files of all handled sequences with</span>
+<span class="sd">        an activated |IOSequence.diskflag|.&quot;&quot;&quot;</span></div>
+
+<div class="viewcode-block" id="FastAccessModelSequenceProtocol.load_data"><a class="viewcode-back" href="../../../typingtools.html#hydpy.core.typingtools.FastAccessModelSequenceProtocol.load_data">[docs]</a>    <span class="k">def</span> <span class="nf">load_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">idx</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Let all handled sequences with an activated |IOSequence.memoryflag|</span>
+<span class="sd">        load the data corresponding to the given index either from RAM</span>
+<span class="sd">        (with |IOSequence.ramflag| being |True|) or from disk (with</span>
+<span class="sd">        |IOSequence.diskflag| being |True|).&quot;&quot;&quot;</span></div>
+
+<div class="viewcode-block" id="FastAccessModelSequenceProtocol.save_data"><a class="viewcode-back" href="../../../typingtools.html#hydpy.core.typingtools.FastAccessModelSequenceProtocol.save_data">[docs]</a>    <span class="k">def</span> <span class="nf">save_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">idx</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Let all handled sequences with an activated |IOSequence.memoryflag|</span>
+<span class="sd">        save their actual data either to RAM (with |IOSequence.ramflag| being</span>
+<span class="sd">        |True|) or to disk (with |IOSequence.diskflag|).&quot;&quot;&quot;</span></div></div>
+
+
+<div class="viewcode-block" id="FastAccessLinkSequenceProtocol"><a class="viewcode-back" href="../../../typingtools.html#hydpy.core.typingtools.FastAccessLinkSequenceProtocol">[docs]</a><span class="k">class</span> <span class="nc">FastAccessLinkSequenceProtocol</span><span class="p">(</span><span class="n">FastAccessModelSequenceProtocol</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;The protocol of Cython extension classes for replacing</span>
+<span class="sd">    the Python surrogate class |FastAccessModelSequence| when</span>
+<span class="sd">    working with |LinkSequence| subclasses.</span>
+
+<span class="sd">    Class |Cythonizer| generates the actual, model specific</span>
+<span class="sd">    implementations automatically.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="FastAccessLinkSequenceProtocol.alloc"><a class="viewcode-back" href="../../../typingtools.html#hydpy.core.typingtools.FastAccessLinkSequenceProtocol.alloc">[docs]</a>    <span class="k">def</span> <span class="nf">alloc</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">length</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Allocate enough memory for the given vector length for the</span>
+<span class="sd">        |LinkSequence| with the given name.</span>
+
+<span class="sd">        |FastAccessLinkSequenceProtocol.alloc| has be implemented in case</span>
+<span class="sd">        of the existence of 1-dimensional |LinkSequence| subclasses only.</span>
+<span class="sd">        &quot;&quot;&quot;</span></div>
+
+<div class="viewcode-block" id="FastAccessLinkSequenceProtocol.dealloc"><a class="viewcode-back" href="../../../typingtools.html#hydpy.core.typingtools.FastAccessLinkSequenceProtocol.dealloc">[docs]</a>    <span class="k">def</span> <span class="nf">dealloc</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Free the previously allocated memory of the |LinkSequence| with</span>
+<span class="sd">        the given name.</span>
+
+<span class="sd">        |FastAccessLinkSequenceProtocol.alloc| has be implemented in case</span>
+<span class="sd">        of the existence of 1-dimensional |LinkSequence| subclasses only.</span>
+<span class="sd">        &quot;&quot;&quot;</span></div>
+
+<div class="viewcode-block" id="FastAccessLinkSequenceProtocol.set_pointer0d"><a class="viewcode-back" href="../../../typingtools.html#hydpy.core.typingtools.FastAccessLinkSequenceProtocol.set_pointer0d">[docs]</a>    <span class="k">def</span> <span class="nf">set_pointer0d</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="s1">&#39;pointerutils.PDouble&#39;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Use the given |PDouble| object as the pointer of the</span>
+<span class="sd">        0-dimensional |LinkSequence| object with the given name.</span>
+
+<span class="sd">        |FastAccessLinkSequenceProtocol.alloc| has be implemented in case</span>
+<span class="sd">        of the existence of 0-dimensional |LinkSequence| subclasses only.</span>
+<span class="sd">        &quot;&quot;&quot;</span></div>
+
+<div class="viewcode-block" id="FastAccessLinkSequenceProtocol.set_pointer1d"><a class="viewcode-back" href="../../../typingtools.html#hydpy.core.typingtools.FastAccessLinkSequenceProtocol.set_pointer1d">[docs]</a>    <span class="k">def</span> <span class="nf">set_pointer1d</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="s1">&#39;pointerutils.PDouble&#39;</span><span class="p">,</span> <span class="n">idx</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Use the given |PDouble| object as one of the pointers of the</span>
+<span class="sd">        1-dimensional |LinkSequence| object with the given name.</span>
+
+<span class="sd">        The given index defines the vector position of the pointer.</span>
+
+<span class="sd">        |FastAccessLinkSequenceProtocol.alloc| has be implemented in case</span>
+<span class="sd">        of the existence of 1-dimensional |LinkSequence| subclasses only.</span>
+<span class="sd">        &quot;&quot;&quot;</span></div>
+
+<div class="viewcode-block" id="FastAccessLinkSequenceProtocol.get_value"><a class="viewcode-back" href="../../../typingtools.html#hydpy.core.typingtools.FastAccessLinkSequenceProtocol.get_value">[docs]</a>    <span class="k">def</span> <span class="nf">get_value</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;Return the actual value(s) the |LinkSequence| object with</span>
+<span class="sd">        the given name is pointing to.&quot;&quot;&quot;</span></div>
+
+<div class="viewcode-block" id="FastAccessLinkSequenceProtocol.set_value"><a class="viewcode-back" href="../../../typingtools.html#hydpy.core.typingtools.FastAccessLinkSequenceProtocol.set_value">[docs]</a>    <span class="k">def</span> <span class="nf">set_value</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="n">Mayberable1</span><span class="p">[</span><span class="nb">float</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Change the actual value(s) the |LinkSequence| object with</span>
+<span class="sd">        the given name is pointing to.&quot;&quot;&quot;</span></div></div>
+
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s1">&#39;IterableNonString&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;Mayberable1&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;Mayberable2&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;Mayberable3&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;MayNonerable1&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;MayNonerable2&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;MayNonerable3&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;DevicesHandlerProtocol&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;VariableProtocol&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;CyModelProtocol&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;FastAccessModelSequenceProtocol&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;FastAccessLinkSequenceProtocol&#39;</span><span class="p">,</span>
+<span class="p">]</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../../index.html">
+              <img class="logo" src="../../../_static/HydPy_Logo.png" alt="Logo"/>
+            </a></p>
+  <h3><a href="../../../index.html">Table of Contents</a></h3>
+  <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../install.html">Installation Instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../framework.html">Framework Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../modelcollection.html">Model Collection</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../development.html">Development</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../examples.html">Example Projects</a></li>
+</ul>
+
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">HydPy 4.0a11 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2019, HydPy Developers.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.2.1.
+    </div>
+  </body>
+</html>

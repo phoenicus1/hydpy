@@ -1,0 +1,1147 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>hydpy.models.lstream.lstream_model &#8212; HydPy 4.0a11 documentation</title>
+    <link rel="stylesheet" href="../../../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/graphviz.css" />
+    
+    <script type="text/javascript" id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="../../../../_static/language_data.js"></script>
+    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../index.html">HydPy 4.0a11 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../../index.html" >Module code</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="../lstream.html" accesskey="U">hydpy.models.lstream</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for hydpy.models.lstream.lstream_model</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="c1"># pylint: disable=missing-docstring</span>
+<span class="c1"># pylint: enable=missing-docstring</span>
+
+<span class="c1"># import...</span>
+<span class="c1"># ...from HydPy</span>
+<span class="kn">from</span> <span class="nn">hydpy.core</span> <span class="k">import</span> <span class="n">modeltools</span>
+<span class="kn">from</span> <span class="nn">hydpy.cythons</span> <span class="k">import</span> <span class="n">modelutils</span>
+<span class="kn">from</span> <span class="nn">hydpy.models.lstream</span> <span class="k">import</span> <span class="n">lstream_control</span>
+<span class="kn">from</span> <span class="nn">hydpy.models.lstream</span> <span class="k">import</span> <span class="n">lstream_derived</span>
+<span class="kn">from</span> <span class="nn">hydpy.models.lstream</span> <span class="k">import</span> <span class="n">lstream_fluxes</span>
+<span class="kn">from</span> <span class="nn">hydpy.models.lstream</span> <span class="k">import</span> <span class="n">lstream_states</span>
+<span class="kn">from</span> <span class="nn">hydpy.models.lstream</span> <span class="k">import</span> <span class="n">lstream_aides</span>
+<span class="kn">from</span> <span class="nn">hydpy.models.lstream</span> <span class="k">import</span> <span class="n">lstream_inlets</span>
+<span class="kn">from</span> <span class="nn">hydpy.models.lstream</span> <span class="k">import</span> <span class="n">lstream_outlets</span>
+
+
+<div class="viewcode-block" id="Calc_QRef_V1"><a class="viewcode-back" href="../../../../lstream.html#hydpy.models.lstream.lstream_model.Calc_QRef_V1">[docs]</a><span class="k">class</span> <span class="nc">Calc_QRef_V1</span><span class="p">(</span><span class="n">modeltools</span><span class="o">.</span><span class="n">Method</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Determine the reference discharge within the given space-time interval.</span>
+
+<span class="sd">    Basic equation:</span>
+<span class="sd">      :math:`QRef = \\frac{QZ_{new}+QZ_{old}+QA_{old}}{3}`</span>
+
+<span class="sd">    Example:</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.lstream import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep()</span>
+<span class="sd">        &gt;&gt;&gt; states.qz.new = 3.0</span>
+<span class="sd">        &gt;&gt;&gt; states.qz.old = 2.0</span>
+<span class="sd">        &gt;&gt;&gt; states.qa.old = 1.0</span>
+<span class="sd">        &gt;&gt;&gt; model.calc_qref_v1()</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.qref</span>
+<span class="sd">        qref(2.0)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">REQUIREDSEQUENCES</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">lstream_states</span><span class="o">.</span><span class="n">QZ</span><span class="p">,</span>
+        <span class="n">lstream_states</span><span class="o">.</span><span class="n">QA</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">RESULTSEQUENCES</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">lstream_fluxes</span><span class="o">.</span><span class="n">QRef</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">__call__</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">Model</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">new</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">states</span><span class="o">.</span><span class="n">fastaccess_new</span>
+        <span class="n">old</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">states</span><span class="o">.</span><span class="n">fastaccess_old</span>
+        <span class="n">flu</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">fluxes</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">flu</span><span class="o">.</span><span class="n">qref</span> <span class="o">=</span> <span class="p">(</span><span class="n">new</span><span class="o">.</span><span class="n">qz</span><span class="o">+</span><span class="n">old</span><span class="o">.</span><span class="n">qz</span><span class="o">+</span><span class="n">old</span><span class="o">.</span><span class="n">qa</span><span class="p">)</span><span class="o">/</span><span class="mf">3.</span></div>
+
+
+<div class="viewcode-block" id="Calc_RK_V1"><a class="viewcode-back" href="../../../../lstream.html#hydpy.models.lstream.lstream_model.Calc_RK_V1">[docs]</a><span class="k">class</span> <span class="nc">Calc_RK_V1</span><span class="p">(</span><span class="n">modeltools</span><span class="o">.</span><span class="n">Method</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Determine the actual traveling time of the water (not of the wave!).</span>
+
+<span class="sd">    Basic equation:</span>
+<span class="sd">      :math:`RK = \\frac{Laen \\cdot A}{QRef}`</span>
+
+<span class="sd">    Examples:</span>
+
+<span class="sd">        First, note that the traveling time is determined in the unit of the</span>
+<span class="sd">        actual simulation step size:</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.lstream import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep()</span>
+<span class="sd">        &gt;&gt;&gt; laen(25.0)</span>
+<span class="sd">        &gt;&gt;&gt; derived.sek(24*60*60)</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.ag = 10.0</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.qref = 1.0</span>
+<span class="sd">        &gt;&gt;&gt; model.calc_rk_v1()</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.rk</span>
+<span class="sd">        rk(2.893519)</span>
+
+<span class="sd">        Second, for negative values or zero values of |AG| or |QRef|,</span>
+<span class="sd">        the value of |RK| is set to zero:</span>
+
+<span class="sd">        &gt;&gt;&gt; fluxes.ag = 0.0</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.qref = 1.0</span>
+<span class="sd">        &gt;&gt;&gt; model.calc_rk_v1()</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.rk</span>
+<span class="sd">        rk(0.0)</span>
+
+<span class="sd">        &gt;&gt;&gt; fluxes.ag = 0.0</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.qref = 1.0</span>
+<span class="sd">        &gt;&gt;&gt; model.calc_rk_v1()</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.rk</span>
+<span class="sd">        rk(0.0)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">CONTROLPARAMETERS</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">lstream_control</span><span class="o">.</span><span class="n">Laen</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">DERIVEDPARAMETERS</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">lstream_derived</span><span class="o">.</span><span class="n">Sek</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">REQUIREDSEQUENCES</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">lstream_fluxes</span><span class="o">.</span><span class="n">QRef</span><span class="p">,</span>
+        <span class="n">lstream_fluxes</span><span class="o">.</span><span class="n">AG</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">RESULTSEQUENCES</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">lstream_fluxes</span><span class="o">.</span><span class="n">RK</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">__call__</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">Model</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">con</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">control</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">der</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">derived</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">flu</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">fluxes</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">flu</span><span class="o">.</span><span class="n">ag</span> <span class="o">&gt;</span> <span class="mf">0.</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">flu</span><span class="o">.</span><span class="n">qref</span> <span class="o">&gt;</span> <span class="mf">0.</span><span class="p">):</span>
+            <span class="n">flu</span><span class="o">.</span><span class="n">rk</span> <span class="o">=</span> <span class="p">(</span><span class="mf">1000.</span><span class="o">*</span><span class="n">con</span><span class="o">.</span><span class="n">laen</span><span class="o">*</span><span class="n">flu</span><span class="o">.</span><span class="n">ag</span><span class="p">)</span><span class="o">/</span><span class="p">(</span><span class="n">der</span><span class="o">.</span><span class="n">sek</span><span class="o">*</span><span class="n">flu</span><span class="o">.</span><span class="n">qref</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">flu</span><span class="o">.</span><span class="n">rk</span> <span class="o">=</span> <span class="mf">0.</span></div>
+
+
+<div class="viewcode-block" id="Calc_AM_UM_V1"><a class="viewcode-back" href="../../../../lstream.html#hydpy.models.lstream.lstream_model.Calc_AM_UM_V1">[docs]</a><span class="k">class</span> <span class="nc">Calc_AM_UM_V1</span><span class="p">(</span><span class="n">modeltools</span><span class="o">.</span><span class="n">Method</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Calculate the flown through area and the wetted perimeter</span>
+<span class="sd">    of the main channel.</span>
+
+<span class="sd">    Note that the main channel is assumed to have identical slopes on</span>
+<span class="sd">    both sides and that water flowing exactly above the main channel is</span>
+<span class="sd">    contributing to |AM|.  Both theoretical surfaces seperating water</span>
+<span class="sd">    above the main channel from water above both forelands are</span>
+<span class="sd">    contributing to |UM|.</span>
+
+<span class="sd">    Examples:</span>
+
+<span class="sd">        Generally, a trapezoid with reflection symmetry is assumed.  Here its</span>
+<span class="sd">        smaller base (bottom) has a length of 2 meters, its legs show an</span>
+<span class="sd">        inclination of 1 meter per 4 meters, and its height (depths) is 1</span>
+<span class="sd">        meter:</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.lstream import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep()</span>
+<span class="sd">        &gt;&gt;&gt; bm(2.0)</span>
+<span class="sd">        &gt;&gt;&gt; bnm(4.0)</span>
+<span class="sd">        &gt;&gt;&gt; hm(1.0)</span>
+
+<span class="sd">        The first example deals with normal flow conditions, where water</span>
+<span class="sd">        flows within the main channel completely (|H| &lt; |HM|):</span>
+
+<span class="sd">        &gt;&gt;&gt; fluxes.h = 0.5</span>
+<span class="sd">        &gt;&gt;&gt; model.calc_am_um_v1()</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.am</span>
+<span class="sd">        am(2.0)</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.um</span>
+<span class="sd">        um(6.123106)</span>
+
+<span class="sd">        The second example deals with high flow conditions, where water</span>
+<span class="sd">        flows over the foreland also (|H| &gt; |HM|):</span>
+
+<span class="sd">        &gt;&gt;&gt; fluxes.h = 1.5</span>
+<span class="sd">        &gt;&gt;&gt; model.calc_am_um_v1()</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.am</span>
+<span class="sd">        am(11.0)</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.um</span>
+<span class="sd">        um(11.246211)</span>
+
+<span class="sd">        The third example checks the special case of a main channel with zero</span>
+<span class="sd">        height:</span>
+
+<span class="sd">        &gt;&gt;&gt; hm(0.0)</span>
+<span class="sd">        &gt;&gt;&gt; model.calc_am_um_v1()</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.am</span>
+<span class="sd">        am(3.0)</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.um</span>
+<span class="sd">        um(5.0)</span>
+
+<span class="sd">        The fourth example checks the special case of the actual water stage</span>
+<span class="sd">        not being larger than zero (empty channel):</span>
+
+<span class="sd">        &gt;&gt;&gt; fluxes.h = 0.0</span>
+<span class="sd">        &gt;&gt;&gt; hm(1.0)</span>
+<span class="sd">        &gt;&gt;&gt; model.calc_am_um_v1()</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.am</span>
+<span class="sd">        am(0.0)</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.um</span>
+<span class="sd">        um(0.0)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">CONTROLPARAMETERS</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">lstream_control</span><span class="o">.</span><span class="n">HM</span><span class="p">,</span>
+        <span class="n">lstream_control</span><span class="o">.</span><span class="n">BM</span><span class="p">,</span>
+        <span class="n">lstream_control</span><span class="o">.</span><span class="n">BNM</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">REQUIREDSEQUENCES</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">lstream_fluxes</span><span class="o">.</span><span class="n">H</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">RESULTSEQUENCES</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">lstream_fluxes</span><span class="o">.</span><span class="n">AM</span><span class="p">,</span>
+        <span class="n">lstream_fluxes</span><span class="o">.</span><span class="n">UM</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">__call__</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">Model</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">con</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">control</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">flu</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">fluxes</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="k">if</span> <span class="n">flu</span><span class="o">.</span><span class="n">h</span> <span class="o">&lt;=</span> <span class="mf">0.</span><span class="p">:</span>
+            <span class="n">flu</span><span class="o">.</span><span class="n">am</span> <span class="o">=</span> <span class="mf">0.</span>
+            <span class="n">flu</span><span class="o">.</span><span class="n">um</span> <span class="o">=</span> <span class="mf">0.</span>
+        <span class="k">elif</span> <span class="n">flu</span><span class="o">.</span><span class="n">h</span> <span class="o">&lt;</span> <span class="n">con</span><span class="o">.</span><span class="n">hm</span><span class="p">:</span>
+            <span class="n">flu</span><span class="o">.</span><span class="n">am</span> <span class="o">=</span> <span class="n">flu</span><span class="o">.</span><span class="n">h</span><span class="o">*</span><span class="p">(</span><span class="n">con</span><span class="o">.</span><span class="n">bm</span><span class="o">+</span><span class="n">flu</span><span class="o">.</span><span class="n">h</span><span class="o">*</span><span class="n">con</span><span class="o">.</span><span class="n">bnm</span><span class="p">)</span>
+            <span class="n">flu</span><span class="o">.</span><span class="n">um</span> <span class="o">=</span> <span class="n">con</span><span class="o">.</span><span class="n">bm</span><span class="o">+</span><span class="mf">2.</span><span class="o">*</span><span class="n">flu</span><span class="o">.</span><span class="n">h</span><span class="o">*</span><span class="p">(</span><span class="mf">1.</span><span class="o">+</span><span class="n">con</span><span class="o">.</span><span class="n">bnm</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span><span class="o">**.</span><span class="mi">5</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">flu</span><span class="o">.</span><span class="n">am</span> <span class="o">=</span> <span class="p">(</span><span class="n">con</span><span class="o">.</span><span class="n">hm</span><span class="o">*</span><span class="p">(</span><span class="n">con</span><span class="o">.</span><span class="n">bm</span><span class="o">+</span><span class="n">con</span><span class="o">.</span><span class="n">hm</span><span class="o">*</span><span class="n">con</span><span class="o">.</span><span class="n">bnm</span><span class="p">)</span> <span class="o">+</span>
+                      <span class="p">((</span><span class="n">flu</span><span class="o">.</span><span class="n">h</span><span class="o">-</span><span class="n">con</span><span class="o">.</span><span class="n">hm</span><span class="p">)</span><span class="o">*</span><span class="p">(</span><span class="n">con</span><span class="o">.</span><span class="n">bm</span><span class="o">+</span><span class="mf">2.</span><span class="o">*</span><span class="n">con</span><span class="o">.</span><span class="n">hm</span><span class="o">*</span><span class="n">con</span><span class="o">.</span><span class="n">bnm</span><span class="p">)))</span>
+            <span class="n">flu</span><span class="o">.</span><span class="n">um</span> <span class="o">=</span> <span class="n">con</span><span class="o">.</span><span class="n">bm</span><span class="o">+</span><span class="p">(</span><span class="mf">2.</span><span class="o">*</span><span class="n">con</span><span class="o">.</span><span class="n">hm</span><span class="o">*</span><span class="p">(</span><span class="mf">1.</span><span class="o">+</span><span class="n">con</span><span class="o">.</span><span class="n">bnm</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span><span class="o">**.</span><span class="mi">5</span><span class="p">)</span><span class="o">+</span><span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="p">(</span><span class="n">flu</span><span class="o">.</span><span class="n">h</span><span class="o">-</span><span class="n">con</span><span class="o">.</span><span class="n">hm</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="Calc_QM_V1"><a class="viewcode-back" href="../../../../lstream.html#hydpy.models.lstream.lstream_model.Calc_QM_V1">[docs]</a><span class="k">class</span> <span class="nc">Calc_QM_V1</span><span class="p">(</span><span class="n">modeltools</span><span class="o">.</span><span class="n">Method</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Calculate the discharge of the main channel after Manning-Strickler.</span>
+
+<span class="sd">    Examples:</span>
+
+<span class="sd">        For appropriate strictly positive values:</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.lstream import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep()</span>
+<span class="sd">        &gt;&gt;&gt; ekm(2.0)</span>
+<span class="sd">        &gt;&gt;&gt; skm(50.0)</span>
+<span class="sd">        &gt;&gt;&gt; gef(0.01)</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.am = 3.0</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.um = 7.0</span>
+<span class="sd">        &gt;&gt;&gt; model.calc_qm_v1()</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.qm</span>
+<span class="sd">        qm(17.053102)</span>
+
+<span class="sd">        For zero or negative values of the flown through surface or</span>
+<span class="sd">        the wetted perimeter:</span>
+
+<span class="sd">        &gt;&gt;&gt; fluxes.am = -1.0</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.um = 7.0</span>
+<span class="sd">        &gt;&gt;&gt; model.calc_qm_v1()</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.qm</span>
+<span class="sd">        qm(0.0)</span>
+
+<span class="sd">        &gt;&gt;&gt; fluxes.am = 3.0</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.um = 0.0</span>
+<span class="sd">        &gt;&gt;&gt; model.calc_qm_v1()</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.qm</span>
+<span class="sd">        qm(0.0)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">CONTROLPARAMETERS</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">lstream_control</span><span class="o">.</span><span class="n">EKM</span><span class="p">,</span>
+        <span class="n">lstream_control</span><span class="o">.</span><span class="n">SKM</span><span class="p">,</span>
+        <span class="n">lstream_control</span><span class="o">.</span><span class="n">Gef</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">REQUIREDSEQUENCES</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">lstream_fluxes</span><span class="o">.</span><span class="n">AM</span><span class="p">,</span>
+        <span class="n">lstream_fluxes</span><span class="o">.</span><span class="n">UM</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">RESULTSEQUENCES</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">lstream_fluxes</span><span class="o">.</span><span class="n">QM</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">__call__</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">Model</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">con</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">control</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">flu</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">fluxes</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">flu</span><span class="o">.</span><span class="n">am</span> <span class="o">&gt;</span> <span class="mf">0.</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">flu</span><span class="o">.</span><span class="n">um</span> <span class="o">&gt;</span> <span class="mf">0.</span><span class="p">):</span>
+            <span class="n">flu</span><span class="o">.</span><span class="n">qm</span> <span class="o">=</span> <span class="n">con</span><span class="o">.</span><span class="n">ekm</span><span class="o">*</span><span class="n">con</span><span class="o">.</span><span class="n">skm</span><span class="o">*</span><span class="n">flu</span><span class="o">.</span><span class="n">am</span><span class="o">**</span><span class="p">(</span><span class="mf">5.</span><span class="o">/</span><span class="mf">3.</span><span class="p">)</span><span class="o">/</span><span class="n">flu</span><span class="o">.</span><span class="n">um</span><span class="o">**</span><span class="p">(</span><span class="mf">2.</span><span class="o">/</span><span class="mf">3.</span><span class="p">)</span><span class="o">*</span><span class="n">con</span><span class="o">.</span><span class="n">gef</span><span class="o">**.</span><span class="mi">5</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">flu</span><span class="o">.</span><span class="n">qm</span> <span class="o">=</span> <span class="mf">0.</span></div>
+
+
+<div class="viewcode-block" id="Calc_AV_UV_V1"><a class="viewcode-back" href="../../../../lstream.html#hydpy.models.lstream.lstream_model.Calc_AV_UV_V1">[docs]</a><span class="k">class</span> <span class="nc">Calc_AV_UV_V1</span><span class="p">(</span><span class="n">modeltools</span><span class="o">.</span><span class="n">Method</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Calculate the flown through area and the wetted perimeter of both</span>
+<span class="sd">    forelands.</span>
+
+<span class="sd">    Note that the each foreland lies between the main channel and one</span>
+<span class="sd">    outer embankment and that water flowing exactly above the a foreland</span>
+<span class="sd">    is contributing to |AV|.  The theoretical surface seperating water</span>
+<span class="sd">    above the main channel from water above the foreland is not</span>
+<span class="sd">    contributing to |UV|, but the surface seperating water above the</span>
+<span class="sd">    foreland from water above its outer embankment is contributing to |UV|.</span>
+
+<span class="sd">    Examples:</span>
+
+<span class="sd">        Generally, right trapezoids are assumed.  Here, for simplicity, both</span>
+<span class="sd">        forelands are assumed to be symmetrical.  Their smaller bases (bottoms)</span>
+<span class="sd">        hava a length of 2 meters, their non-vertical legs show an inclination</span>
+<span class="sd">        of 1 meter per 4 meters, and their height (depths) is 1 meter.  Both</span>
+<span class="sd">        forelands lie 1 meter above the main channels bottom.</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.lstream import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep()</span>
+<span class="sd">        &gt;&gt;&gt; hm(1.0)</span>
+<span class="sd">        &gt;&gt;&gt; bv(2.0)</span>
+<span class="sd">        &gt;&gt;&gt; bnv(4.0)</span>
+<span class="sd">        &gt;&gt;&gt; derived.hv(1.0)</span>
+
+<span class="sd">        The first example deals with normal flow conditions, where water flows</span>
+<span class="sd">        within the main channel completely (|H| &lt; |HM|):</span>
+
+<span class="sd">        &gt;&gt;&gt; fluxes.h = 0.5</span>
+<span class="sd">        &gt;&gt;&gt; model.calc_av_uv_v1()</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.av</span>
+<span class="sd">        av(0.0, 0.0)</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.uv</span>
+<span class="sd">        uv(0.0, 0.0)</span>
+
+<span class="sd">        The second example deals with moderate high flow conditions, where</span>
+<span class="sd">        water flows over both forelands, but not over their embankments</span>
+<span class="sd">        (|HM| &lt; |H| &lt; (|HM| + |HV|)):</span>
+
+<span class="sd">        &gt;&gt;&gt; fluxes.h = 1.5</span>
+<span class="sd">        &gt;&gt;&gt; model.calc_av_uv_v1()</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.av</span>
+<span class="sd">        av(1.5, 1.5)</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.uv</span>
+<span class="sd">        uv(4.061553, 4.061553)</span>
+
+<span class="sd">        The third example deals with extreme high flow conditions, where</span>
+<span class="sd">        water flows over the both foreland and their outer embankments</span>
+<span class="sd">        ((|HM| + |HV|) &lt; |H|):</span>
+
+<span class="sd">        &gt;&gt;&gt; fluxes.h = 2.5</span>
+<span class="sd">        &gt;&gt;&gt; model.calc_av_uv_v1()</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.av</span>
+<span class="sd">        av(7.0, 7.0)</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.uv</span>
+<span class="sd">        uv(6.623106, 6.623106)</span>
+
+<span class="sd">        The forth example assures that zero widths or hights of the forelands</span>
+<span class="sd">        are handled properly:</span>
+
+<span class="sd">        &gt;&gt;&gt; bv.left = 0.0</span>
+<span class="sd">        &gt;&gt;&gt; derived.hv.right = 0.0</span>
+<span class="sd">        &gt;&gt;&gt; model.calc_av_uv_v1()</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.av</span>
+<span class="sd">        av(4.0, 3.0)</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.uv</span>
+<span class="sd">        uv(4.623106, 3.5)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">CONTROLPARAMETERS</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">lstream_control</span><span class="o">.</span><span class="n">HM</span><span class="p">,</span>
+        <span class="n">lstream_control</span><span class="o">.</span><span class="n">BV</span><span class="p">,</span>
+        <span class="n">lstream_control</span><span class="o">.</span><span class="n">BNV</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">DERIVEDPARAMETERS</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">lstream_derived</span><span class="o">.</span><span class="n">HV</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">REQUIREDSEQUENCES</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">lstream_fluxes</span><span class="o">.</span><span class="n">H</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">RESULTSEQUENCES</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">lstream_fluxes</span><span class="o">.</span><span class="n">AV</span><span class="p">,</span>
+        <span class="n">lstream_fluxes</span><span class="o">.</span><span class="n">UV</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">__call__</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">Model</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">con</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">control</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">der</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">derived</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">flu</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">fluxes</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">2</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">flu</span><span class="o">.</span><span class="n">h</span> <span class="o">&lt;=</span> <span class="n">con</span><span class="o">.</span><span class="n">hm</span><span class="p">:</span>
+                <span class="n">flu</span><span class="o">.</span><span class="n">av</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.</span>
+                <span class="n">flu</span><span class="o">.</span><span class="n">uv</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.</span>
+            <span class="k">elif</span> <span class="n">flu</span><span class="o">.</span><span class="n">h</span> <span class="o">&lt;=</span> <span class="p">(</span><span class="n">con</span><span class="o">.</span><span class="n">hm</span><span class="o">+</span><span class="n">der</span><span class="o">.</span><span class="n">hv</span><span class="p">[</span><span class="n">i</span><span class="p">]):</span>
+                <span class="n">flu</span><span class="o">.</span><span class="n">av</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> \
+                    <span class="p">(</span><span class="n">flu</span><span class="o">.</span><span class="n">h</span><span class="o">-</span><span class="n">con</span><span class="o">.</span><span class="n">hm</span><span class="p">)</span><span class="o">*</span><span class="p">(</span><span class="n">con</span><span class="o">.</span><span class="n">bv</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">+</span><span class="p">(</span><span class="n">flu</span><span class="o">.</span><span class="n">h</span><span class="o">-</span><span class="n">con</span><span class="o">.</span><span class="n">hm</span><span class="p">)</span><span class="o">*</span><span class="n">con</span><span class="o">.</span><span class="n">bnv</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">/</span><span class="mf">2.</span><span class="p">)</span>
+                <span class="n">flu</span><span class="o">.</span><span class="n">uv</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">con</span><span class="o">.</span><span class="n">bv</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">+</span><span class="p">(</span><span class="n">flu</span><span class="o">.</span><span class="n">h</span><span class="o">-</span><span class="n">con</span><span class="o">.</span><span class="n">hm</span><span class="p">)</span><span class="o">*</span><span class="p">(</span><span class="mf">1.</span><span class="o">+</span><span class="n">con</span><span class="o">.</span><span class="n">bnv</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span><span class="o">**.</span><span class="mi">5</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">flu</span><span class="o">.</span><span class="n">av</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">der</span><span class="o">.</span><span class="n">hv</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">*</span><span class="p">(</span><span class="n">con</span><span class="o">.</span><span class="n">bv</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">+</span><span class="n">der</span><span class="o">.</span><span class="n">hv</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">*</span><span class="n">con</span><span class="o">.</span><span class="n">bnv</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">/</span><span class="mf">2.</span><span class="p">)</span> <span class="o">+</span>
+                             <span class="p">((</span><span class="n">flu</span><span class="o">.</span><span class="n">h</span><span class="o">-</span><span class="p">(</span><span class="n">con</span><span class="o">.</span><span class="n">hm</span><span class="o">+</span><span class="n">der</span><span class="o">.</span><span class="n">hv</span><span class="p">[</span><span class="n">i</span><span class="p">]))</span> <span class="o">*</span>
+                              <span class="p">(</span><span class="n">con</span><span class="o">.</span><span class="n">bv</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">+</span><span class="n">der</span><span class="o">.</span><span class="n">hv</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">*</span><span class="n">con</span><span class="o">.</span><span class="n">bnv</span><span class="p">[</span><span class="n">i</span><span class="p">])))</span>
+                <span class="n">flu</span><span class="o">.</span><span class="n">uv</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="p">((</span><span class="n">con</span><span class="o">.</span><span class="n">bv</span><span class="p">[</span><span class="n">i</span><span class="p">])</span><span class="o">+</span><span class="p">(</span><span class="n">der</span><span class="o">.</span><span class="n">hv</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">*</span><span class="p">(</span><span class="mf">1.</span><span class="o">+</span><span class="n">con</span><span class="o">.</span><span class="n">bnv</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span><span class="o">**.</span><span class="mi">5</span><span class="p">)</span> <span class="o">+</span>
+                             <span class="p">(</span><span class="n">flu</span><span class="o">.</span><span class="n">h</span><span class="o">-</span><span class="p">(</span><span class="n">con</span><span class="o">.</span><span class="n">hm</span><span class="o">+</span><span class="n">der</span><span class="o">.</span><span class="n">hv</span><span class="p">[</span><span class="n">i</span><span class="p">])))</span></div>
+    
+
+<div class="viewcode-block" id="Calc_QV_V1"><a class="viewcode-back" href="../../../../lstream.html#hydpy.models.lstream.lstream_model.Calc_QV_V1">[docs]</a><span class="k">class</span> <span class="nc">Calc_QV_V1</span><span class="p">(</span><span class="n">modeltools</span><span class="o">.</span><span class="n">Method</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Calculate the discharge of both forelands after Manning-Strickler.</span>
+
+<span class="sd">    Examples:</span>
+
+<span class="sd">        For appropriate strictly positive values:</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.lstream import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep()</span>
+<span class="sd">        &gt;&gt;&gt; ekv(2.0)</span>
+<span class="sd">        &gt;&gt;&gt; skv(50.0)</span>
+<span class="sd">        &gt;&gt;&gt; gef(0.01)</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.av = 3.0</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.uv = 7.0</span>
+<span class="sd">        &gt;&gt;&gt; model.calc_qv_v1()</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.qv</span>
+<span class="sd">        qv(17.053102, 17.053102)</span>
+
+<span class="sd">        For zero or negative values of the flown through surface or</span>
+<span class="sd">        the wetted perimeter:</span>
+
+<span class="sd">        &gt;&gt;&gt; fluxes.av = -1.0, 3.0</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.uv = 7.0, 0.0</span>
+<span class="sd">        &gt;&gt;&gt; model.calc_qv_v1()</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.qv</span>
+<span class="sd">        qv(0.0, 0.0)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">CONTROLPARAMETERS</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">lstream_control</span><span class="o">.</span><span class="n">EKV</span><span class="p">,</span>
+        <span class="n">lstream_control</span><span class="o">.</span><span class="n">SKV</span><span class="p">,</span>
+        <span class="n">lstream_control</span><span class="o">.</span><span class="n">Gef</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">REQUIREDSEQUENCES</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">lstream_fluxes</span><span class="o">.</span><span class="n">AV</span><span class="p">,</span>
+        <span class="n">lstream_fluxes</span><span class="o">.</span><span class="n">UV</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">RESULTSEQUENCES</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">lstream_fluxes</span><span class="o">.</span><span class="n">QV</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">__call__</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">Model</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">con</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">control</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">flu</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">fluxes</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">2</span><span class="p">):</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">flu</span><span class="o">.</span><span class="n">av</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mf">0.</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">flu</span><span class="o">.</span><span class="n">uv</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mf">0.</span><span class="p">):</span>
+                <span class="n">flu</span><span class="o">.</span><span class="n">qv</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">con</span><span class="o">.</span><span class="n">ekv</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">*</span><span class="n">con</span><span class="o">.</span><span class="n">skv</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">*</span>
+                             <span class="n">flu</span><span class="o">.</span><span class="n">av</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">**</span><span class="p">(</span><span class="mf">5.</span><span class="o">/</span><span class="mf">3.</span><span class="p">)</span><span class="o">/</span><span class="n">flu</span><span class="o">.</span><span class="n">uv</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">**</span><span class="p">(</span><span class="mf">2.</span><span class="o">/</span><span class="mf">3.</span><span class="p">)</span><span class="o">*</span><span class="n">con</span><span class="o">.</span><span class="n">gef</span><span class="o">**.</span><span class="mi">5</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">flu</span><span class="o">.</span><span class="n">qv</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.</span></div>
+
+
+<div class="viewcode-block" id="Calc_AVR_UVR_V1"><a class="viewcode-back" href="../../../../lstream.html#hydpy.models.lstream.lstream_model.Calc_AVR_UVR_V1">[docs]</a><span class="k">class</span> <span class="nc">Calc_AVR_UVR_V1</span><span class="p">(</span><span class="n">modeltools</span><span class="o">.</span><span class="n">Method</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Calculate the flown through area and the wetted perimeter of both</span>
+<span class="sd">    outer embankments.</span>
+
+<span class="sd">    Note that each outer embankment lies beyond its foreland and that all</span>
+<span class="sd">    water flowing exactly above the a embankment is added to |AVR|.</span>
+<span class="sd">    The theoretical surface seperating water above the foreland from water</span>
+<span class="sd">    above its embankment is not contributing to |UVR|.</span>
+
+<span class="sd">    Examples:</span>
+
+<span class="sd">        Generally, right trapezoids are assumed.  Here, for simplicity, both</span>
+<span class="sd">        forelands are assumed to be symmetrical.  Their smaller bases (bottoms)</span>
+<span class="sd">        hava a length of 2 meters, their non-vertical legs show an inclination</span>
+<span class="sd">        of 1 meter per 4 meters, and their height (depths) is 1 meter.  Both</span>
+<span class="sd">        forelands lie 1 meter above the main channels bottom.</span>
+
+<span class="sd">        Generally, a triangles are assumed, with the vertical side</span>
+<span class="sd">        seperating the foreland from its outer embankment.  Here, for</span>
+<span class="sd">        simplicity, both forelands are assumed to be symmetrical.  Their</span>
+<span class="sd">        inclinations are 1 meter per 4 meters and their lowest point is</span>
+<span class="sd">        1 meter above the forelands bottom and 2 meters above the main</span>
+<span class="sd">        channels bottom:</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.lstream import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep()</span>
+<span class="sd">        &gt;&gt;&gt; hm(1.0)</span>
+<span class="sd">        &gt;&gt;&gt; bnvr(4.0)</span>
+<span class="sd">        &gt;&gt;&gt; derived.hv(1.0)</span>
+
+<span class="sd">        The first example deals with moderate high flow conditions, where</span>
+<span class="sd">        water flows over the forelands, but not over their outer embankments</span>
+<span class="sd">        (|HM| &lt; |H| &lt; (|HM| + |HV|)):</span>
+
+<span class="sd">        &gt;&gt;&gt; fluxes.h = 1.5</span>
+<span class="sd">        &gt;&gt;&gt; model.calc_avr_uvr_v1()</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.avr</span>
+<span class="sd">        avr(0.0, 0.0)</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.uvr</span>
+<span class="sd">        uvr(0.0, 0.0)</span>
+
+<span class="sd">        The second example deals with extreme high flow conditions, where</span>
+<span class="sd">        water flows over the both foreland and their outer embankments</span>
+<span class="sd">        ((|HM| + |HV|) &lt; |H|):</span>
+
+<span class="sd">        &gt;&gt;&gt; fluxes.h = 2.5</span>
+<span class="sd">        &gt;&gt;&gt; model.calc_avr_uvr_v1()</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.avr</span>
+<span class="sd">        avr(0.5, 0.5)</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.uvr</span>
+<span class="sd">        uvr(2.061553, 2.061553)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">CONTROLPARAMETERS</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">lstream_control</span><span class="o">.</span><span class="n">HM</span><span class="p">,</span>
+        <span class="n">lstream_control</span><span class="o">.</span><span class="n">BNVR</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">DERIVEDPARAMETERS</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">lstream_derived</span><span class="o">.</span><span class="n">HV</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">REQUIREDSEQUENCES</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">lstream_fluxes</span><span class="o">.</span><span class="n">H</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">RESULTSEQUENCES</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">lstream_fluxes</span><span class="o">.</span><span class="n">AVR</span><span class="p">,</span>
+        <span class="n">lstream_fluxes</span><span class="o">.</span><span class="n">UVR</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">__call__</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">Model</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">con</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">control</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">der</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">derived</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">flu</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">fluxes</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">2</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">flu</span><span class="o">.</span><span class="n">h</span> <span class="o">&lt;=</span> <span class="p">(</span><span class="n">con</span><span class="o">.</span><span class="n">hm</span><span class="o">+</span><span class="n">der</span><span class="o">.</span><span class="n">hv</span><span class="p">[</span><span class="n">i</span><span class="p">]):</span>
+                <span class="n">flu</span><span class="o">.</span><span class="n">avr</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.</span>
+                <span class="n">flu</span><span class="o">.</span><span class="n">uvr</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">flu</span><span class="o">.</span><span class="n">avr</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">flu</span><span class="o">.</span><span class="n">h</span><span class="o">-</span><span class="p">(</span><span class="n">con</span><span class="o">.</span><span class="n">hm</span><span class="o">+</span><span class="n">der</span><span class="o">.</span><span class="n">hv</span><span class="p">[</span><span class="n">i</span><span class="p">]))</span><span class="o">**</span><span class="mi">2</span><span class="o">*</span><span class="n">con</span><span class="o">.</span><span class="n">bnvr</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">/</span><span class="mf">2.</span>
+                <span class="n">flu</span><span class="o">.</span><span class="n">uvr</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">flu</span><span class="o">.</span><span class="n">h</span><span class="o">-</span><span class="p">(</span><span class="n">con</span><span class="o">.</span><span class="n">hm</span><span class="o">+</span><span class="n">der</span><span class="o">.</span><span class="n">hv</span><span class="p">[</span><span class="n">i</span><span class="p">]))</span><span class="o">*</span><span class="p">(</span><span class="mf">1.</span><span class="o">+</span><span class="n">con</span><span class="o">.</span><span class="n">bnvr</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span><span class="o">**.</span><span class="mi">5</span></div>
+
+
+<div class="viewcode-block" id="Calc_QVR_V1"><a class="viewcode-back" href="../../../../lstream.html#hydpy.models.lstream.lstream_model.Calc_QVR_V1">[docs]</a><span class="k">class</span> <span class="nc">Calc_QVR_V1</span><span class="p">(</span><span class="n">modeltools</span><span class="o">.</span><span class="n">Method</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Calculate the discharge of both outer embankments after</span>
+<span class="sd">    Manning-Strickler.</span>
+
+<span class="sd">    Examples:</span>
+
+<span class="sd">        For appropriate strictly positive values:</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.lstream import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep()</span>
+<span class="sd">        &gt;&gt;&gt; ekv(2.0)</span>
+<span class="sd">        &gt;&gt;&gt; skv(50.0)</span>
+<span class="sd">        &gt;&gt;&gt; gef(0.01)</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.avr = 3.0</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.uvr = 7.0</span>
+<span class="sd">        &gt;&gt;&gt; model.calc_qvr_v1()</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.qvr</span>
+<span class="sd">        qvr(17.053102, 17.053102)</span>
+
+<span class="sd">        For zero or negative values of the flown through surface or</span>
+<span class="sd">        the wetted perimeter:</span>
+
+<span class="sd">        &gt;&gt;&gt; fluxes.avr = -1.0, 3.0</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.uvr = 7.0, 0.0</span>
+<span class="sd">        &gt;&gt;&gt; model.calc_qvr_v1()</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.qvr</span>
+<span class="sd">        qvr(0.0, 0.0)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">CONTROLPARAMETERS</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">lstream_control</span><span class="o">.</span><span class="n">EKV</span><span class="p">,</span>
+        <span class="n">lstream_control</span><span class="o">.</span><span class="n">SKV</span><span class="p">,</span>
+        <span class="n">lstream_control</span><span class="o">.</span><span class="n">Gef</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">REQUIREDSEQUENCES</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">lstream_fluxes</span><span class="o">.</span><span class="n">AVR</span><span class="p">,</span>
+        <span class="n">lstream_fluxes</span><span class="o">.</span><span class="n">UVR</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">RESULTSEQUENCES</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">lstream_fluxes</span><span class="o">.</span><span class="n">QVR</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">__call__</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">Model</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">con</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">control</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">flu</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">fluxes</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">2</span><span class="p">):</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">flu</span><span class="o">.</span><span class="n">avr</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mf">0.</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">flu</span><span class="o">.</span><span class="n">uvr</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mf">0.</span><span class="p">):</span>
+                <span class="n">flu</span><span class="o">.</span><span class="n">qvr</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+                    <span class="n">con</span><span class="o">.</span><span class="n">ekv</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">*</span><span class="n">con</span><span class="o">.</span><span class="n">skv</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">*</span>
+                    <span class="n">flu</span><span class="o">.</span><span class="n">avr</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">**</span><span class="p">(</span><span class="mf">5.</span><span class="o">/</span><span class="mf">3.</span><span class="p">)</span><span class="o">/</span><span class="n">flu</span><span class="o">.</span><span class="n">uvr</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">**</span><span class="p">(</span><span class="mf">2.</span><span class="o">/</span><span class="mf">3.</span><span class="p">)</span><span class="o">*</span><span class="n">con</span><span class="o">.</span><span class="n">gef</span><span class="o">**.</span><span class="mi">5</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">flu</span><span class="o">.</span><span class="n">qvr</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.</span></div>
+
+
+<div class="viewcode-block" id="Calc_AG_V1"><a class="viewcode-back" href="../../../../lstream.html#hydpy.models.lstream.lstream_model.Calc_AG_V1">[docs]</a><span class="k">class</span> <span class="nc">Calc_AG_V1</span><span class="p">(</span><span class="n">modeltools</span><span class="o">.</span><span class="n">Method</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Sum the through flown area of the total cross section.</span>
+
+<span class="sd">    Example:</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.lstream import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep()</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.am = 1.0</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.av= 2.0, 3.0</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.avr = 4.0, 5.0</span>
+<span class="sd">        &gt;&gt;&gt; model.calc_ag_v1()</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.ag</span>
+<span class="sd">        ag(15.0)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">REQUIREDSEQUENCES</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">lstream_fluxes</span><span class="o">.</span><span class="n">AM</span><span class="p">,</span>
+        <span class="n">lstream_fluxes</span><span class="o">.</span><span class="n">AV</span><span class="p">,</span>
+        <span class="n">lstream_fluxes</span><span class="o">.</span><span class="n">AVR</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">RESULTSEQUENCES</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">lstream_fluxes</span><span class="o">.</span><span class="n">AG</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">__call__</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">Model</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">flu</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">fluxes</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">flu</span><span class="o">.</span><span class="n">ag</span> <span class="o">=</span> <span class="n">flu</span><span class="o">.</span><span class="n">am</span><span class="o">+</span><span class="n">flu</span><span class="o">.</span><span class="n">av</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">+</span><span class="n">flu</span><span class="o">.</span><span class="n">av</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">+</span><span class="n">flu</span><span class="o">.</span><span class="n">avr</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">+</span><span class="n">flu</span><span class="o">.</span><span class="n">avr</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="Calc_QG_V1"><a class="viewcode-back" href="../../../../lstream.html#hydpy.models.lstream.lstream_model.Calc_QG_V1">[docs]</a><span class="k">class</span> <span class="nc">Calc_QG_V1</span><span class="p">(</span><span class="n">modeltools</span><span class="o">.</span><span class="n">Method</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Calculate the discharge of the total cross section.</span>
+
+<span class="sd">    Method |calc_qg_v1| applies the actual versions of all methods for</span>
+<span class="sd">    calculating the flown through areas, wetted perimeters and discharges</span>
+<span class="sd">    of the different cross section compartments.  Hence its requirements</span>
+<span class="sd">    might be different for various application models.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">RESULTSEQUENCES</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">lstream_fluxes</span><span class="o">.</span><span class="n">QM</span><span class="p">,</span>
+        <span class="n">lstream_fluxes</span><span class="o">.</span><span class="n">QV</span><span class="p">,</span>
+        <span class="n">lstream_fluxes</span><span class="o">.</span><span class="n">QVR</span><span class="p">,</span>
+        <span class="n">lstream_fluxes</span><span class="o">.</span><span class="n">QM</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">__call__</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">Model</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">flu</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">fluxes</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">model</span><span class="o">.</span><span class="n">calc_am_um</span><span class="p">()</span>
+        <span class="n">model</span><span class="o">.</span><span class="n">calc_qm</span><span class="p">()</span>
+        <span class="n">model</span><span class="o">.</span><span class="n">calc_av_uv</span><span class="p">()</span>
+        <span class="n">model</span><span class="o">.</span><span class="n">calc_qv</span><span class="p">()</span>
+        <span class="n">model</span><span class="o">.</span><span class="n">calc_avr_uvr</span><span class="p">()</span>
+        <span class="n">model</span><span class="o">.</span><span class="n">calc_qvr</span><span class="p">()</span>
+        <span class="n">flu</span><span class="o">.</span><span class="n">qg</span> <span class="o">=</span> <span class="n">flu</span><span class="o">.</span><span class="n">qm</span><span class="o">+</span><span class="n">flu</span><span class="o">.</span><span class="n">qv</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">+</span><span class="n">flu</span><span class="o">.</span><span class="n">qv</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">+</span><span class="n">flu</span><span class="o">.</span><span class="n">qvr</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">+</span><span class="n">flu</span><span class="o">.</span><span class="n">qvr</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="Calc_HMin_QMin_HMax_QMax_V1"><a class="viewcode-back" href="../../../../lstream.html#hydpy.models.lstream.lstream_model.Calc_HMin_QMin_HMax_QMax_V1">[docs]</a><span class="k">class</span> <span class="nc">Calc_HMin_QMin_HMax_QMax_V1</span><span class="p">(</span><span class="n">modeltools</span><span class="o">.</span><span class="n">Method</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Determine an starting interval for iteration methods as the one</span>
+<span class="sd">    implemented in method |Calc_H_V1|.</span>
+
+<span class="sd">    The resulting interval is determined in a manner, that on the</span>
+<span class="sd">    one hand :math:`Qmin \\leq QRef \\leq Qmax` is fulfilled and on the</span>
+<span class="sd">    other hand the results of method |Calc_QG_V1| are continuous</span>
+<span class="sd">    for :math:`Hmin \\leq H \\leq Hmax`.</span>
+
+<span class="sd">    Besides the mentioned required parameters and sequences, those of the</span>
+<span class="sd">    actual method for calculating the discharge of the total cross section</span>
+<span class="sd">    might be required.  This is the case whenever water flows on both outer</span>
+<span class="sd">    embankments.  In such occasions no previously determined upper boundary</span>
+<span class="sd">    values are available and method |Calc_HMin_QMin_HMax_QMax_V1| needs</span>
+<span class="sd">    to increase the value of :math:`HMax` successively until the condition</span>
+<span class="sd">    :math:`QG \\leq QMax` is met.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">CONTROLPARAMETERS</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">lstream_control</span><span class="o">.</span><span class="n">HM</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">DERIVEDPARAMETERS</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">lstream_derived</span><span class="o">.</span><span class="n">QM</span><span class="p">,</span>
+        <span class="n">lstream_derived</span><span class="o">.</span><span class="n">QV</span><span class="p">,</span>
+        <span class="n">lstream_derived</span><span class="o">.</span><span class="n">HV</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">REQUIREDSEQUENCES</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">lstream_fluxes</span><span class="o">.</span><span class="n">QRef</span><span class="p">,</span>
+        <span class="n">lstream_fluxes</span><span class="o">.</span><span class="n">H</span><span class="p">,</span>
+        <span class="n">lstream_fluxes</span><span class="o">.</span><span class="n">QG</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">RESULTSEQUENCES</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">lstream_aides</span><span class="o">.</span><span class="n">HMin</span><span class="p">,</span>
+        <span class="n">lstream_aides</span><span class="o">.</span><span class="n">QMin</span><span class="p">,</span>
+        <span class="n">lstream_aides</span><span class="o">.</span><span class="n">HMax</span><span class="p">,</span>
+        <span class="n">lstream_aides</span><span class="o">.</span><span class="n">QMax</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">__call__</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">Model</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">con</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">control</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">der</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">derived</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">flu</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">fluxes</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">aid</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">aides</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="k">if</span> <span class="n">flu</span><span class="o">.</span><span class="n">qref</span> <span class="o">&lt;=</span> <span class="n">der</span><span class="o">.</span><span class="n">qm</span><span class="p">:</span>
+            <span class="n">aid</span><span class="o">.</span><span class="n">hmin</span> <span class="o">=</span> <span class="mf">0.</span>
+            <span class="n">aid</span><span class="o">.</span><span class="n">qmin</span> <span class="o">=</span> <span class="mf">0.</span>
+            <span class="n">aid</span><span class="o">.</span><span class="n">hmax</span> <span class="o">=</span> <span class="n">con</span><span class="o">.</span><span class="n">hm</span>
+            <span class="n">aid</span><span class="o">.</span><span class="n">qmax</span> <span class="o">=</span> <span class="n">der</span><span class="o">.</span><span class="n">qm</span>
+        <span class="k">elif</span> <span class="n">flu</span><span class="o">.</span><span class="n">qref</span> <span class="o">&lt;=</span> <span class="nb">min</span><span class="p">(</span><span class="n">der</span><span class="o">.</span><span class="n">qv</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">der</span><span class="o">.</span><span class="n">qv</span><span class="p">[</span><span class="mi">1</span><span class="p">]):</span>
+            <span class="n">aid</span><span class="o">.</span><span class="n">hmin</span> <span class="o">=</span> <span class="n">con</span><span class="o">.</span><span class="n">hm</span>
+            <span class="n">aid</span><span class="o">.</span><span class="n">qmin</span> <span class="o">=</span> <span class="n">der</span><span class="o">.</span><span class="n">qm</span>
+            <span class="n">aid</span><span class="o">.</span><span class="n">hmax</span> <span class="o">=</span> <span class="n">con</span><span class="o">.</span><span class="n">hm</span><span class="o">+</span><span class="nb">min</span><span class="p">(</span><span class="n">der</span><span class="o">.</span><span class="n">hv</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">der</span><span class="o">.</span><span class="n">hv</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+            <span class="n">aid</span><span class="o">.</span><span class="n">qmax</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">der</span><span class="o">.</span><span class="n">qv</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">der</span><span class="o">.</span><span class="n">qv</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+        <span class="k">elif</span> <span class="n">flu</span><span class="o">.</span><span class="n">qref</span> <span class="o">&lt;</span> <span class="nb">max</span><span class="p">(</span><span class="n">der</span><span class="o">.</span><span class="n">qv</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">der</span><span class="o">.</span><span class="n">qv</span><span class="p">[</span><span class="mi">1</span><span class="p">]):</span>
+            <span class="n">aid</span><span class="o">.</span><span class="n">hmin</span> <span class="o">=</span> <span class="n">con</span><span class="o">.</span><span class="n">hm</span><span class="o">+</span><span class="nb">min</span><span class="p">(</span><span class="n">der</span><span class="o">.</span><span class="n">hv</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">der</span><span class="o">.</span><span class="n">hv</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+            <span class="n">aid</span><span class="o">.</span><span class="n">qmin</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">der</span><span class="o">.</span><span class="n">qv</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">der</span><span class="o">.</span><span class="n">qv</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+            <span class="n">aid</span><span class="o">.</span><span class="n">hmax</span> <span class="o">=</span> <span class="n">con</span><span class="o">.</span><span class="n">hm</span><span class="o">+</span><span class="nb">max</span><span class="p">(</span><span class="n">der</span><span class="o">.</span><span class="n">hv</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">der</span><span class="o">.</span><span class="n">hv</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+            <span class="n">aid</span><span class="o">.</span><span class="n">qmax</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">der</span><span class="o">.</span><span class="n">qv</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">der</span><span class="o">.</span><span class="n">qv</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">flu</span><span class="o">.</span><span class="n">h</span> <span class="o">=</span> <span class="n">con</span><span class="o">.</span><span class="n">hm</span><span class="o">+</span><span class="nb">max</span><span class="p">(</span><span class="n">der</span><span class="o">.</span><span class="n">hv</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">der</span><span class="o">.</span><span class="n">hv</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+            <span class="n">aid</span><span class="o">.</span><span class="n">hmin</span> <span class="o">=</span> <span class="n">flu</span><span class="o">.</span><span class="n">h</span>
+            <span class="n">aid</span><span class="o">.</span><span class="n">qmin</span> <span class="o">=</span> <span class="n">flu</span><span class="o">.</span><span class="n">qg</span>
+            <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+                <span class="n">flu</span><span class="o">.</span><span class="n">h</span> <span class="o">*=</span> <span class="mf">2.</span>
+                <span class="n">model</span><span class="o">.</span><span class="n">calc_qg</span><span class="p">()</span>
+                <span class="k">if</span> <span class="n">flu</span><span class="o">.</span><span class="n">qg</span> <span class="o">&lt;</span> <span class="n">flu</span><span class="o">.</span><span class="n">qref</span><span class="p">:</span>
+                    <span class="n">aid</span><span class="o">.</span><span class="n">hmin</span> <span class="o">=</span> <span class="n">flu</span><span class="o">.</span><span class="n">h</span>
+                    <span class="n">aid</span><span class="o">.</span><span class="n">qmin</span> <span class="o">=</span> <span class="n">flu</span><span class="o">.</span><span class="n">qg</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">aid</span><span class="o">.</span><span class="n">hmax</span> <span class="o">=</span> <span class="n">flu</span><span class="o">.</span><span class="n">h</span>
+                    <span class="n">aid</span><span class="o">.</span><span class="n">qmax</span> <span class="o">=</span> <span class="n">flu</span><span class="o">.</span><span class="n">qg</span>
+                    <span class="k">break</span></div>
+    
+
+<div class="viewcode-block" id="Calc_H_V1"><a class="viewcode-back" href="../../../../lstream.html#hydpy.models.lstream.lstream_model.Calc_H_V1">[docs]</a><span class="k">class</span> <span class="nc">Calc_H_V1</span><span class="p">(</span><span class="n">modeltools</span><span class="o">.</span><span class="n">Method</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Approximate the water stage resulting in a certain reference discarge</span>
+<span class="sd">    with the Pegasus iteration method.</span>
+
+<span class="sd">    Besides the parameters and sequences given above, those of the</span>
+<span class="sd">    actual method for calculating the discharge of the total cross section</span>
+<span class="sd">    are required.</span>
+
+<span class="sd">    Examples:</span>
+
+<span class="sd">        Essentially, the Pegasus method is a root finding algorithm which</span>
+<span class="sd">        sequentially decreases its search radius (like the simple bisection</span>
+<span class="sd">        algorithm) and shows superlinear convergence properties (like the</span>
+<span class="sd">        Newton-Raphson algorithm).  Ideally, its convergence should be proved</span>
+<span class="sd">        for each application model to be derived from HydPy-L-Stream.</span>
+<span class="sd">        The following examples focus on the methods</span>
+<span class="sd">        |calc_hmin_qmin_hmax_qmax_v1| and |calc_qg_v1| (including their</span>
+<span class="sd">        submethods) only:</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.lstream import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep()</span>
+<span class="sd">        &gt;&gt;&gt; model.calc_hmin_qmin_hmax_qmax = model.calc_hmin_qmin_hmax_qmax_v1</span>
+<span class="sd">        &gt;&gt;&gt; model.calc_qg = model.calc_qg_v1</span>
+<span class="sd">        &gt;&gt;&gt; model.calc_qm = model.calc_qm_v1</span>
+<span class="sd">        &gt;&gt;&gt; model.calc_av_uv = model.calc_av_uv_v1</span>
+<span class="sd">        &gt;&gt;&gt; model.calc_qv = model.calc_qv_v1</span>
+<span class="sd">        &gt;&gt;&gt; model.calc_avr_uvr = model.calc_avr_uvr_v1</span>
+<span class="sd">        &gt;&gt;&gt; model.calc_qvr = model.calc_qvr_v1</span>
+
+<span class="sd">        Define the geometry and roughness values for the first test channel:</span>
+
+<span class="sd">        &gt;&gt;&gt; bm(2.0)</span>
+<span class="sd">        &gt;&gt;&gt; bnm(4.0)</span>
+<span class="sd">        &gt;&gt;&gt; hm(1.0)</span>
+<span class="sd">        &gt;&gt;&gt; bv(0.5, 10.0)</span>
+<span class="sd">        &gt;&gt;&gt; bbv(1.0, 2.0)</span>
+<span class="sd">        &gt;&gt;&gt; bnv(1.0, 8.0)</span>
+<span class="sd">        &gt;&gt;&gt; bnvr(20.0)</span>
+<span class="sd">        &gt;&gt;&gt; ekm(1.0)</span>
+<span class="sd">        &gt;&gt;&gt; skm(20.0)</span>
+<span class="sd">        &gt;&gt;&gt; ekv(1.0)</span>
+<span class="sd">        &gt;&gt;&gt; skv(60.0, 80.0)</span>
+<span class="sd">        &gt;&gt;&gt; gef(0.01)</span>
+
+<span class="sd">        Set the error tolerances of the iteration small enough to not</span>
+<span class="sd">        compromise the shown first six decimal places of the following</span>
+<span class="sd">        results:</span>
+
+<span class="sd">        &gt;&gt;&gt; qtol(1e-10)</span>
+<span class="sd">        &gt;&gt;&gt; htol(1e-10)</span>
+
+<span class="sd">        Derive the required secondary parameters:</span>
+
+<span class="sd">        &gt;&gt;&gt; derived.hv.update()</span>
+<span class="sd">        &gt;&gt;&gt; derived.qm.update()</span>
+<span class="sd">        &gt;&gt;&gt; derived.qv.update()</span>
+
+<span class="sd">        Define a test function, accepting a reference discharge and printing</span>
+<span class="sd">        both the approximated water stage and the related discharge value:</span>
+
+<span class="sd">        &gt;&gt;&gt; def test(qref):</span>
+<span class="sd">        ...     fluxes.qref = qref</span>
+<span class="sd">        ...     model.calc_hmin_qmin_hmax_qmax()</span>
+<span class="sd">        ...     model.calc_h()</span>
+<span class="sd">        ...     print(repr(fluxes.h))</span>
+<span class="sd">        ...     print(repr(fluxes.qg))</span>
+
+<span class="sd">        Zero discharge and the following discharge values are related to the</span>
+<span class="sd">        only discontinuities of the given root finding problem:</span>
+
+<span class="sd">        &gt;&gt;&gt; derived.qm</span>
+<span class="sd">        qm(8.399238)</span>
+<span class="sd">        &gt;&gt;&gt; derived.qv</span>
+<span class="sd">        qv(left=154.463234, right=23.073584)</span>
+
+<span class="sd">        The related water stages are the ones (directly or indirectly)</span>
+<span class="sd">        defined above:</span>
+
+<span class="sd">        &gt;&gt;&gt; test(0.0)</span>
+<span class="sd">        h(0.0)</span>
+<span class="sd">        qg(0.0)</span>
+<span class="sd">        &gt;&gt;&gt; test(derived.qm)</span>
+<span class="sd">        h(1.0)</span>
+<span class="sd">        qg(8.399238)</span>
+<span class="sd">        &gt;&gt;&gt; test(derived.qv.left)</span>
+<span class="sd">        h(2.0)</span>
+<span class="sd">        qg(154.463234)</span>
+<span class="sd">        &gt;&gt;&gt; test(derived.qv.right)</span>
+<span class="sd">        h(1.25)</span>
+<span class="sd">        qg(23.073584)</span>
+
+<span class="sd">        Test some intermediate water stages, inundating the only the main</span>
+<span class="sd">        channel, the main channel along with the right foreland, and the</span>
+<span class="sd">        main channel along with both forelands respectively:</span>
+
+<span class="sd">        &gt;&gt;&gt; test(6.0)</span>
+<span class="sd">        h(0.859452)</span>
+<span class="sd">        qg(6.0)</span>
+<span class="sd">        &gt;&gt;&gt; test(10.0)</span>
+<span class="sd">        h(1.047546)</span>
+<span class="sd">        qg(10.0)</span>
+<span class="sd">        &gt;&gt;&gt; test(100.0)</span>
+<span class="sd">        h(1.77455)</span>
+<span class="sd">        qg(100.0)</span>
+
+<span class="sd">        Finally, test two extreme water stages, inundating both outer</span>
+<span class="sd">        foreland embankments:</span>
+
+<span class="sd">        &gt;&gt;&gt; test(200.0)</span>
+<span class="sd">        h(2.152893)</span>
+<span class="sd">        qg(200.0)</span>
+<span class="sd">        &gt;&gt;&gt; test(2000.0)</span>
+<span class="sd">        h(4.240063)</span>
+<span class="sd">        qg(2000.0)</span>
+
+<span class="sd">        There is a potential risk of the implemented iteration method to fail</span>
+<span class="sd">        for special channel geometries.  To test such cases in a more</span>
+<span class="sd">        condensed manner, the following test methods evaluates different water</span>
+<span class="sd">        stages automatically in accordance with the example above.  An error</span>
+<span class="sd">        message is printed only, the estimated discharge does not approximate</span>
+<span class="sd">        the reference discharge with six decimal places:</span>
+
+<span class="sd">        &gt;&gt;&gt; def test():</span>
+<span class="sd">        ...     derived.hv.update()</span>
+<span class="sd">        ...     derived.qm.update()</span>
+<span class="sd">        ...     derived.qv.update()</span>
+<span class="sd">        ...     qm, qv = derived.qm, derived.qv</span>
+<span class="sd">        ...     for qref in [0.0, qm, qv.left, qv.right,</span>
+<span class="sd">        ...                  2.0/3.0*qm+1.0/3.0*min(qv),</span>
+<span class="sd">        ...                  2.0/3.0*min(qv)+1.0/3.0*max(qv),</span>
+<span class="sd">        ...                  3.0*max(qv), 30.0*max(qv)]:</span>
+<span class="sd">        ...         fluxes.qref = qref</span>
+<span class="sd">        ...         model.calc_hmin_qmin_hmax_qmax()</span>
+<span class="sd">        ...         model.calc_h()</span>
+<span class="sd">        ...         if abs(round(fluxes.qg-qref) &gt; 0.0):</span>
+<span class="sd">        ...             print(&#39;Error!&#39;, &#39;qref:&#39;, qref, &#39;qg:&#39;, fluxes.qg)</span>
+
+<span class="sd">        Check for a triangle main channel:</span>
+
+<span class="sd">        &gt;&gt;&gt; bm(0.0)</span>
+<span class="sd">        &gt;&gt;&gt; test()</span>
+<span class="sd">        &gt;&gt;&gt; bm(2.0)</span>
+
+<span class="sd">        Check for a completely flat main channel:</span>
+
+<span class="sd">        &gt;&gt;&gt; hm(0.0)</span>
+<span class="sd">        &gt;&gt;&gt; test()</span>
+
+<span class="sd">        Repeat the last example but with a decreased value of |QTol|</span>
+<span class="sd">        allowing to trigger another stopping mechanisms if the</span>
+<span class="sd">        iteration algorithm:</span>
+
+<span class="sd">        &gt;&gt;&gt; qtol(0.0)</span>
+<span class="sd">        &gt;&gt;&gt; test()</span>
+<span class="sd">        &gt;&gt;&gt; hm(1.0)</span>
+<span class="sd">        &gt;&gt;&gt; qtol(1e-10)</span>
+
+<span class="sd">        Check for a nonexistend main channel:</span>
+
+<span class="sd">        &gt;&gt;&gt; bm(0.0)</span>
+<span class="sd">        &gt;&gt;&gt; bnm(0.0)</span>
+<span class="sd">        &gt;&gt;&gt; test()</span>
+<span class="sd">        &gt;&gt;&gt; bm(2.0)</span>
+<span class="sd">        &gt;&gt;&gt; bnm(4.0)</span>
+
+<span class="sd">        Check for a nonexistend forelands:</span>
+
+<span class="sd">        &gt;&gt;&gt; bv(0.0)</span>
+<span class="sd">        &gt;&gt;&gt; bbv(0.0)</span>
+<span class="sd">        &gt;&gt;&gt; test()</span>
+<span class="sd">        &gt;&gt;&gt; bv(0.5, 10.0)</span>
+<span class="sd">        &gt;&gt;&gt; bbv(1., 2.0)</span>
+
+<span class="sd">        Check for nonexistend outer foreland embankments:</span>
+
+<span class="sd">        &gt;&gt;&gt; bnvr(0.0)</span>
+<span class="sd">        &gt;&gt;&gt; test()</span>
+
+<span class="sd">        To take the last test as an illustrative example, one can see that</span>
+<span class="sd">        the given reference discharge is met by the estimated total discharge,</span>
+<span class="sd">        which consists of components related to the main channel and the</span>
+<span class="sd">        forelands only:</span>
+
+<span class="sd">        &gt;&gt;&gt; fluxes.qref</span>
+<span class="sd">        qref(3932.452785)</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.qg</span>
+<span class="sd">        qg(3932.452785)</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.qm</span>
+<span class="sd">        qm(530.074621)</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.qv</span>
+<span class="sd">        qv(113.780226, 3288.597937)</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.qvr</span>
+<span class="sd">        qvr(0.0, 0.0)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">CONTROLPARAMETERS</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">lstream_control</span><span class="o">.</span><span class="n">QTol</span><span class="p">,</span>
+        <span class="n">lstream_control</span><span class="o">.</span><span class="n">HTol</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">REQUIREDSEQUENCES</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">lstream_fluxes</span><span class="o">.</span><span class="n">QRef</span><span class="p">,</span>
+        <span class="n">lstream_aides</span><span class="o">.</span><span class="n">HMin</span><span class="p">,</span>
+        <span class="n">lstream_aides</span><span class="o">.</span><span class="n">QMin</span><span class="p">,</span>
+        <span class="n">lstream_aides</span><span class="o">.</span><span class="n">HMax</span><span class="p">,</span>
+        <span class="n">lstream_aides</span><span class="o">.</span><span class="n">QMax</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">UPDATEDSEQUENCES</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">lstream_aides</span><span class="o">.</span><span class="n">QMin</span><span class="p">,</span>
+        <span class="n">lstream_aides</span><span class="o">.</span><span class="n">QMax</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">RESULTSEQUENCES</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">lstream_aides</span><span class="o">.</span><span class="n">QTest</span><span class="p">,</span>
+        <span class="n">lstream_fluxes</span><span class="o">.</span><span class="n">H</span><span class="p">,</span>
+        <span class="n">lstream_fluxes</span><span class="o">.</span><span class="n">QG</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">__call__</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">Model</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">con</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">control</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">flu</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">fluxes</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">aid</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">aides</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">aid</span><span class="o">.</span><span class="n">qmin</span> <span class="o">-=</span> <span class="n">flu</span><span class="o">.</span><span class="n">qref</span>
+        <span class="n">aid</span><span class="o">.</span><span class="n">qmax</span> <span class="o">-=</span> <span class="n">flu</span><span class="o">.</span><span class="n">qref</span>
+        <span class="k">if</span> <span class="n">modelutils</span><span class="o">.</span><span class="n">fabs</span><span class="p">(</span><span class="n">aid</span><span class="o">.</span><span class="n">qmin</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">con</span><span class="o">.</span><span class="n">qtol</span><span class="p">:</span>
+            <span class="n">flu</span><span class="o">.</span><span class="n">h</span> <span class="o">=</span> <span class="n">aid</span><span class="o">.</span><span class="n">hmin</span>
+            <span class="n">model</span><span class="o">.</span><span class="n">calc_qg</span><span class="p">()</span>
+        <span class="k">elif</span> <span class="n">modelutils</span><span class="o">.</span><span class="n">fabs</span><span class="p">(</span><span class="n">aid</span><span class="o">.</span><span class="n">qmax</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">con</span><span class="o">.</span><span class="n">qtol</span><span class="p">:</span>
+            <span class="n">flu</span><span class="o">.</span><span class="n">h</span> <span class="o">=</span> <span class="n">aid</span><span class="o">.</span><span class="n">hmax</span>
+            <span class="n">model</span><span class="o">.</span><span class="n">calc_qg</span><span class="p">()</span>
+        <span class="k">elif</span> <span class="n">modelutils</span><span class="o">.</span><span class="n">fabs</span><span class="p">(</span><span class="n">aid</span><span class="o">.</span><span class="n">hmax</span><span class="o">-</span><span class="n">aid</span><span class="o">.</span><span class="n">hmin</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">con</span><span class="o">.</span><span class="n">htol</span><span class="p">:</span>
+            <span class="n">flu</span><span class="o">.</span><span class="n">h</span> <span class="o">=</span> <span class="p">(</span><span class="n">aid</span><span class="o">.</span><span class="n">hmin</span><span class="o">+</span><span class="n">aid</span><span class="o">.</span><span class="n">hmax</span><span class="p">)</span><span class="o">/</span><span class="mf">2.</span>
+            <span class="n">model</span><span class="o">.</span><span class="n">calc_qg</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+                <span class="n">flu</span><span class="o">.</span><span class="n">h</span> <span class="o">=</span> \
+                    <span class="n">aid</span><span class="o">.</span><span class="n">hmin</span><span class="o">-</span><span class="n">aid</span><span class="o">.</span><span class="n">qmin</span><span class="o">*</span><span class="p">(</span><span class="n">aid</span><span class="o">.</span><span class="n">hmax</span><span class="o">-</span><span class="n">aid</span><span class="o">.</span><span class="n">hmin</span><span class="p">)</span><span class="o">/</span><span class="p">(</span><span class="n">aid</span><span class="o">.</span><span class="n">qmax</span><span class="o">-</span><span class="n">aid</span><span class="o">.</span><span class="n">qmin</span><span class="p">)</span>
+                <span class="n">model</span><span class="o">.</span><span class="n">calc_qg</span><span class="p">()</span>
+                <span class="n">aid</span><span class="o">.</span><span class="n">qtest</span> <span class="o">=</span> <span class="n">flu</span><span class="o">.</span><span class="n">qg</span><span class="o">-</span><span class="n">flu</span><span class="o">.</span><span class="n">qref</span>
+                <span class="k">if</span> <span class="n">modelutils</span><span class="o">.</span><span class="n">fabs</span><span class="p">(</span><span class="n">aid</span><span class="o">.</span><span class="n">qtest</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">con</span><span class="o">.</span><span class="n">qtol</span><span class="p">:</span>
+                    <span class="k">return</span>
+                <span class="k">if</span> <span class="p">(((</span><span class="n">aid</span><span class="o">.</span><span class="n">qmax</span> <span class="o">&lt;</span> <span class="mf">0.</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">aid</span><span class="o">.</span><span class="n">qtest</span> <span class="o">&lt;</span> <span class="mf">0.</span><span class="p">))</span> <span class="ow">or</span>
+                        <span class="p">((</span><span class="n">aid</span><span class="o">.</span><span class="n">qmax</span> <span class="o">&gt;</span> <span class="mf">0.</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">aid</span><span class="o">.</span><span class="n">qtest</span> <span class="o">&gt;</span> <span class="mf">0.</span><span class="p">))):</span>
+                    <span class="n">aid</span><span class="o">.</span><span class="n">qmin</span> <span class="o">*=</span> <span class="n">aid</span><span class="o">.</span><span class="n">qmax</span><span class="o">/</span><span class="p">(</span><span class="n">aid</span><span class="o">.</span><span class="n">qmax</span><span class="o">+</span><span class="n">aid</span><span class="o">.</span><span class="n">qtest</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">aid</span><span class="o">.</span><span class="n">hmin</span> <span class="o">=</span> <span class="n">aid</span><span class="o">.</span><span class="n">hmax</span>
+                    <span class="n">aid</span><span class="o">.</span><span class="n">qmin</span> <span class="o">=</span> <span class="n">aid</span><span class="o">.</span><span class="n">qmax</span>
+                <span class="n">aid</span><span class="o">.</span><span class="n">hmax</span> <span class="o">=</span> <span class="n">flu</span><span class="o">.</span><span class="n">h</span>
+                <span class="n">aid</span><span class="o">.</span><span class="n">qmax</span> <span class="o">=</span> <span class="n">aid</span><span class="o">.</span><span class="n">qtest</span>
+                <span class="k">if</span> <span class="n">modelutils</span><span class="o">.</span><span class="n">fabs</span><span class="p">(</span><span class="n">aid</span><span class="o">.</span><span class="n">hmax</span><span class="o">-</span><span class="n">aid</span><span class="o">.</span><span class="n">hmin</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">con</span><span class="o">.</span><span class="n">htol</span><span class="p">:</span>
+                    <span class="k">return</span></div>
+    
+
+<div class="viewcode-block" id="Calc_QA_V1"><a class="viewcode-back" href="../../../../lstream.html#hydpy.models.lstream.lstream_model.Calc_QA_V1">[docs]</a><span class="k">class</span> <span class="nc">Calc_QA_V1</span><span class="p">(</span><span class="n">modeltools</span><span class="o">.</span><span class="n">Method</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Calculate outflow.</span>
+
+<span class="sd">    The working equation is the analytical solution of the linear storage</span>
+<span class="sd">    equation under the assumption of constant change in inflow during</span>
+<span class="sd">    the simulation time step.</span>
+
+<span class="sd">    Basic equation:</span>
+<span class="sd">       :math:`QA_{neu} = QA_{alt} +</span>
+<span class="sd">       (QZ_{alt}-QA_{alt}) \\cdot (1-exp(-RK^{-1})) +</span>
+<span class="sd">       (QZ_{neu}-QZ_{alt}) \\cdot (1-RK\\cdot(1-exp(-RK^{-1})))`</span>
+
+<span class="sd">    Examples:</span>
+
+<span class="sd">        A normal test case:</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.lstream import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep()</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.rk(0.1)</span>
+<span class="sd">        &gt;&gt;&gt; states.qz.old = 2.0</span>
+<span class="sd">        &gt;&gt;&gt; states.qz.new = 4.0</span>
+<span class="sd">        &gt;&gt;&gt; states.qa.old = 3.0</span>
+<span class="sd">        &gt;&gt;&gt; model.calc_qa_v1()</span>
+<span class="sd">        &gt;&gt;&gt; states.qa</span>
+<span class="sd">        qa(3.800054)</span>
+
+<span class="sd">        First extreme test case (zero division is circumvented):</span>
+
+<span class="sd">        &gt;&gt;&gt; fluxes.rk(0.0)</span>
+<span class="sd">        &gt;&gt;&gt; model.calc_qa_v1()</span>
+<span class="sd">        &gt;&gt;&gt; states.qa</span>
+<span class="sd">        qa(4.0)</span>
+
+<span class="sd">        Second extreme test case (numerical overflow is circumvented):</span>
+
+<span class="sd">        &gt;&gt;&gt; fluxes.rk(1e201)</span>
+<span class="sd">        &gt;&gt;&gt; model.calc_qa_v1()</span>
+<span class="sd">        &gt;&gt;&gt; states.qa</span>
+<span class="sd">        qa(5.0)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">REQUIREDSEQUENCES</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">lstream_fluxes</span><span class="o">.</span><span class="n">RK</span><span class="p">,</span>
+        <span class="n">lstream_states</span><span class="o">.</span><span class="n">QZ</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">RESULTSEQUENCES</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">lstream_states</span><span class="o">.</span><span class="n">QA</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">__call__</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">Model</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">flu</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">fluxes</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">old</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">states</span><span class="o">.</span><span class="n">fastaccess_old</span>
+        <span class="n">new</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">states</span><span class="o">.</span><span class="n">fastaccess_new</span>
+        <span class="k">if</span> <span class="n">flu</span><span class="o">.</span><span class="n">rk</span> <span class="o">&lt;=</span> <span class="mf">0.</span><span class="p">:</span>
+            <span class="n">new</span><span class="o">.</span><span class="n">qa</span> <span class="o">=</span> <span class="n">new</span><span class="o">.</span><span class="n">qz</span>
+        <span class="k">elif</span> <span class="n">flu</span><span class="o">.</span><span class="n">rk</span> <span class="o">&gt;</span> <span class="mf">1e200</span><span class="p">:</span>
+            <span class="n">new</span><span class="o">.</span><span class="n">qa</span> <span class="o">=</span> <span class="n">old</span><span class="o">.</span><span class="n">qa</span><span class="o">+</span><span class="n">new</span><span class="o">.</span><span class="n">qz</span><span class="o">-</span><span class="n">old</span><span class="o">.</span><span class="n">qz</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">d_temp</span> <span class="o">=</span> <span class="p">(</span><span class="mf">1.</span><span class="o">-</span><span class="n">modelutils</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="mf">1.</span><span class="o">/</span><span class="n">flu</span><span class="o">.</span><span class="n">rk</span><span class="p">))</span>
+            <span class="n">new</span><span class="o">.</span><span class="n">qa</span> <span class="o">=</span> <span class="p">(</span><span class="n">old</span><span class="o">.</span><span class="n">qa</span> <span class="o">+</span>
+                      <span class="p">(</span><span class="n">old</span><span class="o">.</span><span class="n">qz</span><span class="o">-</span><span class="n">old</span><span class="o">.</span><span class="n">qa</span><span class="p">)</span><span class="o">*</span><span class="n">d_temp</span> <span class="o">+</span>
+                      <span class="p">(</span><span class="n">new</span><span class="o">.</span><span class="n">qz</span><span class="o">-</span><span class="n">old</span><span class="o">.</span><span class="n">qz</span><span class="p">)</span><span class="o">*</span><span class="p">(</span><span class="mf">1.</span><span class="o">-</span><span class="n">flu</span><span class="o">.</span><span class="n">rk</span><span class="o">*</span><span class="n">d_temp</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="Pick_Q_V1"><a class="viewcode-back" href="../../../../lstream.html#hydpy.models.lstream.lstream_model.Pick_Q_V1">[docs]</a><span class="k">class</span> <span class="nc">Pick_Q_V1</span><span class="p">(</span><span class="n">modeltools</span><span class="o">.</span><span class="n">Method</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Update inflow.</span>
+
+<span class="sd">    Basic equation:</span>
+<span class="sd">      :math:`QZ = \\sum Q`</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">REQUIREDSEQUENCES</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">lstream_inlets</span><span class="o">.</span><span class="n">Q</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">RESULTSEQUENCES</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">lstream_states</span><span class="o">.</span><span class="n">QZ</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">__call__</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">Model</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">sta</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">states</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">inl</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">inlets</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">sta</span><span class="o">.</span><span class="n">qz</span> <span class="o">=</span> <span class="mf">0.</span>
+        <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">inl</span><span class="o">.</span><span class="n">len_q</span><span class="p">):</span>
+            <span class="n">sta</span><span class="o">.</span><span class="n">qz</span> <span class="o">+=</span> <span class="n">inl</span><span class="o">.</span><span class="n">q</span><span class="p">[</span><span class="n">idx</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="Pass_Q_V1"><a class="viewcode-back" href="../../../../lstream.html#hydpy.models.lstream.lstream_model.Pass_Q_V1">[docs]</a><span class="k">class</span> <span class="nc">Pass_Q_V1</span><span class="p">(</span><span class="n">modeltools</span><span class="o">.</span><span class="n">Method</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Update outflow.</span>
+
+<span class="sd">    Basic equation:</span>
+<span class="sd">      :math:`Q = \\sum QA`</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">REQUIREDSEQUENCES</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">lstream_states</span><span class="o">.</span><span class="n">QA</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">RESULTSEQUENCES</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">lstream_outlets</span><span class="o">.</span><span class="n">Q</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">__call__</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">Model</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">sta</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">states</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">outlets</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">out</span><span class="o">.</span><span class="n">q</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+=</span> <span class="n">sta</span><span class="o">.</span><span class="n">qa</span></div>
+
+
+<div class="viewcode-block" id="Model"><a class="viewcode-back" href="../../../../lstream.html#hydpy.models.lstream.lstream_model.Model">[docs]</a><span class="k">class</span> <span class="nc">Model</span><span class="p">(</span><span class="n">modeltools</span><span class="o">.</span><span class="n">AdHocModel</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;The HydPy-L-Stream model.&quot;&quot;&quot;</span>
+    <span class="n">INLET_METHODS</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">Pick_Q_V1</span><span class="p">,)</span>
+    <span class="n">RECEIVER_METHODS</span> <span class="o">=</span> <span class="p">()</span>
+    <span class="n">RUN_METHODS</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">Calc_QRef_V1</span><span class="p">,</span>
+        <span class="n">Calc_HMin_QMin_HMax_QMax_V1</span><span class="p">,</span>
+        <span class="n">Calc_H_V1</span><span class="p">,</span>
+        <span class="n">Calc_AG_V1</span><span class="p">,</span>
+        <span class="n">Calc_RK_V1</span><span class="p">,</span>
+        <span class="n">Calc_QA_V1</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">ADD_METHODS</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">Calc_AM_UM_V1</span><span class="p">,</span>
+        <span class="n">Calc_QM_V1</span><span class="p">,</span>
+        <span class="n">Calc_AV_UV_V1</span><span class="p">,</span>
+        <span class="n">Calc_QV_V1</span><span class="p">,</span>
+        <span class="n">Calc_AVR_UVR_V1</span><span class="p">,</span>
+        <span class="n">Calc_QVR_V1</span><span class="p">,</span>
+        <span class="n">Calc_QG_V1</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">OUTLET_METHODS</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">Pass_Q_V1</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">SENDER_METHODS</span> <span class="o">=</span> <span class="p">()</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../../../index.html">
+              <img class="logo" src="../../../../_static/HydPy_Logo.png" alt="Logo"/>
+            </a></p>
+  <h3><a href="../../../../index.html">Table of Contents</a></h3>
+  <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../install.html">Installation Instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../framework.html">Framework Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../modelcollection.html">Model Collection</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../development.html">Development</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../examples.html">Example Projects</a></li>
+</ul>
+
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../index.html">HydPy 4.0a11 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../../index.html" >Module code</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="../lstream.html" >hydpy.models.lstream</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2019, HydPy Developers.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.2.1.
+    </div>
+  </body>
+</html>

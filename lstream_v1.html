@@ -1,0 +1,496 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>lstream_v1 &#8212; HydPy 4.0a11 documentation</title>
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="_static/graphviz.css" />
+    
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="_static/language_data.js"></script>
+    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="llake_v1" href="llake_v1.html" />
+    <link rel="prev" title="lland_v2" href="lland_v2.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="llake_v1.html" title="llake_v1"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="lland_v2.html" title="lland_v2"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">HydPy 4.0a11 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="modelcollection.html" >Model Collection</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="HydPy-L.html" accesskey="U">HydPy-L (LARSIM)</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="lstream-v1">
+<span id="id1"></span><h1>lstream_v1<a class="headerlink" href="#lstream-v1" title="Permalink to this headline">¶</a></h1>
+<span class="target" id="module-hydpy.models.lstream_v1"></span><div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>Before using <a class="reference internal" href="#module-hydpy.models.lstream_v1" title="hydpy.models.lstream_v1"><code class="xref py py-mod docutils literal notranslate"><span class="pre">lstream_v1</span></code></a>, read this documentation carefully.
+<a class="reference internal" href="#module-hydpy.models.lstream_v1" title="hydpy.models.lstream_v1"><code class="xref py py-mod docutils literal notranslate"><span class="pre">lstream_v1</span></code></a> does not keep the water balance.  This flaw is
+under discussion at the moment and should be fixed within the
+next few weeks.</p>
+</div>
+<p>Version 1 of HydPy-L-Stream (called lstream_v1) implements the Williams
+routing method in a similar manner as the LARSIM model used by the
+German Federal Institute of Hydrology (BfG).  Essentially, routing is
+performed via a simple linear storage in each simulation time step.
+But the travel time (<a class="reference internal" href="lstream.html#hydpy.models.lstream.lstream_fluxes.RK" title="hydpy.models.lstream.lstream_fluxes.RK"><code class="xref py py-class docutils literal notranslate"><span class="pre">RK</span></code></a>) is adapted to the actual flow conditions at
+the beginning of each time step, making the approach nonlinear for
+instationary inputs.  The storage coefficient is determined via the
+Gauckler-Manning-Strickler formula, which is applied on the <cite>triple
+trapezoid profile</cite>, shown in the following figure:</p>
+<img alt="_images/HydPy-L-Stream_Version-1.png" src="_images/HydPy-L-Stream_Version-1.png" />
+<p><a class="reference internal" href="lstream.html#hydpy.models.lstream.lstream_fluxes.RK" title="hydpy.models.lstream.lstream_fluxes.RK"><code class="xref py py-class docutils literal notranslate"><span class="pre">RK</span></code></a> depends on the length of the considered channel (<a class="reference internal" href="lstream.html#hydpy.models.lstream.lstream_control.Laen" title="hydpy.models.lstream.lstream_control.Laen"><code class="xref py py-class docutils literal notranslate"><span class="pre">Laen</span></code></a>) and the
+mean velocity within the channel. To calculate the velocity based on
+the Manning formula, one needs to know the current water stage (<a class="reference internal" href="lstream.html#hydpy.models.lstream.lstream_fluxes.H" title="hydpy.models.lstream.lstream_fluxes.H"><code class="xref py py-class docutils literal notranslate"><span class="pre">H</span></code></a>).
+This water stage is determined by iteration based on the current
+reference discharge (<a class="reference internal" href="lstream.html#hydpy.models.lstream.lstream_fluxes.QRef" title="hydpy.models.lstream.lstream_fluxes.QRef"><code class="xref py py-class docutils literal notranslate"><span class="pre">QRef</span></code></a>).  As the relation between <a class="reference internal" href="lstream.html#hydpy.models.lstream.lstream_fluxes.H" title="hydpy.models.lstream.lstream_fluxes.H"><code class="xref py py-class docutils literal notranslate"><span class="pre">H</span></code></a> and
+discharge (<a class="reference internal" href="lstream.html#hydpy.models.lstream.lstream_fluxes.QG" title="hydpy.models.lstream.lstream_fluxes.QG"><code class="xref py py-class docutils literal notranslate"><span class="pre">QG</span></code></a>) is discontinuous due to the sharp transitions of the
+<cite>triple trapezoid profile</cite>, we decided on an iteration algorithm called
+<a class="reference external" href="https://link.springer.com/article/10.1007/BF01932959">Pegasus method</a>, which is an improved <cite>Regulari Falsi</cite> method that
+can be used when the bounds of the search interval are known.  At the
+beginning of each simulation interval, we first determine the <cite>highest
+section</cite> of the <cite>triple trapozoid profile</cite> containing water (for low flow
+conditions, this would be the the main channel).  Then we use its lower
+and upper height (in the given example zero and <a class="reference internal" href="lstream.html#hydpy.models.lstream.lstream_control.HM" title="hydpy.models.lstream.lstream_control.HM"><code class="xref py py-class docutils literal notranslate"><span class="pre">HM</span></code></a>) as the initial
+boundaries and refine them afterwards until the actual water stage <a class="reference internal" href="lstream.html#hydpy.models.lstream.lstream_fluxes.H" title="hydpy.models.lstream.lstream_fluxes.H"><code class="xref py py-class docutils literal notranslate"><span class="pre">H</span></code></a>
+is identified with sufficient accuracy (defined by the tolerance values
+<a class="reference internal" href="lstream.html#hydpy.models.lstream.lstream_control.HTol" title="hydpy.models.lstream.lstream_control.HTol"><code class="xref py py-class docutils literal notranslate"><span class="pre">HTol</span></code></a> and <a class="reference internal" href="lstream.html#hydpy.models.lstream.lstream_control.QTol" title="hydpy.models.lstream.lstream_control.QTol"><code class="xref py py-class docutils literal notranslate"><span class="pre">QTol</span></code></a>).  This is much effort for a simple storage routing
+method, but due to the superlinear convergence properties of the
+<a class="reference external" href="https://link.springer.com/article/10.1007/BF01932959">Pegasus method</a> the required computation times seem acceptable.</p>
+<p>The above paragraph is a little inaccurate regarding the term <cite>velocity</cite>.
+It is well known that a flood wave has usually a considerably higher
+velocity than the water itself.  Hence <a class="reference internal" href="#module-hydpy.models.lstream_v1" title="hydpy.models.lstream_v1"><code class="xref py py-mod docutils literal notranslate"><span class="pre">lstream_v1</span></code></a> should have a
+tendency to overestimate travel times.  This is important to note, if
+one determines the parameters of <a class="reference internal" href="#module-hydpy.models.lstream_v1" title="hydpy.models.lstream_v1"><code class="xref py py-mod docutils literal notranslate"><span class="pre">lstream_v1</span></code></a> based on real channel
+geometries and roughness coefficients, and should eventually be
+compensated through increasing the roughness related calibration
+coefficients <a class="reference internal" href="lstream.html#hydpy.models.lstream.lstream_control.EKM" title="hydpy.models.lstream.lstream_control.EKM"><code class="xref py py-class docutils literal notranslate"><span class="pre">EKM</span></code></a> and <a class="reference internal" href="lstream.html#hydpy.models.lstream.lstream_control.EKV" title="hydpy.models.lstream.lstream_control.EKV"><code class="xref py py-class docutils literal notranslate"><span class="pre">EKV</span></code></a>.  However, we took the decision to use
+the water velocity, as the same assumption was initially made by the
+original LARSIM model.  Later, LARSIM introduced the “dVdQ” option,
+allowing to calculate <a class="reference internal" href="lstream.html#hydpy.models.lstream.lstream_fluxes.RK" title="hydpy.models.lstream.lstream_fluxes.RK"><code class="xref py py-class docutils literal notranslate"><span class="pre">RK</span></code></a> as the actual wave travel time.  Maybe the
+same should also be done for <a class="reference internal" href="lstream.html#module-hydpy.models.lstream" title="hydpy.models.lstream"><code class="xref py py-mod docutils literal notranslate"><span class="pre">lstream</span></code></a> through defining an additional
+application model.</p>
+<p>Integration test:</p>
+<blockquote>
+<div><p>The following calculations are performed over a period of 20 hours:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy</span> <span class="k">import</span> <span class="n">pub</span><span class="p">,</span> <span class="n">Nodes</span><span class="p">,</span> <span class="n">Element</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pub</span><span class="o">.</span><span class="n">timegrids</span> <span class="o">=</span> <span class="s1">&#39;01.01.2000 00:00&#39;</span><span class="p">,</span> <span class="s1">&#39;01.01.2000 20:00&#39;</span><span class="p">,</span> <span class="s1">&#39;1h&#39;</span>
+</pre></div>
+</div>
+<p>Import the model and define the time step size the parameter values
+given below should be related to:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy.models.lstream_v1</span> <span class="k">import</span> <span class="o">*</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">parameterstep</span><span class="p">(</span><span class="s1">&#39;1d&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>For testing purposes, the model input shall be retrieved from the nodes
+<cite>input1</cite> and <cite>input2</cite> and the model output shall be passed to node
+<cite>output</cite>.  Firstly, define all nodes:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">nodes</span> <span class="o">=</span> <span class="n">Nodes</span><span class="p">(</span><span class="s1">&#39;input1&#39;</span><span class="p">,</span> <span class="s1">&#39;input2&#39;</span><span class="p">,</span> <span class="s1">&#39;output&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Secondly, define the element “stream” and build the connections between
+the nodes defined above and the <cite>lstream_v1</cite> model instance:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">stream</span> <span class="o">=</span> <span class="n">Element</span><span class="p">(</span><span class="s1">&#39;stream&#39;</span><span class="p">,</span>
+<span class="gp">... </span>                 <span class="n">inlets</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;input1&#39;</span><span class="p">,</span> <span class="s1">&#39;input2&#39;</span><span class="p">],</span>
+<span class="gp">... </span>                 <span class="n">outlets</span><span class="o">=</span><span class="s1">&#39;output&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">stream</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">model</span>
+</pre></div>
+</div>
+<p>Prepare a test function object, which sets the initial inflow (<a class="reference internal" href="lstream.html#hydpy.models.lstream.lstream_states.QZ" title="hydpy.models.lstream.lstream_states.QZ"><code class="xref py py-class docutils literal notranslate"><span class="pre">QZ</span></code></a>)
+and outflow (<a class="reference internal" href="lstream.html#hydpy.models.lstream.lstream_states.QA" title="hydpy.models.lstream.lstream_states.QA"><code class="xref py py-class docutils literal notranslate"><span class="pre">QA</span></code></a>) to zero before each simulation run:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy.core.testtools</span> <span class="k">import</span> <span class="n">IntegrationTest</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">IntegrationTest</span><span class="o">.</span><span class="n">plotting_options</span><span class="o">.</span><span class="n">height</span> <span class="o">=</span> <span class="mi">550</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">IntegrationTest</span><span class="o">.</span><span class="n">plotting_options</span><span class="o">.</span><span class="n">activated</span><span class="o">=</span><span class="p">(</span>
+<span class="gp">... </span>    <span class="n">states</span><span class="o">.</span><span class="n">qz</span><span class="p">,</span> <span class="n">states</span><span class="o">.</span><span class="n">qa</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">test</span> <span class="o">=</span> <span class="n">IntegrationTest</span><span class="p">(</span><span class="n">stream</span><span class="p">,</span>
+<span class="gp">... </span>                       <span class="n">inits</span><span class="o">=</span><span class="p">((</span><span class="n">states</span><span class="o">.</span><span class="n">qz</span><span class="p">,</span> <span class="mf">0.</span><span class="p">),</span>
+<span class="gp">... </span>                              <span class="p">(</span><span class="n">states</span><span class="o">.</span><span class="n">qa</span><span class="p">,</span> <span class="mf">0.</span><span class="p">)))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">test</span><span class="o">.</span><span class="n">dateformat</span> <span class="o">=</span> <span class="s1">&#39;%H:%M&#39;</span>
+</pre></div>
+</div>
+<p>Define the geometry and roughness values of the test channel:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">bm</span><span class="p">(</span><span class="mf">2.</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">bnm</span><span class="p">(</span><span class="mf">4.</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">hm</span><span class="p">(</span><span class="mf">1.</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">bv</span><span class="p">(</span><span class="o">.</span><span class="mi">5</span><span class="p">,</span> <span class="mf">10.</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">bbv</span><span class="p">(</span><span class="mf">1.</span><span class="p">,</span> <span class="mf">2.</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">bnv</span><span class="p">(</span><span class="mf">1.</span><span class="p">,</span> <span class="mf">8.</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">bnvr</span><span class="p">(</span><span class="mf">20.</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ekm</span><span class="p">(</span><span class="mf">1.</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">skm</span><span class="p">(</span><span class="mf">20.</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ekv</span><span class="p">(</span><span class="mf">1.</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">skv</span><span class="p">(</span><span class="mf">60.</span><span class="p">,</span> <span class="mf">80.</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">gef</span><span class="p">(</span><span class="o">.</span><span class="mi">02</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">laen</span><span class="p">(</span><span class="mf">10.</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Set the error tolerances of the iteration small enough, to not
+compromise the first six decimal places shown in the following
+results (this increases computation times and should not be
+necessary for usual applications of <a class="reference internal" href="#module-hydpy.models.lstream_v1" title="hydpy.models.lstream_v1"><code class="xref py py-mod docutils literal notranslate"><span class="pre">lstream_v1</span></code></a>):</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">qtol</span><span class="p">(</span><span class="mf">1e-10</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">htol</span><span class="p">(</span><span class="mf">1e-10</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Define two flood events, one for each stream inflow:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">nodes</span><span class="o">.</span><span class="n">input1</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">sim</span><span class="o">.</span><span class="n">series</span> <span class="o">=</span> <span class="p">[</span>
+<span class="gp">... </span>                    <span class="mf">0.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">,</span> <span class="mf">1.</span><span class="p">,</span> <span class="mf">3.</span><span class="p">,</span> <span class="mf">2.</span><span class="p">,</span> <span class="mf">1.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">,</span>
+<span class="gp">... </span>                    <span class="mf">0.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">nodes</span><span class="o">.</span><span class="n">input2</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">sim</span><span class="o">.</span><span class="n">series</span> <span class="o">=</span> <span class="p">[</span>
+<span class="gp">... </span>                    <span class="mf">0.</span><span class="p">,</span> <span class="mf">1.</span><span class="p">,</span> <span class="mf">5.</span><span class="p">,</span> <span class="mf">9.</span><span class="p">,</span> <span class="mf">8.</span><span class="p">,</span> <span class="mf">5.</span><span class="p">,</span> <span class="mf">3.</span><span class="p">,</span> <span class="mf">2.</span><span class="p">,</span> <span class="mf">1.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">,</span>
+<span class="gp">... </span>                    <span class="mf">0.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">]</span>
+</pre></div>
+</div>
+<p>The following table and figure show all relevant input and output data
+as well as all relevant variables calculated internally.  Note that the
+total sum of all input values (<a class="reference internal" href="lstream.html#hydpy.models.lstream.lstream_states.QZ" title="hydpy.models.lstream.lstream_states.QZ"><code class="xref py py-class docutils literal notranslate"><span class="pre">QZ</span></code></a>) is 41, but the total sum of all
+output values (<a class="reference internal" href="lstream.html#hydpy.models.lstream.lstream_states.QA" title="hydpy.models.lstream.lstream_states.QA"><code class="xref py py-class docutils literal notranslate"><span class="pre">QA</span></code></a>) is above 46.  In our opinion, this is due to
+<a class="reference internal" href="#module-hydpy.models.lstream_v1" title="hydpy.models.lstream_v1"><code class="xref py py-mod docutils literal notranslate"><span class="pre">lstream_v1</span></code></a> not applying the actual correction after Williams for
+adjusting the flow values to changes in the travel time <a class="reference internal" href="lstream.html#hydpy.models.lstream.lstream_fluxes.RK" title="hydpy.models.lstream.lstream_fluxes.RK"><code class="xref py py-class docutils literal notranslate"><span class="pre">RK</span></code></a>.
+We hope to be able to fix this flaw soon…</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">test</span><span class="p">(</span><span class="s1">&#39;lstream_v1_ex1&#39;</span><span class="p">)</span>
+<span class="go">|  date |     qref |        h |       am |       av |      avr |       ag |       um |       uv |      uvr |       qm |       qv |      qvr |       qg |       rk |   qz |       qa | input1 | input2 |   output |</span>
+<span class="go">------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------</span>
+<span class="go">| 00:00 |      0.0 |      0.0 |      0.0 | 0.0  0.0 | 0.0  0.0 |      0.0 |      0.0 | 0.0  0.0 | 0.0  0.0 |      0.0 | 0.0  0.0 | 0.0  0.0 |      0.0 |      0.0 |  0.0 |      0.0 |    0.0 |    0.0 |      0.0 |</span>
+<span class="go">| 01:00 | 0.333333 |  0.16889 | 0.451875 | 0.0  0.0 | 0.0  0.0 | 0.451875 | 3.392702 | 0.0  0.0 | 0.0  0.0 | 0.333333 | 0.0  0.0 | 0.0  0.0 | 0.333333 | 3.765627 |  1.0 | 0.121767 |    0.0 |    1.0 | 0.121767 |</span>
+<span class="go">| 02:00 | 2.373922 |  0.47093 | 1.828958 | 0.0  0.0 | 0.0  0.0 | 1.828958 | 5.883386 | 0.0  0.0 | 0.0  0.0 | 2.373922 | 0.0  0.0 | 0.0  0.0 | 2.373922 | 2.140104 |  6.0 | 1.455232 |    1.0 |    5.0 | 1.455232 |</span>
+<span class="go">| 03:00 | 6.485077 | 0.759892 | 3.829526 | 0.0  0.0 | 0.0  0.0 | 3.829526 | 8.266229 | 0.0  0.0 | 0.0  0.0 | 6.485077 | 0.0  0.0 | 0.0  0.0 | 6.485077 | 1.640316 | 12.0 | 5.037344 |    3.0 |    9.0 | 5.037344 |</span>
+<span class="go">| 04:00 | 9.012448 | 0.883278 | 4.887279 | 0.0  0.0 | 0.0  0.0 | 4.887279 | 9.283699 | 0.0  0.0 | 0.0  0.0 | 9.012448 | 0.0  0.0 | 0.0  0.0 | 9.012448 | 1.506336 | 10.0 | 7.876787 |    2.0 |    8.0 | 7.876787 |</span>
+<span class="go">| 05:00 | 7.958929 | 0.834755 | 4.456775 | 0.0  0.0 | 0.0  0.0 | 4.456775 | 8.883568 | 0.0  0.0 | 0.0  0.0 | 7.958929 | 0.0  0.0 | 0.0  0.0 | 7.958929 | 1.555477 |  6.0 | 7.834286 |    1.0 |    5.0 | 7.834286 |</span>
+<span class="go">| 06:00 | 5.611429 | 0.710593 | 3.440959 | 0.0  0.0 | 0.0  0.0 | 3.440959 | 7.859704 | 0.0  0.0 | 0.0  0.0 | 5.611429 | 0.0  0.0 | 0.0  0.0 | 5.611429 | 1.703349 |  3.0 | 6.288891 |    0.0 |    3.0 | 6.288891 |</span>
+<span class="go">| 07:00 | 3.762964 | 0.588614 | 2.563094 | 0.0  0.0 | 0.0  0.0 | 2.563094 | 6.853835 | 0.0  0.0 | 0.0  0.0 | 3.762964 | 0.0  0.0 | 0.0  0.0 | 3.762964 | 1.892047 |  2.0 | 4.715447 |    0.0 |    2.0 | 4.715447 |</span>
+<span class="go">| 08:00 | 2.571816 | 0.489778 | 1.939089 | 0.0  0.0 | 0.0  0.0 | 1.939089 | 6.038817 | 0.0  0.0 | 0.0  0.0 | 2.571816 | 0.0  0.0 | 0.0  0.0 | 2.571816 | 2.094379 |  1.0 |  3.47966 |    0.0 |    1.0 |  3.47966 |</span>
+<span class="go">| 09:00 |  1.49322 | 0.373702 | 1.306015 | 0.0  0.0 | 0.0  0.0 | 1.306015 | 5.081623 | 0.0  0.0 | 0.0  0.0 |  1.49322 | 0.0  0.0 | 0.0  0.0 |  1.49322 | 2.429528 |  0.0 | 2.462745 |    0.0 |    0.0 | 2.462745 |</span>
+<span class="go">| 10:00 | 0.820915 | 0.274466 | 0.850257 | 0.0  0.0 | 0.0  0.0 | 0.850257 | 4.263303 | 0.0  0.0 | 0.0  0.0 | 0.820915 | 0.0  0.0 | 0.0  0.0 | 0.820915 | 2.877065 |  0.0 | 1.739678 |    0.0 |    0.0 | 1.739678 |</span>
+<span class="go">| 11:00 | 0.579893 | 0.228232 | 0.664823 | 0.0  0.0 | 0.0  0.0 | 0.664823 | 3.882048 | 0.0  0.0 | 0.0  0.0 | 0.579893 | 0.0  0.0 | 0.0  0.0 | 0.579893 | 3.184607 |  0.0 | 1.270855 |    0.0 |    0.0 | 1.270855 |</span>
+<span class="go">| 12:00 | 0.423618 | 0.192604 | 0.533594 | 0.0  0.0 | 0.0  0.0 | 0.533594 | 3.588256 | 0.0  0.0 | 0.0  0.0 | 0.423618 | 0.0  0.0 | 0.0  0.0 | 0.423618 |  3.49892 |  0.0 | 0.954934 |    0.0 |    0.0 | 0.954934 |</span>
+<span class="go">| 13:00 | 0.318311 | 0.164646 | 0.437725 | 0.0  0.0 | 0.0  0.0 | 0.437725 | 3.357705 | 0.0  0.0 | 0.0  0.0 | 0.318311 | 0.0  0.0 | 0.0  0.0 | 0.318311 | 3.819853 |  0.0 | 0.734987 |    0.0 |    0.0 | 0.734987 |</span>
+<span class="go">| 14:00 | 0.244996 | 0.142354 | 0.365767 | 0.0  0.0 | 0.0  0.0 | 0.365767 | 3.173881 | 0.0  0.0 | 0.0  0.0 | 0.244996 | 0.0  0.0 | 0.0  0.0 | 0.244996 | 4.147091 |  0.0 | 0.577506 |    0.0 |    0.0 | 0.577506 |</span>
+<span class="go">| 15:00 | 0.192502 | 0.124327 | 0.310483 | 0.0  0.0 | 0.0  0.0 | 0.310483 | 3.025226 | 0.0  0.0 | 0.0  0.0 | 0.192502 | 0.0  0.0 | 0.0  0.0 | 0.192502 | 4.480221 |  0.0 | 0.461977 |    0.0 |    0.0 | 0.461977 |</span>
+<span class="go">| 16:00 | 0.153992 | 0.109562 | 0.267141 | 0.0  0.0 | 0.0  0.0 | 0.267141 | 2.903475 | 0.0  0.0 | 0.0  0.0 | 0.153992 | 0.0  0.0 | 0.0  0.0 | 0.153992 | 4.818789 |  0.0 | 0.375401 |    0.0 |    0.0 | 0.375401 |</span>
+<span class="go">| 17:00 | 0.125134 |  0.09733 | 0.232553 | 0.0  0.0 | 0.0  0.0 | 0.232553 | 2.802606 | 0.0  0.0 | 0.0  0.0 | 0.125134 | 0.0  0.0 | 0.0  0.0 | 0.125134 | 5.162328 |  0.0 | 0.309291 |    0.0 |    0.0 | 0.309291 |</span>
+<span class="go">| 18:00 | 0.103097 |  0.08709 | 0.204518 | 0.0  0.0 | 0.0  0.0 | 0.204518 |  2.71816 | 0.0  0.0 | 0.0  0.0 | 0.103097 | 0.0  0.0 | 0.0  0.0 | 0.103097 | 5.510384 |  0.0 | 0.257961 |    0.0 |    0.0 | 0.257961 |</span>
+<span class="go">| 19:00 | 0.085987 | 0.078434 | 0.181476 | 0.0  0.0 | 0.0  0.0 | 0.181476 | 2.646786 | 0.0  0.0 | 0.0  0.0 | 0.085987 | 0.0  0.0 | 0.0  0.0 | 0.085987 | 5.862528 |  0.0 | 0.217508 |    0.0 |    0.0 | 0.217508 |</span>
+</pre></div>
+</div>
+<iframe
+    src="lstream_v1_ex1.html"
+    width="100%"
+    height="580"
+    frameborder=0
+></iframe><p>In the above example, water flows in the main channel only.  At
+least one example needs to be added, in which also the river
+banks are activated.  This could for example be done by reducing
+channel slope:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">gef</span><span class="p">(</span><span class="o">.</span><span class="mi">002</span><span class="p">)</span>
+</pre></div>
+</div>
+</div></blockquote>
+<dl class="class">
+<dt id="hydpy.models.lstream_v1.Model">
+<em class="property">class </em><code class="sig-prename descclassname">hydpy.models.lstream_v1.</code><code class="sig-name descname">Model</code><a class="reference internal" href="_modules/hydpy/models/lstream_v1.html#Model"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hydpy.models.lstream_v1.Model" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="modeltools.html#hydpy.core.modeltools.AdHocModel" title="hydpy.core.modeltools.AdHocModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">hydpy.core.modeltools.AdHocModel</span></code></a></p>
+<p>LARSIM-Stream (Manning) version of HydPy-L-Stream (lstream_v1).</p>
+<dl class="simple">
+<dt>The following “run methods” are called each simulation step run in the given sequence:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="lstream.html#hydpy.models.lstream.lstream_model.Calc_QRef_V1" title="hydpy.models.lstream.lstream_model.Calc_QRef_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Calc_QRef_V1</span></code></a> Determine the reference discharge within the given space-time interval.</p></li>
+<li><p><a class="reference internal" href="lstream.html#hydpy.models.lstream.lstream_model.Calc_HMin_QMin_HMax_QMax_V1" title="hydpy.models.lstream.lstream_model.Calc_HMin_QMin_HMax_QMax_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Calc_HMin_QMin_HMax_QMax_V1</span></code></a> Determine an starting interval for iteration methods as the one implemented in method <a class="reference internal" href="lstream.html#hydpy.models.lstream.lstream_model.Calc_H_V1" title="hydpy.models.lstream.lstream_model.Calc_H_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Calc_H_V1</span></code></a>.</p></li>
+<li><p><a class="reference internal" href="lstream.html#hydpy.models.lstream.lstream_model.Calc_H_V1" title="hydpy.models.lstream.lstream_model.Calc_H_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Calc_H_V1</span></code></a> Approximate the water stage resulting in a certain reference discarge with the Pegasus iteration method.</p></li>
+<li><p><a class="reference internal" href="lstream.html#hydpy.models.lstream.lstream_model.Calc_AG_V1" title="hydpy.models.lstream.lstream_model.Calc_AG_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Calc_AG_V1</span></code></a> Sum the through flown area of the total cross section.</p></li>
+<li><p><a class="reference internal" href="lstream.html#hydpy.models.lstream.lstream_model.Calc_RK_V1" title="hydpy.models.lstream.lstream_model.Calc_RK_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Calc_RK_V1</span></code></a> Determine the actual traveling time of the water (not of the wave!).</p></li>
+<li><p><a class="reference internal" href="lstream.html#hydpy.models.lstream.lstream_model.Calc_QA_V1" title="hydpy.models.lstream.lstream_model.Calc_QA_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Calc_QA_V1</span></code></a> Calculate outflow.</p></li>
+</ul>
+</dd>
+<dt>The following “additional methods” are called by at least one “run method”:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="lstream.html#hydpy.models.lstream.lstream_model.Calc_AM_UM_V1" title="hydpy.models.lstream.lstream_model.Calc_AM_UM_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Calc_AM_UM_V1</span></code></a> Calculate the flown through area and the wetted perimeter of the main channel.</p></li>
+<li><p><a class="reference internal" href="lstream.html#hydpy.models.lstream.lstream_model.Calc_QM_V1" title="hydpy.models.lstream.lstream_model.Calc_QM_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Calc_QM_V1</span></code></a> Calculate the discharge of the main channel after Manning-Strickler.</p></li>
+<li><p><a class="reference internal" href="lstream.html#hydpy.models.lstream.lstream_model.Calc_AV_UV_V1" title="hydpy.models.lstream.lstream_model.Calc_AV_UV_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Calc_AV_UV_V1</span></code></a> Calculate the flown through area and the wetted perimeter of both forelands.</p></li>
+<li><p><a class="reference internal" href="lstream.html#hydpy.models.lstream.lstream_model.Calc_QV_V1" title="hydpy.models.lstream.lstream_model.Calc_QV_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Calc_QV_V1</span></code></a> Calculate the discharge of both forelands after Manning-Strickler.</p></li>
+<li><p><a class="reference internal" href="lstream.html#hydpy.models.lstream.lstream_model.Calc_AVR_UVR_V1" title="hydpy.models.lstream.lstream_model.Calc_AVR_UVR_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Calc_AVR_UVR_V1</span></code></a> Calculate the flown through area and the wetted perimeter of both outer embankments.</p></li>
+<li><p><a class="reference internal" href="lstream.html#hydpy.models.lstream.lstream_model.Calc_QVR_V1" title="hydpy.models.lstream.lstream_model.Calc_QVR_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Calc_QVR_V1</span></code></a> Calculate the discharge of both outer embankments after Manning-Strickler.</p></li>
+<li><p><a class="reference internal" href="lstream.html#hydpy.models.lstream.lstream_model.Calc_QG_V1" title="hydpy.models.lstream.lstream_model.Calc_QG_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Calc_QG_V1</span></code></a> Calculate the discharge of the total cross section.</p></li>
+</ul>
+</dd>
+<dt>The following “inlet update methods” are called in the given sequence immediately of the respective model:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="lstream.html#hydpy.models.lstream.lstream_model.Pick_Q_V1" title="hydpy.models.lstream.lstream_model.Pick_Q_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Pick_Q_V1</span></code></a> Update inflow.</p></li>
+</ul>
+</dd>
+<dt>The following “outlet update methods” are called in the given sequence immediately after solving the differential equations of the respective model:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="lstream.html#hydpy.models.lstream.lstream_model.Pass_Q_V1" title="hydpy.models.lstream.lstream_model.Pass_Q_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Pass_Q_V1</span></code></a> Update outflow.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="class">
+<dt id="hydpy.models.lstream_v1.AideSequences">
+<em class="property">class </em><code class="sig-prename descclassname">hydpy.models.lstream_v1.</code><code class="sig-name descname">AideSequences</code><span class="sig-paren">(</span><em class="sig-param">master: hydpy.core.sequencetools.Sequences</em>, <em class="sig-param">cls_fastaccess: Optional[Type[typingtools.FastAccessModelSequenceProtocol]] = None</em>, <em class="sig-param">cymodel: Optional[typingtools.CyModelProtocol] = None</em><span class="sig-paren">)</span><a class="headerlink" href="#hydpy.models.lstream_v1.AideSequences" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.AideSequences" title="hydpy.core.sequencetools.AideSequences"><code class="xref py py-class docutils literal notranslate"><span class="pre">hydpy.core.sequencetools.AideSequences</span></code></a></p>
+<p>Aide sequences of model lstream_v1.</p>
+<dl class="simple">
+<dt>The following classes are selected:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="lstream.html#hydpy.models.lstream.lstream_aides.HMin" title="hydpy.models.lstream.lstream_aides.HMin"><code class="xref py py-func docutils literal notranslate"><span class="pre">HMin()</span></code></a> Untere Wasserstandsgrenze (lower water stage boundary) [m].</p></li>
+<li><p><a class="reference internal" href="lstream.html#hydpy.models.lstream.lstream_aides.HMax" title="hydpy.models.lstream.lstream_aides.HMax"><code class="xref py py-func docutils literal notranslate"><span class="pre">HMax()</span></code></a> Obere Wasserstandsgrenze (upper water stage boundary) [m].</p></li>
+<li><p><a class="reference internal" href="lstream.html#hydpy.models.lstream.lstream_aides.QMin" title="hydpy.models.lstream.lstream_aides.QMin"><code class="xref py py-func docutils literal notranslate"><span class="pre">QMin()</span></code></a> Untere Abflussgrenze (lower discharge boundary) [m³/s].</p></li>
+<li><p><a class="reference internal" href="lstream.html#hydpy.models.lstream.lstream_aides.QMax" title="hydpy.models.lstream.lstream_aides.QMax"><code class="xref py py-func docutils literal notranslate"><span class="pre">QMax()</span></code></a> Obere Abflussgrenze (upper discharge boundary) [m³/s].</p></li>
+<li><p><a class="reference internal" href="lstream.html#hydpy.models.lstream.lstream_aides.QTest" title="hydpy.models.lstream.lstream_aides.QTest"><code class="xref py py-func docutils literal notranslate"><span class="pre">QTest()</span></code></a> Vergleichsabfluss (discharge to be compared) [m³/s].</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="class">
+<dt id="hydpy.models.lstream_v1.ControlParameters">
+<em class="property">class </em><code class="sig-prename descclassname">hydpy.models.lstream_v1.</code><code class="sig-name descname">ControlParameters</code><span class="sig-paren">(</span><em class="sig-param">master: hydpy.core.parametertools.Parameters</em>, <em class="sig-param">cls_fastaccess: Optional[Type[typingtools.FastAccessParameterProtocol]] = None</em>, <em class="sig-param">cymodel: Optional[typingtools.CyModelProtocol] = None</em><span class="sig-paren">)</span><a class="headerlink" href="#hydpy.models.lstream_v1.ControlParameters" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="parametertools.html#hydpy.core.parametertools.SubParameters" title="hydpy.core.parametertools.SubParameters"><code class="xref py py-class docutils literal notranslate"><span class="pre">hydpy.core.parametertools.SubParameters</span></code></a></p>
+<p>Control parameters of model lstream_v1.</p>
+<dl class="simple">
+<dt>The following classes are selected:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="lstream.html#hydpy.models.lstream.lstream_control.Laen" title="hydpy.models.lstream.lstream_control.Laen"><code class="xref py py-func docutils literal notranslate"><span class="pre">Laen()</span></code></a> Flusslänge (channel length) [km].</p></li>
+<li><p><a class="reference internal" href="lstream.html#hydpy.models.lstream.lstream_control.Gef" title="hydpy.models.lstream.lstream_control.Gef"><code class="xref py py-func docutils literal notranslate"><span class="pre">Gef()</span></code></a> Sohlgefälle (channel slope) [-].</p></li>
+<li><p><a class="reference internal" href="lstream.html#hydpy.models.lstream.lstream_control.HM" title="hydpy.models.lstream.lstream_control.HM"><code class="xref py py-func docutils literal notranslate"><span class="pre">HM()</span></code></a> Höhe Hauptgerinne (height of the main channel) [m].</p></li>
+<li><p><a class="reference internal" href="lstream.html#hydpy.models.lstream.lstream_control.BM" title="hydpy.models.lstream.lstream_control.BM"><code class="xref py py-func docutils literal notranslate"><span class="pre">BM()</span></code></a> Sohlbreite Hauptgerinne (bed width of the main channel) [m].</p></li>
+<li><p><a class="reference internal" href="lstream.html#hydpy.models.lstream.lstream_control.BNM" title="hydpy.models.lstream.lstream_control.BNM"><code class="xref py py-func docutils literal notranslate"><span class="pre">BNM()</span></code></a> Böschungsneigung Hauptgerinne (slope of both main channel embankments) [-].</p></li>
+<li><p><a class="reference internal" href="lstream.html#hydpy.models.lstream.lstream_control.BV" title="hydpy.models.lstream.lstream_control.BV"><code class="xref py py-func docutils literal notranslate"><span class="pre">BV()</span></code></a> Sohlbreite Vorländer (bed widths of both forelands) [m].</p></li>
+<li><p><a class="reference internal" href="lstream.html#hydpy.models.lstream.lstream_control.BBV" title="hydpy.models.lstream.lstream_control.BBV"><code class="xref py py-func docutils literal notranslate"><span class="pre">BBV()</span></code></a> Breite Vorlandböschungen (width of both foreland embankments) [m].</p></li>
+<li><p><a class="reference internal" href="lstream.html#hydpy.models.lstream.lstream_control.BNV" title="hydpy.models.lstream.lstream_control.BNV"><code class="xref py py-func docutils literal notranslate"><span class="pre">BNV()</span></code></a> Böschungsneigung Vorländer (slope of both foreland embankments) [-].</p></li>
+<li><p><a class="reference internal" href="lstream.html#hydpy.models.lstream.lstream_control.BNVR" title="hydpy.models.lstream.lstream_control.BNVR"><code class="xref py py-func docutils literal notranslate"><span class="pre">BNVR()</span></code></a> Böschungsneigung Vorlandränder (slope of both outer embankments) [-].</p></li>
+<li><p><a class="reference internal" href="lstream.html#hydpy.models.lstream.lstream_control.SKM" title="hydpy.models.lstream.lstream_control.SKM"><code class="xref py py-func docutils literal notranslate"><span class="pre">SKM()</span></code></a> Rauigkeitsbeiwert Hauptgerinne (roughness coefficient of the main channel) [m^(1/3)/s].</p></li>
+<li><p><a class="reference internal" href="lstream.html#hydpy.models.lstream.lstream_control.SKV" title="hydpy.models.lstream.lstream_control.SKV"><code class="xref py py-func docutils literal notranslate"><span class="pre">SKV()</span></code></a> Rauigkeitsbeiwert Vorländer (roughness coefficient of the both forelands) [m^(1/3)/s].</p></li>
+<li><p><a class="reference internal" href="lstream.html#hydpy.models.lstream.lstream_control.EKM" title="hydpy.models.lstream.lstream_control.EKM"><code class="xref py py-func docutils literal notranslate"><span class="pre">EKM()</span></code></a> Kalibrierfaktor Hauptgerinne (calibration factor for the main channel) [-].</p></li>
+<li><p><a class="reference internal" href="lstream.html#hydpy.models.lstream.lstream_control.EKV" title="hydpy.models.lstream.lstream_control.EKV"><code class="xref py py-func docutils literal notranslate"><span class="pre">EKV()</span></code></a> Kalibrierfaktor Vorländer (calibration factor for both forelands) [m].</p></li>
+<li><p><a class="reference internal" href="lstream.html#hydpy.models.lstream.lstream_control.QTol" title="hydpy.models.lstream.lstream_control.QTol"><code class="xref py py-func docutils literal notranslate"><span class="pre">QTol()</span></code></a> Approximationstoleranz Abfluss (discharge related stopping criterion for root-finding algorithms) [m³/s].</p></li>
+<li><p><a class="reference internal" href="lstream.html#hydpy.models.lstream.lstream_control.HTol" title="hydpy.models.lstream.lstream_control.HTol"><code class="xref py py-func docutils literal notranslate"><span class="pre">HTol()</span></code></a> Approximationstoleranz Wasserstand (water stage related stopping criterion for root-finding algorithms) [m].</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="class">
+<dt id="hydpy.models.lstream_v1.DerivedParameters">
+<em class="property">class </em><code class="sig-prename descclassname">hydpy.models.lstream_v1.</code><code class="sig-name descname">DerivedParameters</code><span class="sig-paren">(</span><em class="sig-param">master: hydpy.core.parametertools.Parameters</em>, <em class="sig-param">cls_fastaccess: Optional[Type[typingtools.FastAccessParameterProtocol]] = None</em>, <em class="sig-param">cymodel: Optional[typingtools.CyModelProtocol] = None</em><span class="sig-paren">)</span><a class="headerlink" href="#hydpy.models.lstream_v1.DerivedParameters" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="parametertools.html#hydpy.core.parametertools.SubParameters" title="hydpy.core.parametertools.SubParameters"><code class="xref py py-class docutils literal notranslate"><span class="pre">hydpy.core.parametertools.SubParameters</span></code></a></p>
+<p>Derived parameters of model lstream_v1.</p>
+<dl class="simple">
+<dt>The following classes are selected:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="lstream.html#hydpy.models.lstream.lstream_derived.HV" title="hydpy.models.lstream.lstream_derived.HV"><code class="xref py py-func docutils literal notranslate"><span class="pre">HV()</span></code></a> Höhe Vorländer (height of both forelands) [m].</p></li>
+<li><p><a class="reference internal" href="lstream.html#hydpy.models.lstream.lstream_derived.QM" title="hydpy.models.lstream.lstream_derived.QM"><code class="xref py py-func docutils literal notranslate"><span class="pre">QM()</span></code></a> Bordvoller Abfluss Hauptgerinne (maximum discharge of the main channel) [m³/s].</p></li>
+<li><p><a class="reference internal" href="lstream.html#hydpy.models.lstream.lstream_derived.QV" title="hydpy.models.lstream.lstream_derived.QV"><code class="xref py py-func docutils literal notranslate"><span class="pre">QV()</span></code></a> Bordvoller Abfluss Vorländer (maximum discharge of both forelands) [m³/s].</p></li>
+<li><p><a class="reference internal" href="lstream.html#hydpy.models.lstream.lstream_derived.Sek" title="hydpy.models.lstream.lstream_derived.Sek"><code class="xref py py-func docutils literal notranslate"><span class="pre">Sek()</span></code></a> Sekunden im Simulationszeitschritt (Number of seconds of the selected simulation time step) [T].</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="class">
+<dt id="hydpy.models.lstream_v1.FluxSequences">
+<em class="property">class </em><code class="sig-prename descclassname">hydpy.models.lstream_v1.</code><code class="sig-name descname">FluxSequences</code><span class="sig-paren">(</span><em class="sig-param">master: hydpy.core.sequencetools.Sequences</em>, <em class="sig-param">cls_fastaccess: Optional[Type[typingtools.FastAccessModelSequenceProtocol]] = None</em>, <em class="sig-param">cymodel: Optional[typingtools.CyModelProtocol] = None</em><span class="sig-paren">)</span><a class="headerlink" href="#hydpy.models.lstream_v1.FluxSequences" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.FluxSequences" title="hydpy.core.sequencetools.FluxSequences"><code class="xref py py-class docutils literal notranslate"><span class="pre">hydpy.core.sequencetools.FluxSequences</span></code></a></p>
+<p>Flux sequences of model lstream_v1.</p>
+<dl class="simple">
+<dt>The following classes are selected:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="lstream.html#hydpy.models.lstream.lstream_fluxes.QRef" title="hydpy.models.lstream.lstream_fluxes.QRef"><code class="xref py py-func docutils literal notranslate"><span class="pre">QRef()</span></code></a> Referenzabfluss (reference flow) [m³/s].</p></li>
+<li><p><a class="reference internal" href="lstream.html#hydpy.models.lstream.lstream_fluxes.H" title="hydpy.models.lstream.lstream_fluxes.H"><code class="xref py py-func docutils literal notranslate"><span class="pre">H()</span></code></a> Wasserstand (water stage) [m].</p></li>
+<li><p><a class="reference internal" href="lstream.html#hydpy.models.lstream.lstream_fluxes.AM" title="hydpy.models.lstream.lstream_fluxes.AM"><code class="xref py py-func docutils literal notranslate"><span class="pre">AM()</span></code></a> Durchflossene Fläche Hauptgerinne (flown through area of the main channel) [m²].</p></li>
+<li><p><a class="reference internal" href="lstream.html#hydpy.models.lstream.lstream_fluxes.AV" title="hydpy.models.lstream.lstream_fluxes.AV"><code class="xref py py-func docutils literal notranslate"><span class="pre">AV()</span></code></a> Durchflossene Fläche Vorländer (flown through area of both forelands) [m²].</p></li>
+<li><p><a class="reference internal" href="lstream.html#hydpy.models.lstream.lstream_fluxes.AVR" title="hydpy.models.lstream.lstream_fluxes.AVR"><code class="xref py py-func docutils literal notranslate"><span class="pre">AVR()</span></code></a> Durchflossene Fläche Vorlandränder (flown through area of both outer embankments) [m²].</p></li>
+<li><p><a class="reference internal" href="lstream.html#hydpy.models.lstream.lstream_fluxes.AG" title="hydpy.models.lstream.lstream_fluxes.AG"><code class="xref py py-func docutils literal notranslate"><span class="pre">AG()</span></code></a> Durchflossene Fläche gesamt (total flown through area) [m²].</p></li>
+<li><p><a class="reference internal" href="lstream.html#hydpy.models.lstream.lstream_fluxes.UM" title="hydpy.models.lstream.lstream_fluxes.UM"><code class="xref py py-func docutils literal notranslate"><span class="pre">UM()</span></code></a> Benetzter Umfang Hauptgerinne (wetted perimeter of the main channel) [m].</p></li>
+<li><p><a class="reference internal" href="lstream.html#hydpy.models.lstream.lstream_fluxes.UV" title="hydpy.models.lstream.lstream_fluxes.UV"><code class="xref py py-func docutils literal notranslate"><span class="pre">UV()</span></code></a> Benetzter Umfang Vorländer (wetted perimeter of both forelands) [m].</p></li>
+<li><p><a class="reference internal" href="lstream.html#hydpy.models.lstream.lstream_fluxes.UVR" title="hydpy.models.lstream.lstream_fluxes.UVR"><code class="xref py py-func docutils literal notranslate"><span class="pre">UVR()</span></code></a> Benetzter Umfang Vorlandränder (wetted perimeter of both outer embankments) [m].</p></li>
+<li><p><a class="reference internal" href="lstream.html#hydpy.models.lstream.lstream_fluxes.QM" title="hydpy.models.lstream.lstream_fluxes.QM"><code class="xref py py-func docutils literal notranslate"><span class="pre">QM()</span></code></a> Durchfluss Hauptgerinne (discharge of the main channel) [m³].</p></li>
+<li><p><a class="reference internal" href="lstream.html#hydpy.models.lstream.lstream_fluxes.QV" title="hydpy.models.lstream.lstream_fluxes.QV"><code class="xref py py-func docutils literal notranslate"><span class="pre">QV()</span></code></a> Durchfluss Voränder (discharge of both forelands) [m³].</p></li>
+<li><p><a class="reference internal" href="lstream.html#hydpy.models.lstream.lstream_fluxes.QVR" title="hydpy.models.lstream.lstream_fluxes.QVR"><code class="xref py py-func docutils literal notranslate"><span class="pre">QVR()</span></code></a> Durchfluss Vorlandränder (discharge of both outer embankment) [m³].</p></li>
+<li><p><a class="reference internal" href="lstream.html#hydpy.models.lstream.lstream_fluxes.QG" title="hydpy.models.lstream.lstream_fluxes.QG"><code class="xref py py-func docutils literal notranslate"><span class="pre">QG()</span></code></a> Durchfluss gesamt (total discharge) [m³].</p></li>
+<li><p><a class="reference internal" href="lstream.html#hydpy.models.lstream.lstream_fluxes.RK" title="hydpy.models.lstream.lstream_fluxes.RK"><code class="xref py py-func docutils literal notranslate"><span class="pre">RK()</span></code></a> Schwerpunktlaufzeit (traveling time) [T].</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="class">
+<dt id="hydpy.models.lstream_v1.InletSequences">
+<em class="property">class </em><code class="sig-prename descclassname">hydpy.models.lstream_v1.</code><code class="sig-name descname">InletSequences</code><span class="sig-paren">(</span><em class="sig-param">master: hydpy.core.sequencetools.Sequences</em>, <em class="sig-param">cls_fastaccess: Optional[Type[typingtools.FastAccessModelSequenceProtocol]] = None</em>, <em class="sig-param">cymodel: Optional[typingtools.CyModelProtocol] = None</em><span class="sig-paren">)</span><a class="headerlink" href="#hydpy.models.lstream_v1.InletSequences" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.InletSequences" title="hydpy.core.sequencetools.InletSequences"><code class="xref py py-class docutils literal notranslate"><span class="pre">hydpy.core.sequencetools.InletSequences</span></code></a></p>
+<p>Inlet sequences of model lstream_v1.</p>
+<dl class="simple">
+<dt>The following classes are selected:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="lstream.html#hydpy.models.lstream.lstream_inlets.Q" title="hydpy.models.lstream.lstream_inlets.Q"><code class="xref py py-func docutils literal notranslate"><span class="pre">Q()</span></code></a> Abfluss (runoff) [m³/s].</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="class">
+<dt id="hydpy.models.lstream_v1.InputSequences">
+<em class="property">class </em><code class="sig-prename descclassname">hydpy.models.lstream_v1.</code><code class="sig-name descname">InputSequences</code><span class="sig-paren">(</span><em class="sig-param">master: hydpy.core.sequencetools.Sequences</em>, <em class="sig-param">cls_fastaccess: Optional[Type[typingtools.FastAccessModelSequenceProtocol]] = None</em>, <em class="sig-param">cymodel: Optional[typingtools.CyModelProtocol] = None</em><span class="sig-paren">)</span><a class="headerlink" href="#hydpy.models.lstream_v1.InputSequences" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.InputSequences" title="hydpy.core.sequencetools.InputSequences"><code class="xref py py-class docutils literal notranslate"><span class="pre">hydpy.core.sequencetools.InputSequences</span></code></a></p>
+<p>Input sequences of model lstream_v1.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="hydpy.models.lstream_v1.LogSequences">
+<em class="property">class </em><code class="sig-prename descclassname">hydpy.models.lstream_v1.</code><code class="sig-name descname">LogSequences</code><span class="sig-paren">(</span><em class="sig-param">master: hydpy.core.sequencetools.Sequences</em>, <em class="sig-param">cls_fastaccess: Optional[Type[typingtools.FastAccessModelSequenceProtocol]] = None</em>, <em class="sig-param">cymodel: Optional[typingtools.CyModelProtocol] = None</em><span class="sig-paren">)</span><a class="headerlink" href="#hydpy.models.lstream_v1.LogSequences" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.LogSequences" title="hydpy.core.sequencetools.LogSequences"><code class="xref py py-class docutils literal notranslate"><span class="pre">hydpy.core.sequencetools.LogSequences</span></code></a></p>
+<p>Log sequences of model lstream_v1.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="hydpy.models.lstream_v1.OutletSequences">
+<em class="property">class </em><code class="sig-prename descclassname">hydpy.models.lstream_v1.</code><code class="sig-name descname">OutletSequences</code><span class="sig-paren">(</span><em class="sig-param">master: hydpy.core.sequencetools.Sequences</em>, <em class="sig-param">cls_fastaccess: Optional[Type[typingtools.FastAccessModelSequenceProtocol]] = None</em>, <em class="sig-param">cymodel: Optional[typingtools.CyModelProtocol] = None</em><span class="sig-paren">)</span><a class="headerlink" href="#hydpy.models.lstream_v1.OutletSequences" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.OutletSequences" title="hydpy.core.sequencetools.OutletSequences"><code class="xref py py-class docutils literal notranslate"><span class="pre">hydpy.core.sequencetools.OutletSequences</span></code></a></p>
+<p>Outlet sequences of model lstream_v1.</p>
+<dl class="simple">
+<dt>The following classes are selected:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="lstream.html#hydpy.models.lstream.lstream_outlets.Q" title="hydpy.models.lstream.lstream_outlets.Q"><code class="xref py py-func docutils literal notranslate"><span class="pre">Q()</span></code></a> Abfluss (runoff) [m³/s].</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="class">
+<dt id="hydpy.models.lstream_v1.ReceiverSequences">
+<em class="property">class </em><code class="sig-prename descclassname">hydpy.models.lstream_v1.</code><code class="sig-name descname">ReceiverSequences</code><span class="sig-paren">(</span><em class="sig-param">master: hydpy.core.sequencetools.Sequences</em>, <em class="sig-param">cls_fastaccess: Optional[Type[typingtools.FastAccessModelSequenceProtocol]] = None</em>, <em class="sig-param">cymodel: Optional[typingtools.CyModelProtocol] = None</em><span class="sig-paren">)</span><a class="headerlink" href="#hydpy.models.lstream_v1.ReceiverSequences" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.ReceiverSequences" title="hydpy.core.sequencetools.ReceiverSequences"><code class="xref py py-class docutils literal notranslate"><span class="pre">hydpy.core.sequencetools.ReceiverSequences</span></code></a></p>
+<p>Receiver sequences of model lstream_v1.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="hydpy.models.lstream_v1.SenderSequences">
+<em class="property">class </em><code class="sig-prename descclassname">hydpy.models.lstream_v1.</code><code class="sig-name descname">SenderSequences</code><span class="sig-paren">(</span><em class="sig-param">master: hydpy.core.sequencetools.Sequences</em>, <em class="sig-param">cls_fastaccess: Optional[Type[typingtools.FastAccessModelSequenceProtocol]] = None</em>, <em class="sig-param">cymodel: Optional[typingtools.CyModelProtocol] = None</em><span class="sig-paren">)</span><a class="headerlink" href="#hydpy.models.lstream_v1.SenderSequences" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.SenderSequences" title="hydpy.core.sequencetools.SenderSequences"><code class="xref py py-class docutils literal notranslate"><span class="pre">hydpy.core.sequencetools.SenderSequences</span></code></a></p>
+<p>Sender sequences of model lstream_v1.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="hydpy.models.lstream_v1.StateSequences">
+<em class="property">class </em><code class="sig-prename descclassname">hydpy.models.lstream_v1.</code><code class="sig-name descname">StateSequences</code><span class="sig-paren">(</span><em class="sig-param">master: hydpy.core.sequencetools.Sequences</em>, <em class="sig-param">cls_fastaccess: Optional[Type[typingtools.FastAccessModelSequenceProtocol]] = None</em>, <em class="sig-param">cymodel: Optional[typingtools.CyModelProtocol] = None</em><span class="sig-paren">)</span><a class="headerlink" href="#hydpy.models.lstream_v1.StateSequences" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.StateSequences" title="hydpy.core.sequencetools.StateSequences"><code class="xref py py-class docutils literal notranslate"><span class="pre">hydpy.core.sequencetools.StateSequences</span></code></a></p>
+<p>State sequences of model lstream_v1.</p>
+<dl class="simple">
+<dt>The following classes are selected:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="lstream.html#hydpy.models.lstream.lstream_states.QZ" title="hydpy.models.lstream.lstream_states.QZ"><code class="xref py py-func docutils literal notranslate"><span class="pre">QZ()</span></code></a> Zufluss in Gerinnestrecke (inflow into the channel) [m³/s].</p></li>
+<li><p><a class="reference internal" href="lstream.html#hydpy.models.lstream.lstream_states.QA" title="hydpy.models.lstream.lstream_states.QA"><code class="xref py py-func docutils literal notranslate"><span class="pre">QA()</span></code></a> Abfluss aus Gerinnestrecke (outflow out of the channel) [m³/s].</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/HydPy_Logo.png" alt="Logo"/>
+            </a></p>
+  <h3><a href="index.html">Table of Contents</a></h3>
+  <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="install.html">Installation Instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="framework.html">Framework Tools</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="modelcollection.html">Model Collection</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="HydPy-A.html">HydPy-A (RIMO/RIDO)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="HydPy-D.html">HydPy-D (DAM)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="HydPy-H.html">HydPy-H (HBV)</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="HydPy-L.html">HydPy-L (LARSIM)</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="lland.html">lland (HydPy-L-Land)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="lstream.html">lstream (HydPy-L-Stream)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="llake.html">llake (HydPy-L-Lake)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="lland_v1.html">lland_v1 (LARSIM-Xinanjiang-Turc-Wendling version of HydPy-L-Land)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="lland_v2.html">lland_v2 (External potential evaporation version of lland_v1)</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">lstream_v1 (LARSIM-Manning version of HydPy-L-Stream)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="llake_v1.html">llake_v1 (LARSIM-Lake version of HydPy-L-Lake)</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="HydPy-T.html">HydPy-T (TESTING)</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="development.html">Development</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples.html">Example Projects</a></li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="lland_v2.html"
+                        title="previous chapter">lland_v2</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="llake_v1.html"
+                        title="next chapter">llake_v1</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/lstream_v1.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="llake_v1.html" title="llake_v1"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="lland_v2.html" title="lland_v2"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">HydPy 4.0a11 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="modelcollection.html" >Model Collection</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="HydPy-L.html" >HydPy-L (LARSIM)</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2019, HydPy Developers.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.2.1.
+    </div>
+  </body>
+</html>

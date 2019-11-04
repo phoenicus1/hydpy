@@ -1,0 +1,218 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>hydpy.models.lstream.lstream_derived &#8212; HydPy 4.0a11 documentation</title>
+    <link rel="stylesheet" href="../../../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/graphviz.css" />
+    
+    <script type="text/javascript" id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="../../../../_static/language_data.js"></script>
+    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../index.html">HydPy 4.0a11 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../../index.html" >Module code</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="../lstream.html" accesskey="U">hydpy.models.lstream</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for hydpy.models.lstream.lstream_derived</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="c1"># pylint: disable=missing-docstring</span>
+<span class="c1"># pylint: enable=missing-docstring</span>
+
+<span class="c1"># import...</span>
+<span class="c1"># ...from HydPy</span>
+<span class="kn">from</span> <span class="nn">hydpy.core</span> <span class="k">import</span> <span class="n">parametertools</span>
+<span class="kn">from</span> <span class="nn">hydpy.models.lstream</span> <span class="k">import</span> <span class="n">lstream_control</span>
+
+
+<div class="viewcode-block" id="HV"><a class="viewcode-back" href="../../../../lstream.html#hydpy.models.lstream.lstream_derived.HV">[docs]</a><span class="k">class</span> <span class="nc">HV</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">LeftRightParameter</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Höhe Vorländer (height of both forelands) [m].&quot;&quot;&quot;</span>
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+    <span class="n">CONTROLPARAMETERS</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">lstream_control</span><span class="o">.</span><span class="n">BBV</span><span class="p">,</span>
+        <span class="n">lstream_control</span><span class="o">.</span><span class="n">BNV</span><span class="p">,</span>
+    <span class="p">)</span>
+
+<div class="viewcode-block" id="HV.update"><a class="viewcode-back" href="../../../../lstream.html#hydpy.models.lstream.lstream_derived.HV.update">[docs]</a>    <span class="k">def</span> <span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Update value based on :math:`HV=BBV/BNV`.</span>
+
+<span class="sd">        Examples:</span>
+<span class="sd">            &gt;&gt;&gt; from hydpy.models.lstream import *</span>
+<span class="sd">            &gt;&gt;&gt; parameterstep(&#39;1d&#39;)</span>
+<span class="sd">            &gt;&gt;&gt; bbv(left=10., right=40.)</span>
+<span class="sd">            &gt;&gt;&gt; bnv(left=10., right=20.)</span>
+<span class="sd">            &gt;&gt;&gt; derived.hv.update()</span>
+<span class="sd">            &gt;&gt;&gt; derived.hv</span>
+<span class="sd">            hv(left=1.0, right=2.0)</span>
+<span class="sd">            &gt;&gt;&gt; bbv(left=10., right=0.)</span>
+<span class="sd">            &gt;&gt;&gt; bnv(left=0., right=20.)</span>
+<span class="sd">            &gt;&gt;&gt; derived.hv.update()</span>
+<span class="sd">            &gt;&gt;&gt; derived.hv</span>
+<span class="sd">            hv(0.0)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">con</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">subpars</span><span class="o">.</span><span class="n">pars</span><span class="o">.</span><span class="n">control</span>
+        <span class="bp">self</span><span class="p">(</span><span class="mf">0.</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">2</span><span class="p">):</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">con</span><span class="o">.</span><span class="n">bbv</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mf">0.</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">con</span><span class="o">.</span><span class="n">bnv</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mf">0.</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">=</span> <span class="n">con</span><span class="o">.</span><span class="n">bbv</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span><span class="o">/</span><span class="n">con</span><span class="o">.</span><span class="n">bnv</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span></div></div>
+
+
+<div class="viewcode-block" id="QM"><a class="viewcode-back" href="../../../../lstream.html#hydpy.models.lstream.lstream_derived.QM">[docs]</a><span class="k">class</span> <span class="nc">QM</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">Parameter</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Bordvoller Abfluss Hauptgerinne (maximum discharge of the main channel)</span>
+<span class="sd">    [m³/s].&quot;&quot;&quot;</span>
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+    <span class="n">CONTROLPARAMETERS</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">lstream_control</span><span class="o">.</span><span class="n">HM</span><span class="p">,</span>
+    <span class="p">)</span>
+
+<div class="viewcode-block" id="QM.update"><a class="viewcode-back" href="../../../../lstream.html#hydpy.models.lstream.lstream_derived.QM.update">[docs]</a>    <span class="k">def</span> <span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Update value based on the actual |Calc_QG_V1| method.</span>
+
+<span class="sd">        Note that the value of parameter |lstream_derived.QM| is directly</span>
+<span class="sd">        related to the value of parameter |HM| and indirectly related to</span>
+<span class="sd">        all parameters values relevant for method |Calc_QG_V1|. Hence the</span>
+<span class="sd">        complete paramter (and sequence) requirements might differ for</span>
+<span class="sd">        various application models.</span>
+
+<span class="sd">        For examples, see the documentation on method ToDo.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">mod</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">subpars</span><span class="o">.</span><span class="n">pars</span><span class="o">.</span><span class="n">model</span>
+        <span class="n">con</span> <span class="o">=</span> <span class="n">mod</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">control</span>
+        <span class="n">flu</span> <span class="o">=</span> <span class="n">mod</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">fluxes</span>
+        <span class="n">flu</span><span class="o">.</span><span class="n">h</span> <span class="o">=</span> <span class="n">con</span><span class="o">.</span><span class="n">hm</span>
+        <span class="n">mod</span><span class="o">.</span><span class="n">calc_qg</span><span class="p">()</span>
+        <span class="bp">self</span><span class="p">(</span><span class="n">flu</span><span class="o">.</span><span class="n">qg</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="QV"><a class="viewcode-back" href="../../../../lstream.html#hydpy.models.lstream.lstream_derived.QV">[docs]</a><span class="k">class</span> <span class="nc">QV</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">LeftRightParameter</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Bordvoller Abfluss Vorländer (maximum discharge of both forelands)</span>
+<span class="sd">    [m³/s].&quot;&quot;&quot;</span>
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+    <span class="n">CONTROLPARAMETERS</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">lstream_control</span><span class="o">.</span><span class="n">HM</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">DERIVEDPARAMETERS</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">HV</span><span class="p">,</span>
+    <span class="p">)</span>
+
+<div class="viewcode-block" id="QV.update"><a class="viewcode-back" href="../../../../lstream.html#hydpy.models.lstream.lstream_derived.QV.update">[docs]</a>    <span class="k">def</span> <span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Update value based on the actual |Calc_QG_V1| method.</span>
+
+<span class="sd">        Note that the values of parameter |lstream_derived.QV| are</span>
+<span class="sd">        directly related to the values of parameter |HV| and indirectly</span>
+<span class="sd">        related to all parameters values relevant for method |Calc_QG_V1|.</span>
+<span class="sd">        Hence the complete paramter (and sequence) requirements might</span>
+<span class="sd">        differ for various application models.</span>
+
+<span class="sd">        For examples, see the documentation on method ToDo.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">mod</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">subpars</span><span class="o">.</span><span class="n">pars</span><span class="o">.</span><span class="n">model</span>
+        <span class="n">con</span> <span class="o">=</span> <span class="n">mod</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">control</span>
+        <span class="n">der</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">subpars</span>
+        <span class="n">flu</span> <span class="o">=</span> <span class="n">mod</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">fluxes</span>
+        <span class="bp">self</span><span class="p">(</span><span class="mf">0.</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">2</span><span class="p">):</span>
+            <span class="n">flu</span><span class="o">.</span><span class="n">h</span> <span class="o">=</span> <span class="n">con</span><span class="o">.</span><span class="n">hm</span><span class="o">+</span><span class="n">der</span><span class="o">.</span><span class="n">hv</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span>
+            <span class="n">mod</span><span class="o">.</span><span class="n">calc_qg</span><span class="p">()</span>
+            <span class="bp">self</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">=</span> <span class="n">flu</span><span class="o">.</span><span class="n">qg</span></div></div>
+
+
+<div class="viewcode-block" id="Sek"><a class="viewcode-back" href="../../../../lstream.html#hydpy.models.lstream.lstream_derived.Sek">[docs]</a><span class="k">class</span> <span class="nc">Sek</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">Parameter</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Sekunden im Simulationszeitschritt (Number of seconds of the selected</span>
+<span class="sd">    simulation time step) [T].&quot;&quot;&quot;</span>
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+<div class="viewcode-block" id="Sek.update"><a class="viewcode-back" href="../../../../lstream.html#hydpy.models.lstream.lstream_derived.Sek.update">[docs]</a>    <span class="k">def</span> <span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Update value based on |Parameter.simulationstep|.</span>
+
+<span class="sd">        Example:</span>
+<span class="sd">            &gt;&gt;&gt; from hydpy.models.lstream import *</span>
+<span class="sd">            &gt;&gt;&gt; parameterstep()</span>
+<span class="sd">            &gt;&gt;&gt; simulationstep(&#39;1d&#39;)</span>
+<span class="sd">            &gt;&gt;&gt; derived.sek.update()</span>
+<span class="sd">            &gt;&gt;&gt; derived.sek</span>
+<span class="sd">            sek(86400.0)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">simulationstep</span><span class="o">.</span><span class="n">seconds</span><span class="p">)</span></div></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../../../index.html">
+              <img class="logo" src="../../../../_static/HydPy_Logo.png" alt="Logo"/>
+            </a></p>
+  <h3><a href="../../../../index.html">Table of Contents</a></h3>
+  <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../install.html">Installation Instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../framework.html">Framework Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../modelcollection.html">Model Collection</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../development.html">Development</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../examples.html">Example Projects</a></li>
+</ul>
+
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../index.html">HydPy 4.0a11 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../../index.html" >Module code</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="../lstream.html" >hydpy.models.lstream</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2019, HydPy Developers.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.2.1.
+    </div>
+  </body>
+</html>

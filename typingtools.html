@@ -1,0 +1,334 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>typingtools &#8212; HydPy 4.0a11 documentation</title>
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="_static/graphviz.css" />
+    
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="_static/language_data.js"></script>
+    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="variabletools" href="variabletools.html" />
+    <link rel="prev" title="timetools" href="timetools.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="variabletools.html" title="variabletools"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="timetools.html" title="timetools"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">HydPy 4.0a11 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="framework.html" >Framework Tools</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="core.html" accesskey="U">Core Tools</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="typingtools">
+<span id="id1"></span><h1>typingtools<a class="headerlink" href="#typingtools" title="Permalink to this headline">¶</a></h1>
+<span class="target" id="module-hydpy.core.typingtools"></span><p>This module implements some “types” to be used for static (and
+eventually dynamical) typing.</p>
+<p>Module <a class="reference internal" href="#module-hydpy.core.typingtools" title="hydpy.core.typingtools"><code class="xref py py-mod docutils literal notranslate"><span class="pre">typingtools</span></code></a> implements the following members:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">T</span></code> Type variable.</p></li>
+<li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">T1</span></code> Type variable.</p></li>
+<li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">T2</span></code> Type variable.</p></li>
+<li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">T3</span></code> Type variable.</p></li>
+<li><p><a class="reference internal" href="#hydpy.core.typingtools.IterableNonString" title="hydpy.core.typingtools.IterableNonString"><code class="xref py py-class docutils literal notranslate"><span class="pre">IterableNonString</span></code></a> Abstract base class for checking if an object is iterable but not a string. &gt;&gt;&gt; from hydpy.core.typingtools import IterableNonString &gt;&gt;&gt; isinstance(‘asdf’, IterableNonString) False &gt;&gt;&gt; isinstance([‘asdf’], IterableNonString) True &gt;&gt;&gt; issubclass(str, IterableNonString) False &gt;&gt;&gt; issubclass(list, IterableNonString) True &gt;&gt;&gt;</p></li>
+<li><p><a class="reference internal" href="#hydpy.core.typingtools.DevicesHandlerProtocol" title="hydpy.core.typingtools.DevicesHandlerProtocol"><code class="xref py py-class docutils literal notranslate"><span class="pre">DevicesHandlerProtocol</span></code></a> Without concrete implementation.</p></li>
+<li><p><a class="reference internal" href="#hydpy.core.typingtools.VariableProtocol" title="hydpy.core.typingtools.VariableProtocol"><code class="xref py py-class docutils literal notranslate"><span class="pre">VariableProtocol</span></code></a> Protocol to identify objects as “variables”.</p></li>
+<li><p><code class="xref py py-class docutils literal notranslate"><span class="pre">CyParametersProtocol</span></code> The protocol for the <cite>parameters</cite> attribute of Cython extension classes.</p></li>
+<li><p><code class="xref py py-class docutils literal notranslate"><span class="pre">CySequencesProtocol</span></code> The protocol for the <cite>sequences</cite> attribute of Cython extension classes.</p></li>
+<li><p><a class="reference internal" href="#hydpy.core.typingtools.CyModelProtocol" title="hydpy.core.typingtools.CyModelProtocol"><code class="xref py py-class docutils literal notranslate"><span class="pre">CyModelProtocol</span></code></a> The protocol of Cython extension classes for defining efficient model implementations.</p></li>
+<li><p><code class="xref py py-class docutils literal notranslate"><span class="pre">FastAccessParameterProtocol</span></code> The protocol of Cython extension classes for replacing the Python surrogate class <a class="reference internal" href="parametertools.html#hydpy.core.parametertools.FastAccessParameter" title="hydpy.core.parametertools.FastAccessParameter"><code class="xref py py-class docutils literal notranslate"><span class="pre">FastAccessParameter</span></code></a>.</p></li>
+<li><p><a class="reference internal" href="#hydpy.core.typingtools.FastAccessModelSequenceProtocol" title="hydpy.core.typingtools.FastAccessModelSequenceProtocol"><code class="xref py py-class docutils literal notranslate"><span class="pre">FastAccessModelSequenceProtocol</span></code></a> The protocol of Cython extension classes for replacing the Python surrogate class <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.FastAccessModelSequence" title="hydpy.core.sequencetools.FastAccessModelSequence"><code class="xref py py-class docutils literal notranslate"><span class="pre">FastAccessModelSequence</span></code></a>.</p></li>
+<li><p><a class="reference internal" href="#hydpy.core.typingtools.FastAccessLinkSequenceProtocol" title="hydpy.core.typingtools.FastAccessLinkSequenceProtocol"><code class="xref py py-class docutils literal notranslate"><span class="pre">FastAccessLinkSequenceProtocol</span></code></a> The protocol of Cython extension classes for replacing the Python surrogate class <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.FastAccessModelSequence" title="hydpy.core.sequencetools.FastAccessModelSequence"><code class="xref py py-class docutils literal notranslate"><span class="pre">FastAccessModelSequence</span></code></a> when working with <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.LinkSequence" title="hydpy.core.sequencetools.LinkSequence"><code class="xref py py-class docutils literal notranslate"><span class="pre">LinkSequence</span></code></a> subclasses.</p></li>
+</ul>
+</div></blockquote>
+<hr class="docutils" />
+<dl class="class">
+<dt id="hydpy.core.typingtools.IterableNonString">
+<em class="property">class </em><code class="sig-prename descclassname">hydpy.core.typingtools.</code><code class="sig-name descname">IterableNonString</code><a class="reference internal" href="_modules/hydpy/core/typingtools.html#IterableNonString"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hydpy.core.typingtools.IterableNonString" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/abc.html#abc.ABC" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">abc.ABC</span></code></a></p>
+<p>Abstract base class for checking if an object is iterable but not a
+string.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy.core.typingtools</span> <span class="k">import</span> <span class="n">IterableNonString</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">isinstance</span><span class="p">(</span><span class="s1">&#39;asdf&#39;</span><span class="p">,</span> <span class="n">IterableNonString</span><span class="p">)</span>
+<span class="go">False</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">isinstance</span><span class="p">([</span><span class="s1">&#39;asdf&#39;</span><span class="p">],</span> <span class="n">IterableNonString</span><span class="p">)</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">issubclass</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">IterableNonString</span><span class="p">)</span>
+<span class="go">False</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">issubclass</span><span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="n">IterableNonString</span><span class="p">)</span>
+<span class="go">True</span>
+<span class="go">&gt;&gt;&gt;</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="class">
+<dt id="hydpy.core.typingtools.DevicesHandlerProtocol">
+<em class="property">class </em><code class="sig-prename descclassname">hydpy.core.typingtools.</code><code class="sig-name descname">DevicesHandlerProtocol</code><span class="sig-paren">(</span><em class="sig-param">*args</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/core/typingtools.html#DevicesHandlerProtocol"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hydpy.core.typingtools.DevicesHandlerProtocol" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">typing_extensions.Protocol</span></code></p>
+<p>Without concrete implementation.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="hydpy.core.typingtools.VariableProtocol">
+<em class="property">class </em><code class="sig-prename descclassname">hydpy.core.typingtools.</code><code class="sig-name descname">VariableProtocol</code><span class="sig-paren">(</span><em class="sig-param">*args</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/core/typingtools.html#VariableProtocol"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hydpy.core.typingtools.VariableProtocol" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">typing_extensions.Protocol</span></code></p>
+<p>Protocol to identify objects as “variables”.</p>
+<dl class="method">
+<dt id="hydpy.core.typingtools.VariableProtocol.name">
+<em class="property">property </em><code class="sig-name descname">name</code><a class="headerlink" href="#hydpy.core.typingtools.VariableProtocol.name" title="Permalink to this definition">¶</a></dt>
+<dd><p>The name of the actual variable object.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="hydpy.core.typingtools.CyModelProtocol">
+<em class="property">class </em><code class="sig-prename descclassname">hydpy.core.typingtools.</code><code class="sig-name descname">CyModelProtocol</code><span class="sig-paren">(</span><em class="sig-param">*args</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/core/typingtools.html#CyModelProtocol"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hydpy.core.typingtools.CyModelProtocol" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">typing_extensions.Protocol</span></code></p>
+<p>The protocol of Cython extension classes for defining
+efficient model implementations.</p>
+<p>Class <a class="reference internal" href="modelutils.html#hydpy.cythons.modelutils.Cythonizer" title="hydpy.cythons.modelutils.Cythonizer"><code class="xref py py-class docutils literal notranslate"><span class="pre">Cythonizer</span></code></a> generates the actual, model specific
+implementations automatically.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="hydpy.core.typingtools.FastAccessModelSequenceProtocol">
+<em class="property">class </em><code class="sig-prename descclassname">hydpy.core.typingtools.</code><code class="sig-name descname">FastAccessModelSequenceProtocol</code><span class="sig-paren">(</span><em class="sig-param">*args</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/core/typingtools.html#FastAccessModelSequenceProtocol"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hydpy.core.typingtools.FastAccessModelSequenceProtocol" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">typing_extensions.Protocol</span></code></p>
+<p>The protocol of Cython extension classes for replacing
+the Python surrogate class <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.FastAccessModelSequence" title="hydpy.core.sequencetools.FastAccessModelSequence"><code class="xref py py-class docutils literal notranslate"><span class="pre">FastAccessModelSequence</span></code></a>.</p>
+<p>Class <a class="reference internal" href="modelutils.html#hydpy.cythons.modelutils.Cythonizer" title="hydpy.cythons.modelutils.Cythonizer"><code class="xref py py-class docutils literal notranslate"><span class="pre">Cythonizer</span></code></a> generates the actual, model specific
+implementations automatically.</p>
+<dl class="method">
+<dt id="hydpy.core.typingtools.FastAccessModelSequenceProtocol.open_files">
+<code class="sig-name descname">open_files</code><span class="sig-paren">(</span><em class="sig-param">idx: int</em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="_modules/hydpy/core/typingtools.html#FastAccessModelSequenceProtocol.open_files"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hydpy.core.typingtools.FastAccessModelSequenceProtocol.open_files" title="Permalink to this definition">¶</a></dt>
+<dd><p>Open the internal data files of all handled sequences with
+an activated <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.IOSequence.diskflag" title="hydpy.core.sequencetools.IOSequence.diskflag"><code class="xref py py-const docutils literal notranslate"><span class="pre">diskflag</span></code></a> and seek the position
+indicated by the given index.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="hydpy.core.typingtools.FastAccessModelSequenceProtocol.close_files">
+<code class="sig-name descname">close_files</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="_modules/hydpy/core/typingtools.html#FastAccessModelSequenceProtocol.close_files"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hydpy.core.typingtools.FastAccessModelSequenceProtocol.close_files" title="Permalink to this definition">¶</a></dt>
+<dd><p>Close the internal data files of all handled sequences with
+an activated <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.IOSequence.diskflag" title="hydpy.core.sequencetools.IOSequence.diskflag"><code class="xref py py-const docutils literal notranslate"><span class="pre">diskflag</span></code></a>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="hydpy.core.typingtools.FastAccessModelSequenceProtocol.load_data">
+<code class="sig-name descname">load_data</code><span class="sig-paren">(</span><em class="sig-param">idx: int</em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="_modules/hydpy/core/typingtools.html#FastAccessModelSequenceProtocol.load_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hydpy.core.typingtools.FastAccessModelSequenceProtocol.load_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Let all handled sequences with an activated <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.IOSequence.memoryflag" title="hydpy.core.sequencetools.IOSequence.memoryflag"><code class="xref py py-const docutils literal notranslate"><span class="pre">memoryflag</span></code></a>
+load the data corresponding to the given index either from RAM
+(with <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.IOSequence.ramflag" title="hydpy.core.sequencetools.IOSequence.ramflag"><code class="xref py py-const docutils literal notranslate"><span class="pre">ramflag</span></code></a> being <code class="xref py py-const docutils literal notranslate"><span class="pre">True</span></code>) or from disk (with
+<a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.IOSequence.diskflag" title="hydpy.core.sequencetools.IOSequence.diskflag"><code class="xref py py-const docutils literal notranslate"><span class="pre">diskflag</span></code></a> being <code class="xref py py-const docutils literal notranslate"><span class="pre">True</span></code>).</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="hydpy.core.typingtools.FastAccessModelSequenceProtocol.save_data">
+<code class="sig-name descname">save_data</code><span class="sig-paren">(</span><em class="sig-param">idx: int</em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="_modules/hydpy/core/typingtools.html#FastAccessModelSequenceProtocol.save_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hydpy.core.typingtools.FastAccessModelSequenceProtocol.save_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Let all handled sequences with an activated <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.IOSequence.memoryflag" title="hydpy.core.sequencetools.IOSequence.memoryflag"><code class="xref py py-const docutils literal notranslate"><span class="pre">memoryflag</span></code></a>
+save their actual data either to RAM (with <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.IOSequence.ramflag" title="hydpy.core.sequencetools.IOSequence.ramflag"><code class="xref py py-const docutils literal notranslate"><span class="pre">ramflag</span></code></a> being
+<code class="xref py py-const docutils literal notranslate"><span class="pre">True</span></code>) or to disk (with <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.IOSequence.diskflag" title="hydpy.core.sequencetools.IOSequence.diskflag"><code class="xref py py-const docutils literal notranslate"><span class="pre">diskflag</span></code></a>).</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="hydpy.core.typingtools.FastAccessLinkSequenceProtocol">
+<em class="property">class </em><code class="sig-prename descclassname">hydpy.core.typingtools.</code><code class="sig-name descname">FastAccessLinkSequenceProtocol</code><span class="sig-paren">(</span><em class="sig-param">*args</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/core/typingtools.html#FastAccessLinkSequenceProtocol"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hydpy.core.typingtools.FastAccessLinkSequenceProtocol" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#hydpy.core.typingtools.FastAccessModelSequenceProtocol" title="hydpy.core.typingtools.FastAccessModelSequenceProtocol"><code class="xref py py-class docutils literal notranslate"><span class="pre">hydpy.core.typingtools.FastAccessModelSequenceProtocol</span></code></a></p>
+<p>The protocol of Cython extension classes for replacing
+the Python surrogate class <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.FastAccessModelSequence" title="hydpy.core.sequencetools.FastAccessModelSequence"><code class="xref py py-class docutils literal notranslate"><span class="pre">FastAccessModelSequence</span></code></a> when
+working with <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.LinkSequence" title="hydpy.core.sequencetools.LinkSequence"><code class="xref py py-class docutils literal notranslate"><span class="pre">LinkSequence</span></code></a> subclasses.</p>
+<p>Class <a class="reference internal" href="modelutils.html#hydpy.cythons.modelutils.Cythonizer" title="hydpy.cythons.modelutils.Cythonizer"><code class="xref py py-class docutils literal notranslate"><span class="pre">Cythonizer</span></code></a> generates the actual, model specific
+implementations automatically.</p>
+<dl class="method">
+<dt id="hydpy.core.typingtools.FastAccessLinkSequenceProtocol.alloc">
+<code class="sig-name descname">alloc</code><span class="sig-paren">(</span><em class="sig-param">name: str</em>, <em class="sig-param">length: int</em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="_modules/hydpy/core/typingtools.html#FastAccessLinkSequenceProtocol.alloc"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hydpy.core.typingtools.FastAccessLinkSequenceProtocol.alloc" title="Permalink to this definition">¶</a></dt>
+<dd><p>Allocate enough memory for the given vector length for the
+<a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.LinkSequence" title="hydpy.core.sequencetools.LinkSequence"><code class="xref py py-class docutils literal notranslate"><span class="pre">LinkSequence</span></code></a> with the given name.</p>
+<p><a class="reference internal" href="#hydpy.core.typingtools.FastAccessLinkSequenceProtocol.alloc" title="hydpy.core.typingtools.FastAccessLinkSequenceProtocol.alloc"><code class="xref py py-func docutils literal notranslate"><span class="pre">alloc()</span></code></a> has be implemented in case
+of the existence of 1-dimensional <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.LinkSequence" title="hydpy.core.sequencetools.LinkSequence"><code class="xref py py-class docutils literal notranslate"><span class="pre">LinkSequence</span></code></a> subclasses only.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="hydpy.core.typingtools.FastAccessLinkSequenceProtocol.dealloc">
+<code class="sig-name descname">dealloc</code><span class="sig-paren">(</span><em class="sig-param">name: str</em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="_modules/hydpy/core/typingtools.html#FastAccessLinkSequenceProtocol.dealloc"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hydpy.core.typingtools.FastAccessLinkSequenceProtocol.dealloc" title="Permalink to this definition">¶</a></dt>
+<dd><p>Free the previously allocated memory of the <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.LinkSequence" title="hydpy.core.sequencetools.LinkSequence"><code class="xref py py-class docutils literal notranslate"><span class="pre">LinkSequence</span></code></a> with
+the given name.</p>
+<p><a class="reference internal" href="#hydpy.core.typingtools.FastAccessLinkSequenceProtocol.alloc" title="hydpy.core.typingtools.FastAccessLinkSequenceProtocol.alloc"><code class="xref py py-func docutils literal notranslate"><span class="pre">alloc()</span></code></a> has be implemented in case
+of the existence of 1-dimensional <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.LinkSequence" title="hydpy.core.sequencetools.LinkSequence"><code class="xref py py-class docutils literal notranslate"><span class="pre">LinkSequence</span></code></a> subclasses only.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="hydpy.core.typingtools.FastAccessLinkSequenceProtocol.set_pointer0d">
+<code class="sig-name descname">set_pointer0d</code><span class="sig-paren">(</span><em class="sig-param">name: str</em>, <em class="sig-param">value: pointerutils.PDouble</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/core/typingtools.html#FastAccessLinkSequenceProtocol.set_pointer0d"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hydpy.core.typingtools.FastAccessLinkSequenceProtocol.set_pointer0d" title="Permalink to this definition">¶</a></dt>
+<dd><p>Use the given <code class="xref py py-class docutils literal notranslate"><span class="pre">PDouble</span></code> object as the pointer of the
+0-dimensional <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.LinkSequence" title="hydpy.core.sequencetools.LinkSequence"><code class="xref py py-class docutils literal notranslate"><span class="pre">LinkSequence</span></code></a> object with the given name.</p>
+<p><a class="reference internal" href="#hydpy.core.typingtools.FastAccessLinkSequenceProtocol.alloc" title="hydpy.core.typingtools.FastAccessLinkSequenceProtocol.alloc"><code class="xref py py-func docutils literal notranslate"><span class="pre">alloc()</span></code></a> has be implemented in case
+of the existence of 0-dimensional <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.LinkSequence" title="hydpy.core.sequencetools.LinkSequence"><code class="xref py py-class docutils literal notranslate"><span class="pre">LinkSequence</span></code></a> subclasses only.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="hydpy.core.typingtools.FastAccessLinkSequenceProtocol.set_pointer1d">
+<code class="sig-name descname">set_pointer1d</code><span class="sig-paren">(</span><em class="sig-param">name: str</em>, <em class="sig-param">value: pointerutils.PDouble</em>, <em class="sig-param">idx: int</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/core/typingtools.html#FastAccessLinkSequenceProtocol.set_pointer1d"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hydpy.core.typingtools.FastAccessLinkSequenceProtocol.set_pointer1d" title="Permalink to this definition">¶</a></dt>
+<dd><p>Use the given <code class="xref py py-class docutils literal notranslate"><span class="pre">PDouble</span></code> object as one of the pointers of the
+1-dimensional <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.LinkSequence" title="hydpy.core.sequencetools.LinkSequence"><code class="xref py py-class docutils literal notranslate"><span class="pre">LinkSequence</span></code></a> object with the given name.</p>
+<p>The given index defines the vector position of the pointer.</p>
+<p><a class="reference internal" href="#hydpy.core.typingtools.FastAccessLinkSequenceProtocol.alloc" title="hydpy.core.typingtools.FastAccessLinkSequenceProtocol.alloc"><code class="xref py py-func docutils literal notranslate"><span class="pre">alloc()</span></code></a> has be implemented in case
+of the existence of 1-dimensional <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.LinkSequence" title="hydpy.core.sequencetools.LinkSequence"><code class="xref py py-class docutils literal notranslate"><span class="pre">LinkSequence</span></code></a> subclasses only.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="hydpy.core.typingtools.FastAccessLinkSequenceProtocol.get_value">
+<code class="sig-name descname">get_value</code><span class="sig-paren">(</span><em class="sig-param">name: str</em><span class="sig-paren">)</span> &#x2192; Union[float, numpy.ndarray]<a class="reference internal" href="_modules/hydpy/core/typingtools.html#FastAccessLinkSequenceProtocol.get_value"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hydpy.core.typingtools.FastAccessLinkSequenceProtocol.get_value" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the actual value(s) the <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.LinkSequence" title="hydpy.core.sequencetools.LinkSequence"><code class="xref py py-class docutils literal notranslate"><span class="pre">LinkSequence</span></code></a> object with
+the given name is pointing to.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="hydpy.core.typingtools.FastAccessLinkSequenceProtocol.set_value">
+<code class="sig-name descname">set_value</code><span class="sig-paren">(</span><em class="sig-param">name: str, value: Union[float, Iterable[float]]</em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="_modules/hydpy/core/typingtools.html#FastAccessLinkSequenceProtocol.set_value"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hydpy.core.typingtools.FastAccessLinkSequenceProtocol.set_value" title="Permalink to this definition">¶</a></dt>
+<dd><p>Change the actual value(s) the <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.LinkSequence" title="hydpy.core.sequencetools.LinkSequence"><code class="xref py py-class docutils literal notranslate"><span class="pre">LinkSequence</span></code></a> object with
+the given name is pointing to.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/HydPy_Logo.png" alt="Logo"/>
+            </a></p>
+  <h3><a href="index.html">Table of Contents</a></h3>
+  <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="install.html">Installation Instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quick Start</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="framework.html">Framework Tools</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="core.html">Core Tools</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="autodoctools.html">autodoctools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="auxfiletools.html">auxfiletools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="devicetools.html">devicetools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="dummytools.html">dummytools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="exceptiontools.html">exceptiontools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="filetools.html">filetools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="hydpytools.html">hydpytools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="importtools.html">importtools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="indextools.html">indextools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="itemtools.html">itemtools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="masktools.html">masktools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="modeltools.html">modeltools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="netcdftools.html">netcdftools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="objecttools.html">objecttools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="optiontools.html">optiontools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="parametertools.html">parametertools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="printtools.html">printtools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="propertytools.html">propertytools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="pubtools.html">pubtools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="selectiontools.html">selectiontools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="sequencetools.html">sequencetools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="testtools.html">testtools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="timetools.html">timetools</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">typingtools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="variabletools.html">variabletools</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="execution.html">Execution Tools</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cythons.html">Cython Tools</a></li>
+<li class="toctree-l2"><a class="reference internal" href="auxiliaries.html">Auxiliary Tools</a></li>
+<li class="toctree-l2"><a class="reference internal" href="configuration.html">Configuration Tools</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="modelcollection.html">Model Collection</a></li>
+<li class="toctree-l1"><a class="reference internal" href="development.html">Development</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples.html">Example Projects</a></li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="timetools.html"
+                        title="previous chapter">timetools</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="variabletools.html"
+                        title="next chapter">variabletools</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/typingtools.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="variabletools.html" title="variabletools"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="timetools.html" title="timetools"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">HydPy 4.0a11 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="framework.html" >Framework Tools</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="core.html" >Core Tools</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2019, HydPy Developers.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.2.1.
+    </div>
+  </body>
+</html>

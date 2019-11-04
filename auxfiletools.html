@@ -1,0 +1,576 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>auxfiletools &#8212; HydPy 4.0a11 documentation</title>
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="_static/graphviz.css" />
+    
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="_static/language_data.js"></script>
+    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="devicetools" href="devicetools.html" />
+    <link rel="prev" title="autodoctools" href="autodoctools.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="devicetools.html" title="devicetools"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="autodoctools.html" title="autodoctools"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">HydPy 4.0a11 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="framework.html" >Framework Tools</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="core.html" accesskey="U">Core Tools</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="auxfiletools">
+<span id="id1"></span><h1>auxfiletools<a class="headerlink" href="#auxfiletools" title="Permalink to this headline">¶</a></h1>
+<span class="target" id="module-hydpy.core.auxfiletools"></span><p>This module supports writing auxiliary files.</p>
+<p>In HydPy, parameter values are usually not shared between different
+model objects handled by different elements, even if the model objects
+model objects handled by different elements, even if the model objects
+are of the same type (e.g. HBV).  This offers flexibility in applying
+different parameterization schemes.  But very often, modellers prefer
+to use a very limited amount of values for certain parameters (at least
+within hydrologically homogeneous regions).  Hence, the downside of
+this flexibility is that the same parameter values might be defined in
+hundreds or even thousands of parameter control files (one file for
+hundreds or even thousands of parameter control files (one file for
+each model/element).</p>
+<p>To decrease this redundancy, HydPy allows for passing names of
+<cite>auxiliary</cite> control files to parameters defined within <cite>normal</cite>
+control files.  The actual parameter values are than read from the
+auxiliary files, each one possibly referenced within a large number
+of control files.</p>
+<p>Reading parameters from <cite>normal</cite> and <cite>auxiliary</cite> control files is
+straightforward.   But storing some parameters in a large number
+of <cite>normal</cite> control files and some other parameters in a small number
+of <cite>auxiliary</cite> files can be a little complicated.  The features
+implemented in <a class="reference internal" href="#module-hydpy.core.auxfiletools" title="hydpy.core.auxfiletools"><code class="xref py py-mod docutils literal notranslate"><span class="pre">auxfiletools</span></code></a> are a means to perform such actions in a
+semi-automated manner (another means are the selection mechanism
+implemented in module <a class="reference internal" href="selectiontools.html#module-hydpy.core.selectiontools" title="hydpy.core.selectiontools"><code class="xref py py-mod docutils literal notranslate"><span class="pre">selectiontools</span></code></a>).</p>
+<p>Module <a class="reference internal" href="#module-hydpy.core.auxfiletools" title="hydpy.core.auxfiletools"><code class="xref py py-mod docutils literal notranslate"><span class="pre">auxfiletools</span></code></a> implements the following members:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><a class="reference internal" href="#hydpy.core.auxfiletools.Auxfiler" title="hydpy.core.auxfiletools.Auxfiler"><code class="xref py py-class docutils literal notranslate"><span class="pre">Auxfiler</span></code></a> Structures auxiliary file information.</p></li>
+<li><p><a class="reference internal" href="#hydpy.core.auxfiletools.Variable2Auxfile" title="hydpy.core.auxfiletools.Variable2Auxfile"><code class="xref py py-class docutils literal notranslate"><span class="pre">Variable2Auxfile</span></code></a> Map <a class="reference internal" href="variabletools.html#hydpy.core.variabletools.Variable" title="hydpy.core.variabletools.Variable"><code class="xref py py-class docutils literal notranslate"><span class="pre">Variable</span></code></a> objects to names of auxiliary files.</p></li>
+</ul>
+</div></blockquote>
+<hr class="docutils" />
+<dl class="class">
+<dt id="hydpy.core.auxfiletools.Auxfiler">
+<em class="property">class </em><code class="sig-prename descclassname">hydpy.core.auxfiletools.</code><code class="sig-name descname">Auxfiler</code><a class="reference internal" href="_modules/hydpy/core/auxfiletools.html#Auxfiler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hydpy.core.auxfiletools.Auxfiler" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Structures auxiliary file information.</p>
+<p>To save some parameter information to auxiliary files, it is advisable
+to prepare (only) one <a class="reference internal" href="#hydpy.core.auxfiletools.Auxfiler" title="hydpy.core.auxfiletools.Auxfiler"><code class="xref py py-class docutils literal notranslate"><span class="pre">Auxfiler</span></code></a> object:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy</span> <span class="k">import</span> <span class="n">Auxfiler</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">aux</span> <span class="o">=</span> <span class="n">Auxfiler</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>Each <a class="reference internal" href="#hydpy.core.auxfiletools.Auxfiler" title="hydpy.core.auxfiletools.Auxfiler"><code class="xref py py-class docutils literal notranslate"><span class="pre">Auxfiler</span></code></a> object is capable of handling parameter
+information for different kinds of models and performs some plausibility
+checks on added data.  Assume, we want to store the control files of
+a “LARSIM type” HydPy project involving the application models <a class="reference internal" href="lland_v1.html#module-hydpy.models.lland_v1" title="hydpy.models.lland_v1"><code class="xref py py-mod docutils literal notranslate"><span class="pre">lland_v1</span></code></a>,
+<a class="reference internal" href="lland_v2.html#module-hydpy.models.lland_v2" title="hydpy.models.lland_v2"><code class="xref py py-mod docutils literal notranslate"><span class="pre">lland_v2</span></code></a> and <a class="reference internal" href="lstream_v1.html#module-hydpy.models.lstream_v1" title="hydpy.models.lstream_v1"><code class="xref py py-mod docutils literal notranslate"><span class="pre">lstream_v1</span></code></a>.  The following example shows, that these
+models can be added to the <a class="reference internal" href="#hydpy.core.auxfiletools.Auxfiler" title="hydpy.core.auxfiletools.Auxfiler"><code class="xref py py-class docutils literal notranslate"><span class="pre">Auxfiler</span></code></a> object by passing their module
+(<a class="reference internal" href="lland_v1.html#module-hydpy.models.lland_v1" title="hydpy.models.lland_v1"><code class="xref py py-mod docutils literal notranslate"><span class="pre">lland_v1</span></code></a>), a working model object (<a class="reference internal" href="lland_v2.html#module-hydpy.models.lland_v2" title="hydpy.models.lland_v2"><code class="xref py py-mod docutils literal notranslate"><span class="pre">lland_v2</span></code></a>) or their name
+(<a class="reference internal" href="lstream_v1.html#module-hydpy.models.lstream_v1" title="hydpy.models.lstream_v1"><code class="xref py py-mod docutils literal notranslate"><span class="pre">lstream_v1</span></code></a>):</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy</span> <span class="k">import</span> <span class="n">prepare_model</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy.models</span> <span class="k">import</span> <span class="n">lland_v1</span> <span class="k">as</span> <span class="n">module</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy.models</span> <span class="k">import</span> <span class="n">lland_v2</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">prepare_model</span><span class="p">(</span><span class="n">lland_v2</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">string</span> <span class="o">=</span> <span class="s1">&#39;lstream_v1&#39;</span>
+</pre></div>
+</div>
+<p>All new model types can be added individually or in groups using the
+<cite>+=</cite> operator:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">aux</span> <span class="o">+=</span> <span class="n">module</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">aux</span> <span class="o">+=</span> <span class="n">model</span><span class="p">,</span> <span class="n">string</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">aux</span>
+<span class="go">Auxfiler(lland_v1, lland_v2, lstream_v1)</span>
+</pre></div>
+</div>
+<p>Wrong model specifications result in errors like the following one:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">aux</span> <span class="o">+=</span> <span class="s1">&#39;asdf&#39;</span>   <span class="c1"># doc test: +SKIP</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">ModuleNotFoundError</span>: <span class="n">While trying to add one ore more models to the actual auxiliary file handler, the following error occurred: No module named &#39;hydpy.models.asdf&#39;</span>
+</pre></div>
+</div>
+<p>The <a class="reference internal" href="#hydpy.core.auxfiletools.Auxfiler" title="hydpy.core.auxfiletools.Auxfiler"><code class="xref py py-class docutils literal notranslate"><span class="pre">Auxfiler</span></code></a> object allocates a separate <a class="reference internal" href="#hydpy.core.auxfiletools.Variable2Auxfile" title="hydpy.core.auxfiletools.Variable2Auxfile"><code class="xref py py-class docutils literal notranslate"><span class="pre">Variable2Auxfile</span></code></a> object to
+each model type.  These are available via attribute reading access, but
+setting new or deleting existing <a class="reference internal" href="#hydpy.core.auxfiletools.Variable2Auxfile" title="hydpy.core.auxfiletools.Variable2Auxfile"><code class="xref py py-class docutils literal notranslate"><span class="pre">Variable2Auxfile</span></code></a> objects is disabled
+for safety purposes:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">aux</span><span class="o">.</span><span class="n">lland_v1</span>
+<span class="go">Variable2Auxfile()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">aux</span><span class="o">.</span><span class="n">lland_v2</span> <span class="o">=</span> <span class="n">aux</span><span class="o">.</span><span class="n">lland_v1</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">AttributeError</span>: <span class="n">Auxiliary file handler do not support setting attributes.  Use the `+=` operator to register additional models instead.</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">del</span> <span class="n">aux</span><span class="o">.</span><span class="n">lland_v1</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">AttributeError</span>: <span class="n">Auxiliary file handler do not support deleting attributes.  Use the `-=` operator to remove registered models instead.</span>
+</pre></div>
+</div>
+<p>As stated by the last error message, removing models and their
+<a class="reference internal" href="#hydpy.core.auxfiletools.Variable2Auxfile" title="hydpy.core.auxfiletools.Variable2Auxfile"><code class="xref py py-class docutils literal notranslate"><span class="pre">Variable2Auxfile</span></code></a> object should be done via the <cite>-=</cite> operator:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">aux</span> <span class="o">-=</span> <span class="n">module</span><span class="p">,</span> <span class="n">string</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">aux</span>
+<span class="go">Auxfiler(lland_v2)</span>
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">aux</span> <span class="o">-=</span> <span class="n">module</span><span class="p">,</span> <span class="n">string</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">AttributeError</span>: <span class="n">While trying to remove one or more models from the actual auxiliary file handler, the following error occurred: The handler does not contain model `lland_v1`.</span>
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">aux</span><span class="o">.</span><span class="n">lland_v1</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">AttributeError</span>: <span class="n">The actual auxiliary file handler does neither have a standard member nor does it handle a model named `lland_v1`.</span>
+</pre></div>
+</div>
+<p>The handling of the individual <a class="reference internal" href="#hydpy.core.auxfiletools.Variable2Auxfile" title="hydpy.core.auxfiletools.Variable2Auxfile"><code class="xref py py-class docutils literal notranslate"><span class="pre">Variable2Auxfile</span></code></a> objects is
+explained below.  But there are some additional plausibility checks,
+which require that these objects are contained by a single master
+<a class="reference internal" href="#hydpy.core.auxfiletools.Auxfiler" title="hydpy.core.auxfiletools.Auxfiler"><code class="xref py py-class docutils literal notranslate"><span class="pre">Auxfiler</span></code></a> object.  For demonstration, the removed models are added again:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">aux</span> <span class="o">+=</span> <span class="n">module</span><span class="p">,</span> <span class="n">string</span>
+</pre></div>
+</div>
+<p>The first plausibility check is for duplicate filenames:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">control</span><span class="o">.</span><span class="n">eqd1</span><span class="p">(</span><span class="mf">200.0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">aux</span><span class="o">.</span><span class="n">lland_v1</span><span class="o">.</span><span class="n">file1</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">control</span><span class="o">.</span><span class="n">eqd1</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">control</span><span class="o">.</span><span class="n">eqd2</span><span class="p">(</span><span class="mf">100.0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">aux</span><span class="o">.</span><span class="n">lland_v2</span><span class="o">.</span><span class="n">file1</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">control</span><span class="o">.</span><span class="n">eqd2</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">ValueError</span>: <span class="n">While trying to extend the range of variables handled by the actual Variable2AuxFile object, the following error occurred: Filename `file1` is already allocated to another `Variable2Auxfile` object.</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">aux</span><span class="o">.</span><span class="n">lland_v2</span><span class="o">.</span><span class="n">file2</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">control</span><span class="o">.</span><span class="n">eqd2</span>
+</pre></div>
+</div>
+<p>Secondly, it is checked if an assigned parameter actually belongs
+to the corresponding model:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">aux</span><span class="o">.</span><span class="n">lstream_v1</span><span class="o">.</span><span class="n">file3</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">control</span><span class="o">.</span><span class="n">eqd1</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">TypeError</span>: <span class="n">While trying to extend the range of variables handled by the actual Variable2AuxFile object, the following error occurred: Variable type `EQD1` is not handled by model `lstream_v1`.</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">aux</span><span class="o">.</span><span class="n">lland_v2</span><span class="o">.</span><span class="n">file2</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">control</span><span class="o">.</span><span class="n">eqd1</span>
+</pre></div>
+</div>
+<p>The <a class="reference internal" href="#hydpy.core.auxfiletools.Auxfiler" title="hydpy.core.auxfiletools.Auxfiler"><code class="xref py py-class docutils literal notranslate"><span class="pre">Auxfiler</span></code></a> object defined above is also used in the documentation
+of the following class members.  Hence it is stored in the <a class="reference internal" href="dummytools.html#hydpy.core.dummytools.Dummies" title="hydpy.core.dummytools.Dummies"><code class="xref py py-class docutils literal notranslate"><span class="pre">Dummies</span></code></a>
+object:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy</span> <span class="k">import</span> <span class="n">dummies</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dummies</span><span class="o">.</span><span class="n">aux</span> <span class="o">=</span> <span class="n">aux</span>
+</pre></div>
+</div>
+<dl class="method">
+<dt id="hydpy.core.auxfiletools.Auxfiler.modelnames">
+<em class="property">property </em><code class="sig-name descname">modelnames</code><a class="headerlink" href="#hydpy.core.auxfiletools.Auxfiler.modelnames" title="Permalink to this definition">¶</a></dt>
+<dd><p>A sorted list of all names of the handled models.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy</span> <span class="k">import</span> <span class="n">dummies</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dummies</span><span class="o">.</span><span class="n">aux</span><span class="o">.</span><span class="n">modelnames</span>
+<span class="go">[&#39;lland_v1&#39;, &#39;lland_v2&#39;, &#39;lstream_v1&#39;]</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="hydpy.core.auxfiletools.Auxfiler.save">
+<code class="sig-name descname">save</code><span class="sig-paren">(</span><em class="sig-param">parameterstep=None</em>, <em class="sig-param">simulationstep=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/core/auxfiletools.html#Auxfiler.save"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hydpy.core.auxfiletools.Auxfiler.save" title="Permalink to this definition">¶</a></dt>
+<dd><p>Save all defined auxiliary control files.</p>
+<p>The target path is taken from the <a class="reference internal" href="filetools.html#hydpy.core.filetools.ControlManager" title="hydpy.core.filetools.ControlManager"><code class="xref py py-class docutils literal notranslate"><span class="pre">ControlManager</span></code></a> object stored
+in module <code class="xref py py-mod docutils literal notranslate"><span class="pre">pub</span></code>.  Hence we initialize one and override its
+<a class="reference external" href="https://docs.python.org/3/library/functions.html#property" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">property</span></code></a> <cite>currentpath</cite> with a simple <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a> object defining the
+test target path:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy</span> <span class="k">import</span> <span class="n">pub</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pub</span><span class="o">.</span><span class="n">projectname</span> <span class="o">=</span> <span class="s1">&#39;test&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy.core.filetools</span> <span class="k">import</span> <span class="n">ControlManager</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">class</span> <span class="nc">Test</span><span class="p">(</span><span class="n">ControlManager</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="n">currentpath</span> <span class="o">=</span> <span class="s1">&#39;test_directory&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pub</span><span class="o">.</span><span class="n">controlmanager</span> <span class="o">=</span> <span class="n">Test</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>Normally, the control files would be written to disk, of course.
+But to show (and test) the results in the following doctest,
+file writing is temporarily redirected via <a class="reference internal" href="testtools.html#hydpy.core.testtools.Open" title="hydpy.core.testtools.Open"><code class="xref py py-class docutils literal notranslate"><span class="pre">Open</span></code></a>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy</span> <span class="k">import</span> <span class="n">dummies</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy</span> <span class="k">import</span> <span class="n">Open</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">Open</span><span class="p">():</span>
+<span class="gp">... </span>    <span class="n">dummies</span><span class="o">.</span><span class="n">aux</span><span class="o">.</span><span class="n">save</span><span class="p">(</span>
+<span class="gp">... </span>        <span class="n">parameterstep</span><span class="o">=</span><span class="s1">&#39;1d&#39;</span><span class="p">,</span>
+<span class="gp">... </span>        <span class="n">simulationstep</span><span class="o">=</span><span class="s1">&#39;12h&#39;</span><span class="p">)</span>
+<span class="go">~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~</span>
+<span class="go">test_directory/file1.py</span>
+<span class="go">-----------------------------------</span>
+<span class="go"># -*- coding: utf-8 -*-</span>
+
+<span class="go">from hydpy.models.lland_v1 import *</span>
+
+<span class="go">simulationstep(&#39;12h&#39;)</span>
+<span class="go">parameterstep(&#39;1d&#39;)</span>
+
+<span class="go">eqd1(200.0)</span>
+
+<span class="go">~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~</span>
+<span class="go">~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~</span>
+<span class="go">test_directory/file2.py</span>
+<span class="go">-----------------------------------</span>
+<span class="go"># -*- coding: utf-8 -*-</span>
+
+<span class="go">from hydpy.models.lland_v2 import *</span>
+
+<span class="go">simulationstep(&#39;12h&#39;)</span>
+<span class="go">parameterstep(&#39;1d&#39;)</span>
+
+<span class="go">eqd1(200.0)</span>
+<span class="go">eqd2(100.0)</span>
+
+<span class="go">~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="hydpy.core.auxfiletools.Variable2Auxfile">
+<em class="property">class </em><code class="sig-prename descclassname">hydpy.core.auxfiletools.</code><code class="sig-name descname">Variable2Auxfile</code><span class="sig-paren">(</span><em class="sig-param">_master=None</em>, <em class="sig-param">_model=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/core/auxfiletools.html#Variable2Auxfile"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hydpy.core.auxfiletools.Variable2Auxfile" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Map <a class="reference internal" href="variabletools.html#hydpy.core.variabletools.Variable" title="hydpy.core.variabletools.Variable"><code class="xref py py-class docutils literal notranslate"><span class="pre">Variable</span></code></a> objects to names of auxiliary files.</p>
+<p>Normally, <a class="reference internal" href="#hydpy.core.auxfiletools.Variable2Auxfile" title="hydpy.core.auxfiletools.Variable2Auxfile"><code class="xref py py-class docutils literal notranslate"><span class="pre">Variable2Auxfile</span></code></a> object are not initialised by the
+user explicitly but made available by a <cite>master</cite> <a class="reference internal" href="#hydpy.core.auxfiletools.Auxfiler" title="hydpy.core.auxfiletools.Auxfiler"><code class="xref py py-class docutils literal notranslate"><span class="pre">Auxfiler</span></code></a> object.</p>
+<p>To show how <a class="reference internal" href="#hydpy.core.auxfiletools.Variable2Auxfile" title="hydpy.core.auxfiletools.Variable2Auxfile"><code class="xref py py-class docutils literal notranslate"><span class="pre">Variable2Auxfile</span></code></a> works, we firstly initialise a
+HydPy-L-Land (version 1) model:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy</span> <span class="k">import</span> <span class="n">pub</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pub</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">usedefaultvalues</span> <span class="o">=</span> <span class="kc">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy.models.lland_v1</span> <span class="k">import</span> <span class="o">*</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">simulationstep</span><span class="p">(</span><span class="s1">&#39;1d&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">parameterstep</span><span class="p">(</span><span class="s1">&#39;1d&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Note that we made use of the <cite>usedefaultvalues</cite> option.
+Hence, all parameters used in the following examples have
+some predefined values, e.g.:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">eqb</span>
+<span class="go">eqb(5000.0)</span>
+</pre></div>
+</div>
+<p>Next, we initialize a <a class="reference internal" href="#hydpy.core.auxfiletools.Variable2Auxfile" title="hydpy.core.auxfiletools.Variable2Auxfile"><code class="xref py py-class docutils literal notranslate"><span class="pre">Variable2Auxfile</span></code></a> object, which is supposed
+to allocate some calibration parameters related to runoff
+concentration to two axiliary files named <cite>file1</cite> and <cite>file2</cite>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy.core.auxfiletools</span> <span class="k">import</span> <span class="n">Variable2Auxfile</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">v2af</span> <span class="o">=</span> <span class="n">Variable2Auxfile</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>Auxiliary file <cite>file1</cite> shall contain the actual values of parameters
+<cite>eqb</cite>, <cite>eqi1</cite> and <cite>eqi2</cite>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">v2af</span><span class="o">.</span><span class="n">file1</span> <span class="o">=</span> <span class="n">eqb</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">v2af</span><span class="o">.</span><span class="n">file1</span> <span class="o">=</span> <span class="n">eqi1</span><span class="p">,</span> <span class="n">eqi2</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">v2af</span><span class="o">.</span><span class="n">file1</span>
+<span class="go">[eqb(5000.0), eqi1(2000.0), eqi2(1000.0)]</span>
+</pre></div>
+</div>
+<p>Auxiliary file <cite>file2</cite> shall contain the actual values of parameters
+<cite>eqd1</cite>, <cite>eqd2</cite> and (also!) of parameter <cite>eqb</cite>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">v2af</span><span class="o">.</span><span class="n">file2</span> <span class="o">=</span> <span class="n">eqd1</span><span class="p">,</span> <span class="n">eqd2</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">v2af</span><span class="o">.</span><span class="n">file2</span> <span class="o">=</span> <span class="n">eqb</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">ValueError</span>: <span class="n">While trying to extend the range of variables handled by the actual Variable2AuxFile object, the following error occurred: You tried to allocate variable `eqb(5000.0)` to filename `file2`, but an equal `EQB` object has already been allocated to filename `file1`.</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">v2af</span><span class="o">.</span><span class="n">file2</span>
+<span class="go">[eqd1(100.0), eqd2(50.0)]</span>
+</pre></div>
+</div>
+<p>As explained by the error message, allocating the same parameter type
+with equal values to two different auxiliary files is not allowed.
+(If you really want to store equal values of the same type of parameter
+whithin different auxiliary files, work with selections instead.)</p>
+<p>Nevertheless, after changing the value of parameter <cite>eqb</cite>, it can be
+allocated to file name <cite>file2</cite>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">eqb</span> <span class="o">*=</span> <span class="mi">2</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">v2af</span><span class="o">.</span><span class="n">file2</span> <span class="o">=</span> <span class="n">eqb</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">v2af</span><span class="o">.</span><span class="n">file2</span>
+<span class="go">[eqb(10000.0), eqd1(100.0), eqd2(50.0)]</span>
+</pre></div>
+</div>
+<p>The following example shows that the value of parameter <cite>eqb</cite> already
+allocated to <cite>file1</cite> has not been changed (this safety mechanism is
+accomplished via deep copying), and that all registered parameters can
+be viewed by using their names as an attribute names:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">v2af</span><span class="o">.</span><span class="n">eqb</span>
+<span class="go">[eqb(5000.0), eqb(10000.0)]</span>
+</pre></div>
+</div>
+<p>Unfortunately, the string representations of <a class="reference internal" href="#hydpy.core.auxfiletools.Variable2Auxfile" title="hydpy.core.auxfiletools.Variable2Auxfile"><code class="xref py py-class docutils literal notranslate"><span class="pre">Variable2Auxfile</span></code></a>
+are not executable at the moment:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">v2af</span>
+<span class="go">Variable2Auxfile(file1, file2)</span>
+</pre></div>
+</div>
+<p>Erroneous attribute access results in the following error:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">v2af</span><span class="o">.</span><span class="n">wrong</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">AttributeError</span>: <span class="n">`wrong` is neither a filename nor a name of a variable handled by the actual Variable2AuxFile object.</span>
+</pre></div>
+</div>
+<p>The <a class="reference internal" href="#hydpy.core.auxfiletools.Variable2Auxfile" title="hydpy.core.auxfiletools.Variable2Auxfile"><code class="xref py py-class docutils literal notranslate"><span class="pre">Variable2Auxfile</span></code></a> object defined above is also used in the
+documentation of the following class members.  Hence it is stored in
+the <a class="reference internal" href="dummytools.html#hydpy.core.dummytools.Dummies" title="hydpy.core.dummytools.Dummies"><code class="xref py py-class docutils literal notranslate"><span class="pre">Dummies</span></code></a> object:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy</span> <span class="k">import</span> <span class="n">dummies</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dummies</span><span class="o">.</span><span class="n">v2af</span> <span class="o">=</span> <span class="n">v2af</span>
+</pre></div>
+</div>
+<p>The explanations above focus on parameter objects only.
+<a class="reference internal" href="#hydpy.core.auxfiletools.Variable2Auxfile" title="hydpy.core.auxfiletools.Variable2Auxfile"><code class="xref py py-class docutils literal notranslate"><span class="pre">Variable2Auxfile</span></code></a> could be used to handle sequence objects as well,
+but possibly without a big benefit as long as <cite>auxiliary condition
+files</cite> are not supported.</p>
+<dl class="method">
+<dt id="hydpy.core.auxfiletools.Variable2Auxfile.remove">
+<code class="sig-name descname">remove</code><span class="sig-paren">(</span><em class="sig-param">*values</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/core/auxfiletools.html#Variable2Auxfile.remove"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hydpy.core.auxfiletools.Variable2Auxfile.remove" title="Permalink to this definition">¶</a></dt>
+<dd><p>Remove the defined variables.</p>
+<p>The variables to be removed can be selected in two ways.  But the
+first example shows that passing nothing or an empty iterable to
+method <a class="reference internal" href="#hydpy.core.auxfiletools.Variable2Auxfile.remove" title="hydpy.core.auxfiletools.Variable2Auxfile.remove"><code class="xref py py-func docutils literal notranslate"><span class="pre">remove()</span></code></a> does not remove any variable:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy</span> <span class="k">import</span> <span class="n">dummies</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">v2af</span> <span class="o">=</span> <span class="n">dummies</span><span class="o">.</span><span class="n">v2af</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">v2af</span><span class="o">.</span><span class="n">remove</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">v2af</span><span class="o">.</span><span class="n">remove</span><span class="p">([])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy</span> <span class="k">import</span> <span class="n">print_values</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">print_values</span><span class="p">(</span><span class="n">v2af</span><span class="o">.</span><span class="n">filenames</span><span class="p">)</span>
+<span class="go">file1, file2</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">print_values</span><span class="p">(</span><span class="n">v2af</span><span class="o">.</span><span class="n">variables</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mi">30</span><span class="p">)</span>
+<span class="go">eqb(5000.0), eqb(10000.0),</span>
+<span class="go">eqd1(100.0), eqd2(50.0),</span>
+<span class="go">eqi1(2000.0), eqi2(1000.0)</span>
+</pre></div>
+</div>
+<p>The first option is to pass auxiliary file names:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">v2af</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="s1">&#39;file1&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">print_values</span><span class="p">(</span><span class="n">v2af</span><span class="o">.</span><span class="n">filenames</span><span class="p">)</span>
+<span class="go">file2</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">print_values</span><span class="p">(</span><span class="n">v2af</span><span class="o">.</span><span class="n">variables</span><span class="p">)</span>
+<span class="go">eqb(10000.0), eqd1(100.0), eqd2(50.0)</span>
+</pre></div>
+</div>
+<p>The second option is, to pass variables of the correct type
+and value:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">v2af</span> <span class="o">=</span> <span class="n">dummies</span><span class="o">.</span><span class="n">v2af</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">v2af</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">v2af</span><span class="o">.</span><span class="n">eqb</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">print_values</span><span class="p">(</span><span class="n">v2af</span><span class="o">.</span><span class="n">filenames</span><span class="p">)</span>
+<span class="go">file1, file2</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">print_values</span><span class="p">(</span><span class="n">v2af</span><span class="o">.</span><span class="n">variables</span><span class="p">)</span>
+<span class="go">eqb(10000.0), eqd1(100.0), eqd2(50.0), eqi1(2000.0), eqi2(1000.0)</span>
+</pre></div>
+</div>
+<p>One can pass multiple variables or iterables containing variables
+at once:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">v2af</span> <span class="o">=</span> <span class="n">dummies</span><span class="o">.</span><span class="n">v2af</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">v2af</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">v2af</span><span class="o">.</span><span class="n">eqb</span><span class="p">,</span> <span class="n">v2af</span><span class="o">.</span><span class="n">eqd1</span><span class="p">,</span> <span class="n">v2af</span><span class="o">.</span><span class="n">eqd2</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">print_values</span><span class="p">(</span><span class="n">v2af</span><span class="o">.</span><span class="n">filenames</span><span class="p">)</span>
+<span class="go">file1</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">print_values</span><span class="p">(</span><span class="n">v2af</span><span class="o">.</span><span class="n">variables</span><span class="p">)</span>
+<span class="go">eqi1(2000.0), eqi2(1000.0)</span>
+</pre></div>
+</div>
+<p>Passing an argument that equals neither a registered file name or a
+registered variable results in the following exception:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">v2af</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="s1">&#39;test&#39;</span><span class="p">)</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">ValueError</span>: <span class="n">While trying to remove the given object `test` of type `str` from the actual Variable2AuxFile object, the following error occurred: `&#39;test&#39;` is neither a registered filename nor a registered variable.</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="hydpy.core.auxfiletools.Variable2Auxfile.types">
+<em class="property">property </em><code class="sig-name descname">types</code><a class="headerlink" href="#hydpy.core.auxfiletools.Variable2Auxfile.types" title="Permalink to this definition">¶</a></dt>
+<dd><p>A list of all handled variable types.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy</span> <span class="k">import</span> <span class="n">dummies</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy.core.objecttools</span> <span class="k">import</span> <span class="n">classname</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="p">[</span><span class="n">classname</span><span class="p">(</span><span class="n">type_</span><span class="p">)</span> <span class="k">for</span> <span class="n">type_</span> <span class="ow">in</span> <span class="n">dummies</span><span class="o">.</span><span class="n">v2af</span><span class="o">.</span><span class="n">types</span><span class="p">]</span>
+<span class="go">[&#39;EQB&#39;, &#39;EQD1&#39;, &#39;EQD2&#39;, &#39;EQI1&#39;, &#39;EQI2&#39;]</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="hydpy.core.auxfiletools.Variable2Auxfile.filenames">
+<em class="property">property </em><code class="sig-name descname">filenames</code><a class="headerlink" href="#hydpy.core.auxfiletools.Variable2Auxfile.filenames" title="Permalink to this definition">¶</a></dt>
+<dd><p>A list of all handled auxiliary file names.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy</span> <span class="k">import</span> <span class="n">dummies</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dummies</span><span class="o">.</span><span class="n">v2af</span><span class="o">.</span><span class="n">filenames</span>
+<span class="go">[&#39;file1&#39;, &#39;file2&#39;]</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="hydpy.core.auxfiletools.Variable2Auxfile.variables">
+<em class="property">property </em><code class="sig-name descname">variables</code><a class="headerlink" href="#hydpy.core.auxfiletools.Variable2Auxfile.variables" title="Permalink to this definition">¶</a></dt>
+<dd><p>A list of all handled variable objects.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy</span> <span class="k">import</span> <span class="n">dummies</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy</span> <span class="k">import</span> <span class="n">print_values</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">print_values</span><span class="p">(</span><span class="n">dummies</span><span class="o">.</span><span class="n">v2af</span><span class="o">.</span><span class="n">variables</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mi">30</span><span class="p">)</span>
+<span class="go">eqb(5000.0), eqb(10000.0),</span>
+<span class="go">eqd1(100.0), eqd2(50.0),</span>
+<span class="go">eqi1(2000.0), eqi2(1000.0)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="hydpy.core.auxfiletools.Variable2Auxfile.get_filename">
+<code class="sig-name descname">get_filename</code><span class="sig-paren">(</span><em class="sig-param">variable</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/core/auxfiletools.html#Variable2Auxfile.get_filename"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hydpy.core.auxfiletools.Variable2Auxfile.get_filename" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the auxiliary file name the given variable is allocated
+to or <code class="xref py py-const docutils literal notranslate"><span class="pre">None</span></code> if the given variable is not allocated to any
+auxiliary file name.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy</span> <span class="k">import</span> <span class="n">dummies</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">eqb</span> <span class="o">=</span> <span class="n">dummies</span><span class="o">.</span><span class="n">v2af</span><span class="o">.</span><span class="n">eqb</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dummies</span><span class="o">.</span><span class="n">v2af</span><span class="o">.</span><span class="n">get_filename</span><span class="p">(</span><span class="n">eqb</span><span class="p">)</span>
+<span class="go">&#39;file1&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">eqb</span> <span class="o">+=</span> <span class="mf">500.0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dummies</span><span class="o">.</span><span class="n">v2af</span><span class="o">.</span><span class="n">get_filename</span><span class="p">(</span><span class="n">eqb</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/HydPy_Logo.png" alt="Logo"/>
+            </a></p>
+  <h3><a href="index.html">Table of Contents</a></h3>
+  <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="install.html">Installation Instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quick Start</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="framework.html">Framework Tools</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="core.html">Core Tools</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="autodoctools.html">autodoctools</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">auxfiletools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="devicetools.html">devicetools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="dummytools.html">dummytools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="exceptiontools.html">exceptiontools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="filetools.html">filetools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="hydpytools.html">hydpytools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="importtools.html">importtools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="indextools.html">indextools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="itemtools.html">itemtools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="masktools.html">masktools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="modeltools.html">modeltools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="netcdftools.html">netcdftools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="objecttools.html">objecttools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="optiontools.html">optiontools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="parametertools.html">parametertools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="printtools.html">printtools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="propertytools.html">propertytools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="pubtools.html">pubtools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="selectiontools.html">selectiontools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="sequencetools.html">sequencetools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="testtools.html">testtools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="timetools.html">timetools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="typingtools.html">typingtools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="variabletools.html">variabletools</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="execution.html">Execution Tools</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cythons.html">Cython Tools</a></li>
+<li class="toctree-l2"><a class="reference internal" href="auxiliaries.html">Auxiliary Tools</a></li>
+<li class="toctree-l2"><a class="reference internal" href="configuration.html">Configuration Tools</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="modelcollection.html">Model Collection</a></li>
+<li class="toctree-l1"><a class="reference internal" href="development.html">Development</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples.html">Example Projects</a></li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="autodoctools.html"
+                        title="previous chapter">autodoctools</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="devicetools.html"
+                        title="next chapter">devicetools</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/auxfiletools.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="devicetools.html" title="devicetools"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="autodoctools.html" title="autodoctools"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">HydPy 4.0a11 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="framework.html" >Framework Tools</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="core.html" >Core Tools</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2019, HydPy Developers.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.2.1.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,17 @@
+.. |IUH.update| replace:: :func:`~hydpy.auxs.iuhtools.IUH.update`
+.. |IUH| replace:: :class:`~hydpy.auxs.iuhtools.IUH`
+.. |PrimaryParameterIUH| replace:: :class:`~hydpy.auxs.iuhtools.PrimaryParameterIUH`
+.. |SecondaryParameterIUH| replace:: :class:`~hydpy.auxs.iuhtools.SecondaryParameterIUH`
+.. |TranslationDiffusionEquation| replace:: :class:`~hydpy.auxs.iuhtools.TranslationDiffusionEquation`
+.. |armatools| replace:: :mod:`~hydpy.auxs.armatools`
+.. |float| replace:: :class:`float`
+
+.. _iuhtools:
+
+iuhtools
+========
+
+.. automodule:: hydpy.auxs.iuhtools
+    :members:
+    :show-inheritance:
+    :exclude-members: CLASSES, RUN_METHODS, ADD_METHODS, INLET_METHODS, OUTLET_METHODS, RECEIVER_METHODS, SENDER_METHODS, PART_ODE_METHODS, FULL_ODE_METHODS, CONTROLPARAMETERS, DERIVEDPARAMETERS, REQUIREDSEQUENCES, UPDATESSEQUENCES, RESULTSEQUENCES

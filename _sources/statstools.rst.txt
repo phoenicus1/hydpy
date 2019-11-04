@@ -1,0 +1,25 @@
+.. |Node| replace:: :class:`~hydpy.core.devicetools.Node`
+.. |bias_abs| replace:: :func:`~hydpy.auxs.statstools.bias_abs`
+.. |bias_rel| replace:: :func:`~hydpy.auxs.statstools.bias_rel`
+.. |corr| replace:: :func:`~hydpy.auxs.statstools.corr`
+.. |evaluationtable| replace:: :func:`~hydpy.auxs.statstools.evaluationtable`
+.. |hsepd_manual| replace:: :func:`~hydpy.auxs.statstools.hsepd_manual`
+.. |hsepd_pdf| replace:: :func:`~hydpy.auxs.statstools.hsepd_pdf`
+.. |hsepd| replace:: :func:`~hydpy.auxs.statstools.hsepd`
+.. |list| replace:: :class:`list`
+.. |nse| replace:: :func:`~hydpy.auxs.statstools.nse`
+.. |numpy| replace:: :mod:`~numpy`
+.. |prepare_arrays| replace:: :func:`~hydpy.auxs.statstools.prepare_arrays`
+.. |statstools| replace:: :mod:`~hydpy.auxs.statstools`
+.. |std_ratio| replace:: :func:`~hydpy.auxs.statstools.std_ratio`
+.. |tuple| replace:: :class:`tuple`
+
+.. _statstools:
+
+statstools
+==========
+
+.. automodule:: hydpy.auxs.statstools
+    :members:
+    :show-inheritance:
+    :exclude-members: CLASSES, RUN_METHODS, ADD_METHODS, INLET_METHODS, OUTLET_METHODS, RECEIVER_METHODS, SENDER_METHODS, PART_ODE_METHODS, FULL_ODE_METHODS, CONTROLPARAMETERS, DERIVEDPARAMETERS, REQUIREDSEQUENCES, UPDATESSEQUENCES, RESULTSEQUENCES

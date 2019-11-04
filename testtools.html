@@ -1,0 +1,929 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>testtools &#8212; HydPy 4.0a11 documentation</title>
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="_static/graphviz.css" />
+    
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="_static/language_data.js"></script>
+    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="timetools" href="timetools.html" />
+    <link rel="prev" title="sequencetools" href="sequencetools.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="timetools.html" title="timetools"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="sequencetools.html" title="sequencetools"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">HydPy 4.0a11 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="framework.html" >Framework Tools</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="core.html" accesskey="U">Core Tools</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="testtools">
+<span id="id1"></span><h1>testtools<a class="headerlink" href="#testtools" title="Permalink to this headline">¶</a></h1>
+<span class="target" id="module-hydpy.core.testtools"></span><p>This module implements tools for making doctests clearer.</p>
+<p>Module <a class="reference internal" href="#module-hydpy.core.testtools" title="hydpy.core.testtools"><code class="xref py py-mod docutils literal notranslate"><span class="pre">testtools</span></code></a> implements the following members:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><a class="reference internal" href="#hydpy.core.testtools.StdOutErr" title="hydpy.core.testtools.StdOutErr"><code class="xref py py-class docutils literal notranslate"><span class="pre">StdOutErr</span></code></a> Replaces <cite>sys.stdout</cite> and <cite>sys.stderr</cite> temporarily when calling method <a class="reference internal" href="#hydpy.core.testtools.Tester.perform_tests" title="hydpy.core.testtools.Tester.perform_tests"><code class="xref py py-func docutils literal notranslate"><span class="pre">perform_tests()</span></code></a> of class <a class="reference internal" href="#hydpy.core.testtools.Tester" title="hydpy.core.testtools.Tester"><code class="xref py py-class docutils literal notranslate"><span class="pre">Tester</span></code></a>.</p></li>
+<li><p><a class="reference internal" href="#hydpy.core.testtools.Tester" title="hydpy.core.testtools.Tester"><code class="xref py py-class docutils literal notranslate"><span class="pre">Tester</span></code></a> Tests either a base or an application model.</p></li>
+<li><p><a class="reference internal" href="#hydpy.core.testtools.mock_datetime_now" title="hydpy.core.testtools.mock_datetime_now"><code class="xref py py-func docutils literal notranslate"><span class="pre">mock_datetime_now()</span></code></a> Let class method <code class="xref py py-func docutils literal notranslate"><span class="pre">now()</span></code> of class <a class="reference external" href="https://docs.python.org/3/library/datetime.html#datetime.datetime" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">datetime</span></code></a> of module <a class="reference external" href="https://docs.python.org/3/library/datetime.html#module-datetime" title="(in Python v3.8)"><code class="xref py py-mod docutils literal notranslate"><span class="pre">datetime</span></code></a> return the given date for testing purposes within a “with block”.</p></li>
+<li><p><a class="reference internal" href="#hydpy.core.testtools.Array" title="hydpy.core.testtools.Array"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></a> Assures that attributes are <a class="reference external" href="https://docs.scipy.org/doc/numpy/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.17)"><code class="xref py py-class docutils literal notranslate"><span class="pre">ndarray</span></code></a> objects.</p></li>
+<li><p><a class="reference internal" href="#hydpy.core.testtools.ArrayDescriptor" title="hydpy.core.testtools.ArrayDescriptor"><code class="xref py py-class docutils literal notranslate"><span class="pre">ArrayDescriptor</span></code></a> Descriptor for handling values of <a class="reference internal" href="#hydpy.core.testtools.Array" title="hydpy.core.testtools.Array"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></a> objects.</p></li>
+<li><p><a class="reference internal" href="#hydpy.core.testtools.Test" title="hydpy.core.testtools.Test"><code class="xref py py-class docutils literal notranslate"><span class="pre">Test</span></code></a> Base class for <a class="reference internal" href="#hydpy.core.testtools.IntegrationTest" title="hydpy.core.testtools.IntegrationTest"><code class="xref py py-class docutils literal notranslate"><span class="pre">IntegrationTest</span></code></a> and <a class="reference internal" href="#hydpy.core.testtools.UnitTest" title="hydpy.core.testtools.UnitTest"><code class="xref py py-class docutils literal notranslate"><span class="pre">UnitTest</span></code></a>.</p></li>
+<li><p><a class="reference internal" href="#hydpy.core.testtools.PlottingOptions" title="hydpy.core.testtools.PlottingOptions"><code class="xref py py-class docutils literal notranslate"><span class="pre">PlottingOptions</span></code></a> Plotting options of class <a class="reference internal" href="#hydpy.core.testtools.IntegrationTest" title="hydpy.core.testtools.IntegrationTest"><code class="xref py py-class docutils literal notranslate"><span class="pre">IntegrationTest</span></code></a>.</p></li>
+<li><p><a class="reference internal" href="#hydpy.core.testtools.IntegrationTest" title="hydpy.core.testtools.IntegrationTest"><code class="xref py py-class docutils literal notranslate"><span class="pre">IntegrationTest</span></code></a> Defines model integration doctests.</p></li>
+<li><p><a class="reference internal" href="#hydpy.core.testtools.UnitTest" title="hydpy.core.testtools.UnitTest"><code class="xref py py-class docutils literal notranslate"><span class="pre">UnitTest</span></code></a> Defines unit doctests for a single model method.</p></li>
+<li><p><a class="reference internal" href="#hydpy.core.testtools.Open" title="hydpy.core.testtools.Open"><code class="xref py py-class docutils literal notranslate"><span class="pre">Open</span></code></a> Replace <a class="reference internal" href="#hydpy.core.testtools.Open" title="hydpy.core.testtools.Open"><code class="xref py py-class docutils literal notranslate"><span class="pre">Open</span></code></a> in doctests temporarily.</p></li>
+<li><p><a class="reference internal" href="#hydpy.core.testtools.TestIO" title="hydpy.core.testtools.TestIO"><code class="xref py py-class docutils literal notranslate"><span class="pre">TestIO</span></code></a> Prepare an environment for testing IO functionalities.</p></li>
+<li><p><a class="reference internal" href="#hydpy.core.testtools.make_abc_testable" title="hydpy.core.testtools.make_abc_testable"><code class="xref py py-func docutils literal notranslate"><span class="pre">make_abc_testable()</span></code></a> Return a concrete version of the given abstract base class for testing purposes.</p></li>
+</ul>
+</div></blockquote>
+<hr class="docutils" />
+<dl class="class">
+<dt id="hydpy.core.testtools.StdOutErr">
+<em class="property">class </em><code class="sig-prename descclassname">hydpy.core.testtools.</code><code class="sig-name descname">StdOutErr</code><span class="sig-paren">(</span><em class="sig-param">indent: int = 0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/core/testtools.html#StdOutErr"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hydpy.core.testtools.StdOutErr" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Replaces <cite>sys.stdout</cite> and <cite>sys.stderr</cite> temporarily when calling
+method <a class="reference internal" href="#hydpy.core.testtools.Tester.perform_tests" title="hydpy.core.testtools.Tester.perform_tests"><code class="xref py py-func docutils literal notranslate"><span class="pre">perform_tests()</span></code></a> of class <a class="reference internal" href="#hydpy.core.testtools.Tester" title="hydpy.core.testtools.Tester"><code class="xref py py-class docutils literal notranslate"><span class="pre">Tester</span></code></a>.</p>
+<dl class="method">
+<dt id="hydpy.core.testtools.StdOutErr.write">
+<code class="sig-name descname">write</code><span class="sig-paren">(</span><em class="sig-param">text: str</em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="_modules/hydpy/core/testtools.html#StdOutErr.write"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hydpy.core.testtools.StdOutErr.write" title="Permalink to this definition">¶</a></dt>
+<dd><p>Memorise the given text for later writing.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="hydpy.core.testtools.StdOutErr.print_">
+<code class="sig-name descname">print_</code><span class="sig-paren">(</span><em class="sig-param">text: str</em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="_modules/hydpy/core/testtools.html#StdOutErr.print_"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hydpy.core.testtools.StdOutErr.print_" title="Permalink to this definition">¶</a></dt>
+<dd><p>Print the memorised text to the original <cite>sys.stdout</cite>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="hydpy.core.testtools.StdOutErr.flush">
+<code class="sig-name descname">flush</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="_modules/hydpy/core/testtools.html#StdOutErr.flush"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hydpy.core.testtools.StdOutErr.flush" title="Permalink to this definition">¶</a></dt>
+<dd><p>Do nothing.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="hydpy.core.testtools.Tester">
+<em class="property">class </em><code class="sig-prename descclassname">hydpy.core.testtools.</code><code class="sig-name descname">Tester</code><a class="reference internal" href="_modules/hydpy/core/testtools.html#Tester"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hydpy.core.testtools.Tester" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Tests either a base or an application model.</p>
+<p>Usually, a <a class="reference internal" href="#hydpy.core.testtools.Tester" title="hydpy.core.testtools.Tester"><code class="xref py py-class docutils literal notranslate"><span class="pre">Tester</span></code></a> object is initialised at the end of the <cite>__init__</cite>
+file of its base model or at the end of the module of an application
+model.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy.models</span> <span class="k">import</span> <span class="n">hland</span><span class="p">,</span> <span class="n">hland_v1</span>
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">hland</span><span class="o">.</span><span class="n">tester</span><span class="o">.</span><span class="n">package</span>
+<span class="go">&#39;hydpy.models.hland&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">hland_v1</span><span class="o">.</span><span class="n">tester</span><span class="o">.</span><span class="n">package</span>
+<span class="go">&#39;hydpy.models&#39;</span>
+</pre></div>
+</div>
+<dl class="method">
+<dt id="hydpy.core.testtools.Tester.filenames">
+<em class="property">property </em><code class="sig-name descname">filenames</code><a class="headerlink" href="#hydpy.core.testtools.Tester.filenames" title="Permalink to this definition">¶</a></dt>
+<dd><p>The filenames defining the considered base or application model.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy.models</span> <span class="k">import</span> <span class="n">hland</span><span class="p">,</span> <span class="n">hland_v1</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">pprint</span> <span class="k">import</span> <span class="n">pprint</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pprint</span><span class="p">(</span><span class="n">hland</span><span class="o">.</span><span class="n">tester</span><span class="o">.</span><span class="n">filenames</span><span class="p">)</span>
+<span class="go">[&#39;__init__.py&#39;,</span>
+<span class="go"> &#39;hland_constants.py&#39;,</span>
+<span class="go"> &#39;hland_control.py&#39;,</span>
+<span class="go"> &#39;hland_derived.py&#39;,</span>
+<span class="go"> &#39;hland_fluxes.py&#39;,</span>
+<span class="go"> &#39;hland_inputs.py&#39;,</span>
+<span class="go"> &#39;hland_logs.py&#39;,</span>
+<span class="go"> &#39;hland_masks.py&#39;,</span>
+<span class="go"> &#39;hland_model.py&#39;,</span>
+<span class="go"> &#39;hland_outlets.py&#39;,</span>
+<span class="go"> &#39;hland_parameters.py&#39;,</span>
+<span class="go"> &#39;hland_sequences.py&#39;,</span>
+<span class="go"> &#39;hland_states.py&#39;]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">hland_v1</span><span class="o">.</span><span class="n">tester</span><span class="o">.</span><span class="n">filenames</span>
+<span class="go">[&#39;hland_v1.py&#39;]</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="hydpy.core.testtools.Tester.modulenames">
+<em class="property">property </em><code class="sig-name descname">modulenames</code><a class="headerlink" href="#hydpy.core.testtools.Tester.modulenames" title="Permalink to this definition">¶</a></dt>
+<dd><p>The module names to be taken into account for testing.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy.models</span> <span class="k">import</span> <span class="n">hland</span><span class="p">,</span> <span class="n">hland_v1</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">pprint</span> <span class="k">import</span> <span class="n">pprint</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pprint</span><span class="p">(</span><span class="n">hland</span><span class="o">.</span><span class="n">tester</span><span class="o">.</span><span class="n">modulenames</span><span class="p">)</span>
+<span class="go">[&#39;hland_constants&#39;,</span>
+<span class="go"> &#39;hland_control&#39;,</span>
+<span class="go"> &#39;hland_derived&#39;,</span>
+<span class="go"> &#39;hland_fluxes&#39;,</span>
+<span class="go"> &#39;hland_inputs&#39;,</span>
+<span class="go"> &#39;hland_logs&#39;,</span>
+<span class="go"> &#39;hland_masks&#39;,</span>
+<span class="go"> &#39;hland_model&#39;,</span>
+<span class="go"> &#39;hland_outlets&#39;,</span>
+<span class="go"> &#39;hland_parameters&#39;,</span>
+<span class="go"> &#39;hland_sequences&#39;,</span>
+<span class="go"> &#39;hland_states&#39;]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">hland_v1</span><span class="o">.</span><span class="n">tester</span><span class="o">.</span><span class="n">modulenames</span>
+<span class="go">[&#39;hland_v1&#39;]</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="hydpy.core.testtools.Tester.perform_tests">
+<code class="sig-name descname">perform_tests</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/core/testtools.html#Tester.perform_tests"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hydpy.core.testtools.Tester.perform_tests" title="Permalink to this definition">¶</a></dt>
+<dd><p>Perform all doctests either in Python or in Cython mode depending
+on the state of <a class="reference internal" href="optiontools.html#hydpy.core.optiontools.Options.usecython" title="hydpy.core.optiontools.Options.usecython"><code class="xref py py-const docutils literal notranslate"><span class="pre">usecython</span></code></a> set in module <code class="xref py py-mod docutils literal notranslate"><span class="pre">pub</span></code>.</p>
+<p>Usually, <a class="reference internal" href="#hydpy.core.testtools.Tester.perform_tests" title="hydpy.core.testtools.Tester.perform_tests"><code class="xref py py-func docutils literal notranslate"><span class="pre">perform_tests()</span></code></a> is triggered automatically by a
+<a class="reference internal" href="modelutils.html#hydpy.cythons.modelutils.Cythonizer" title="hydpy.cythons.modelutils.Cythonizer"><code class="xref py py-class docutils literal notranslate"><span class="pre">Cythonizer</span></code></a> object assigned to the same base or application
+model as a <a class="reference internal" href="#hydpy.core.testtools.Tester" title="hydpy.core.testtools.Tester"><code class="xref py py-class docutils literal notranslate"><span class="pre">Tester</span></code></a> object.  However, you are free to call
+it any time when in doubt of the functionality of a particular
+base or application model.  Doing so might change some of the
+states of your current configuration, but only temporarily
+(we pick the <a class="reference internal" href="timetools.html#hydpy.core.timetools.Timegrids" title="hydpy.core.timetools.Timegrids"><code class="xref py py-class docutils literal notranslate"><span class="pre">Timegrids</span></code></a> object of module <code class="xref py py-mod docutils literal notranslate"><span class="pre">pub</span></code> as an example,
+which is changed multiple times during testing but finally
+reset to the original value):</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy</span> <span class="k">import</span> <span class="n">pub</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pub</span><span class="o">.</span><span class="n">timegrids</span> <span class="o">=</span> <span class="s1">&#39;2000-01-01&#39;</span><span class="p">,</span> <span class="s1">&#39;2001-01-01&#39;</span><span class="p">,</span> <span class="s1">&#39;1d&#39;</span>
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy.models</span> <span class="k">import</span> <span class="n">hland</span><span class="p">,</span> <span class="n">hland_v1</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">hland</span><span class="o">.</span><span class="n">tester</span><span class="o">.</span><span class="n">perform_tests</span><span class="p">()</span>   
+<span class="go">Test package hydpy.models.hland in ...ython mode.</span>
+<span class="go">    * hland_constants:</span>
+<span class="go">        no failures occurred</span>
+<span class="go">    * hland_control:</span>
+<span class="go">        no failures occurred</span>
+<span class="go">    * hland_derived:</span>
+<span class="go">        no failures occurred</span>
+<span class="go">    * hland_fluxes:</span>
+<span class="go">        no failures occurred</span>
+<span class="go">    * hland_inputs:</span>
+<span class="go">        no failures occurred</span>
+<span class="go">    * hland_logs:</span>
+<span class="go">        no failures occurred</span>
+<span class="go">    * hland_masks:</span>
+<span class="go">        no failures occurred</span>
+<span class="go">    * hland_model:</span>
+<span class="go">        no failures occurred</span>
+<span class="go">    * hland_outlets:</span>
+<span class="go">        no failures occurred</span>
+<span class="go">    * hland_parameters:</span>
+<span class="go">        no failures occurred</span>
+<span class="go">    * hland_sequences:</span>
+<span class="go">        no failures occurred</span>
+<span class="go">    * hland_states:</span>
+<span class="go">        no failures occurred</span>
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">hland_v1</span><span class="o">.</span><span class="n">tester</span><span class="o">.</span><span class="n">perform_tests</span><span class="p">()</span>   
+<span class="go">Test module hland_v1 in ...ython mode.</span>
+<span class="go">    * hland_v1:</span>
+<span class="go">        no failures occurred</span>
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">pub</span><span class="o">.</span><span class="n">timegrids</span>
+<span class="go">Timegrids(Timegrid(&#39;2000-01-01 00:00:00&#39;,</span>
+<span class="go">                   &#39;2001-01-01 00:00:00&#39;,</span>
+<span class="go">                   &#39;1d&#39;))</span>
+</pre></div>
+</div>
+<p>To show the reporting of possible errors, we change the
+string representation of parameter <a class="reference internal" href="hland.html#hydpy.models.hland.hland_control.ZoneType" title="hydpy.models.hland.hland_control.ZoneType"><code class="xref py py-class docutils literal notranslate"><span class="pre">ZoneType</span></code></a>
+temporarily.  Again, the <a class="reference internal" href="timetools.html#hydpy.core.timetools.Timegrids" title="hydpy.core.timetools.Timegrids"><code class="xref py py-class docutils literal notranslate"><span class="pre">Timegrids</span></code></a> object is reset to its
+initial state after testing:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">unittest</span> <span class="k">import</span> <span class="n">mock</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">mock</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span>
+<span class="gp">... </span>    <span class="s1">&#39;hydpy.models.hland.hland_control.ZoneType.__repr__&#39;</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">return_value</span><span class="o">=</span><span class="s1">&#39;damaged&#39;</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="n">hland</span><span class="o">.</span><span class="n">tester</span><span class="o">.</span><span class="n">perform_tests</span><span class="p">()</span>   
+<span class="go">Test package hydpy.models.hland in ...ython mode.</span>
+<span class="go">    * hland_constants:</span>
+<span class="go">        no failures occurred</span>
+<span class="go">    * hland_control:</span>
+<span class="go">        ******...hland_control.py&quot;, line 72, in hydpy.models.hland.hland_control.ZoneType</span>
+<span class="go">        Failed example:</span>
+<span class="go">            zonetype</span>
+<span class="go">        Expected:</span>
+<span class="go">            zonetype(FIELD, FOREST, GLACIER, ILAKE, ILAKE, FIELD)</span>
+<span class="go">        Got:</span>
+<span class="go">            damaged</span>
+<span class="go">        **********************************************************************</span>
+<span class="go">        1</span>
+<span class="go">        items had failures:</span>
+<span class="go">           1 of   6 in hydpy.models.hland.hland_control.ZoneType</span>
+<span class="go">        ***Test Failed***</span>
+<span class="go">        1</span>
+<span class="go">        failures.</span>
+<span class="go">    * hland_derived:</span>
+<span class="go">        no failures occurred</span>
+<span class="go">    ...</span>
+<span class="go">    * hland_states:</span>
+<span class="go">        no failures occurred</span>
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">pub</span><span class="o">.</span><span class="n">timegrids</span>
+<span class="go">Timegrids(Timegrid(&#39;2000-01-01 00:00:00&#39;,</span>
+<span class="go">                   &#39;2001-01-01 00:00:00&#39;,</span>
+<span class="go">                   &#39;1d&#39;))</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="hydpy.core.testtools.Array">
+<em class="property">class </em><code class="sig-prename descclassname">hydpy.core.testtools.</code><code class="sig-name descname">Array</code><a class="reference internal" href="_modules/hydpy/core/testtools.html#Array"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hydpy.core.testtools.Array" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Assures that attributes are <a class="reference external" href="https://docs.scipy.org/doc/numpy/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.17)"><code class="xref py py-class docutils literal notranslate"><span class="pre">ndarray</span></code></a> objects.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="hydpy.core.testtools.ArrayDescriptor">
+<em class="property">class </em><code class="sig-prename descclassname">hydpy.core.testtools.</code><code class="sig-name descname">ArrayDescriptor</code><a class="reference internal" href="_modules/hydpy/core/testtools.html#ArrayDescriptor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hydpy.core.testtools.ArrayDescriptor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Descriptor for handling values of <a class="reference internal" href="#hydpy.core.testtools.Array" title="hydpy.core.testtools.Array"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></a> objects.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="hydpy.core.testtools.Test">
+<em class="property">class </em><code class="sig-prename descclassname">hydpy.core.testtools.</code><code class="sig-name descname">Test</code><a class="reference internal" href="_modules/hydpy/core/testtools.html#Test"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hydpy.core.testtools.Test" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Base class for <a class="reference internal" href="#hydpy.core.testtools.IntegrationTest" title="hydpy.core.testtools.IntegrationTest"><code class="xref py py-class docutils literal notranslate"><span class="pre">IntegrationTest</span></code></a> and <a class="reference internal" href="#hydpy.core.testtools.UnitTest" title="hydpy.core.testtools.UnitTest"><code class="xref py py-class docutils literal notranslate"><span class="pre">UnitTest</span></code></a>.</p>
+<p>This base class defines the printing of the test results primarily.
+How the tests shall be prepared and performed, is to be defined in
+its subclasses.</p>
+<dl class="attribute">
+<dt id="hydpy.core.testtools.Test.inits">
+<code class="sig-name descname">inits</code><em class="property"> = &lt;hydpy.core.testtools.Array object&gt;</em><a class="headerlink" href="#hydpy.core.testtools.Test.inits" title="Permalink to this definition">¶</a></dt>
+<dd><p>Stores arrays for setting the same values of parameters and/or
+sequences before each new experiment.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="hydpy.core.testtools.Test.raw_first_col_strings">
+<em class="property">abstract property </em><code class="sig-name descname">raw_first_col_strings</code><a class="headerlink" href="#hydpy.core.testtools.Test.raw_first_col_strings" title="Permalink to this definition">¶</a></dt>
+<dd><p>To be implemented by the subclasses of <a class="reference internal" href="#hydpy.core.testtools.Test" title="hydpy.core.testtools.Test"><code class="xref py py-class docutils literal notranslate"><span class="pre">Test</span></code></a>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="hydpy.core.testtools.Test.get_output_array">
+<em class="property">abstract static </em><code class="sig-name descname">get_output_array</code><span class="sig-paren">(</span><em class="sig-param">parseqs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/core/testtools.html#Test.get_output_array"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hydpy.core.testtools.Test.get_output_array" title="Permalink to this definition">¶</a></dt>
+<dd><p>To be implemented by the subclasses of <a class="reference internal" href="#hydpy.core.testtools.Test" title="hydpy.core.testtools.Test"><code class="xref py py-class docutils literal notranslate"><span class="pre">Test</span></code></a>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="hydpy.core.testtools.Test.nmb_rows">
+<em class="property">property </em><code class="sig-name descname">nmb_rows</code><a class="headerlink" href="#hydpy.core.testtools.Test.nmb_rows" title="Permalink to this definition">¶</a></dt>
+<dd><p>Number of rows of the table.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="hydpy.core.testtools.Test.nmb_cols">
+<em class="property">property </em><code class="sig-name descname">nmb_cols</code><a class="headerlink" href="#hydpy.core.testtools.Test.nmb_cols" title="Permalink to this definition">¶</a></dt>
+<dd><p>Number of columns of the table.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="hydpy.core.testtools.Test.raw_header_strings">
+<em class="property">property </em><code class="sig-name descname">raw_header_strings</code><a class="headerlink" href="#hydpy.core.testtools.Test.raw_header_strings" title="Permalink to this definition">¶</a></dt>
+<dd><p>All raw strings for the tables header.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="hydpy.core.testtools.Test.raw_body_strings">
+<em class="property">property </em><code class="sig-name descname">raw_body_strings</code><a class="headerlink" href="#hydpy.core.testtools.Test.raw_body_strings" title="Permalink to this definition">¶</a></dt>
+<dd><p>All raw strings for the tables body.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="hydpy.core.testtools.Test.raw_strings">
+<em class="property">property </em><code class="sig-name descname">raw_strings</code><a class="headerlink" href="#hydpy.core.testtools.Test.raw_strings" title="Permalink to this definition">¶</a></dt>
+<dd><p>All raw strings for the complete table.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="hydpy.core.testtools.Test.col_widths">
+<em class="property">property </em><code class="sig-name descname">col_widths</code><a class="headerlink" href="#hydpy.core.testtools.Test.col_widths" title="Permalink to this definition">¶</a></dt>
+<dd><p>The widths of all columns of the table.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="hydpy.core.testtools.Test.col_seperators">
+<em class="property">property </em><code class="sig-name descname">col_seperators</code><a class="headerlink" href="#hydpy.core.testtools.Test.col_seperators" title="Permalink to this definition">¶</a></dt>
+<dd><p>The seperators for adjacent columns.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="hydpy.core.testtools.Test.row_nmb_characters">
+<em class="property">property </em><code class="sig-name descname">row_nmb_characters</code><a class="headerlink" href="#hydpy.core.testtools.Test.row_nmb_characters" title="Permalink to this definition">¶</a></dt>
+<dd><p>Number of characters of a single row of the table.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="hydpy.core.testtools.Test.print_table">
+<code class="sig-name descname">print_table</code><span class="sig-paren">(</span><em class="sig-param">idx1=None</em>, <em class="sig-param">idx2=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/core/testtools.html#Test.print_table"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hydpy.core.testtools.Test.print_table" title="Permalink to this definition">¶</a></dt>
+<dd><p>Print the result table between the given indices.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="hydpy.core.testtools.Test.extract_units">
+<em class="property">static </em><code class="sig-name descname">extract_units</code><span class="sig-paren">(</span><em class="sig-param">parseqs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/core/testtools.html#Test.extract_units"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hydpy.core.testtools.Test.extract_units" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a set of units of the given parameters and sequences.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="hydpy.core.testtools.PlottingOptions">
+<em class="property">class </em><code class="sig-prename descclassname">hydpy.core.testtools.</code><code class="sig-name descname">PlottingOptions</code><a class="reference internal" href="_modules/hydpy/core/testtools.html#PlottingOptions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hydpy.core.testtools.PlottingOptions" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Plotting options of class <a class="reference internal" href="#hydpy.core.testtools.IntegrationTest" title="hydpy.core.testtools.IntegrationTest"><code class="xref py py-class docutils literal notranslate"><span class="pre">IntegrationTest</span></code></a>.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="hydpy.core.testtools.IntegrationTest">
+<em class="property">class </em><code class="sig-prename descclassname">hydpy.core.testtools.</code><code class="sig-name descname">IntegrationTest</code><span class="sig-paren">(</span><em class="sig-param">element</em>, <em class="sig-param">seqs=None</em>, <em class="sig-param">inits=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/core/testtools.html#IntegrationTest"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hydpy.core.testtools.IntegrationTest" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#hydpy.core.testtools.Test" title="hydpy.core.testtools.Test"><code class="xref py py-class docutils literal notranslate"><span class="pre">hydpy.core.testtools.Test</span></code></a></p>
+<p>Defines model integration doctests.</p>
+<p>The functionality of <a class="reference internal" href="#hydpy.core.testtools.IntegrationTest" title="hydpy.core.testtools.IntegrationTest"><code class="xref py py-class docutils literal notranslate"><span class="pre">IntegrationTest</span></code></a> is easiest to understand by
+inspecting doctests like the ones of modules <a class="reference internal" href="llake_v1.html#module-hydpy.models.llake_v1" title="hydpy.models.llake_v1"><code class="xref py py-mod docutils literal notranslate"><span class="pre">llake_v1</span></code></a> or <a class="reference internal" href="arma_v1.html#module-hydpy.models.arma_v1" title="hydpy.models.arma_v1"><code class="xref py py-mod docutils literal notranslate"><span class="pre">arma_v1</span></code></a>.</p>
+<p>Note that all condition sequences (state and logging sequences) are
+initialised in accordance with the values are given in the <cite>inits</cite>
+values.  The values of the simulation sequences of outlet and
+sender nodes are always set to zero before each test run.  All other
+parameter and sequence values can be changed between different test
+runs.</p>
+<dl class="attribute">
+<dt id="hydpy.core.testtools.IntegrationTest.HEADER_OF_FIRST_COL">
+<code class="sig-name descname">HEADER_OF_FIRST_COL</code><em class="property"> = 'date'</em><a class="headerlink" href="#hydpy.core.testtools.IntegrationTest.HEADER_OF_FIRST_COL" title="Permalink to this definition">¶</a></dt>
+<dd><p>The header of the first column containing dates.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="hydpy.core.testtools.IntegrationTest.plotting_options">
+<code class="sig-name descname">plotting_options</code><em class="property"> = &lt;hydpy.core.testtools.PlottingOptions object&gt;</em><a class="headerlink" href="#hydpy.core.testtools.IntegrationTest.plotting_options" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="hydpy.core.testtools.IntegrationTest.raw_first_col_strings">
+<em class="property">property </em><code class="sig-name descname">raw_first_col_strings</code><a class="headerlink" href="#hydpy.core.testtools.IntegrationTest.raw_first_col_strings" title="Permalink to this definition">¶</a></dt>
+<dd><p>The raw date strings of the first column, except the header.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="hydpy.core.testtools.IntegrationTest.dateformat">
+<em class="property">property </em><code class="sig-name descname">dateformat</code><a class="headerlink" href="#hydpy.core.testtools.IntegrationTest.dateformat" title="Permalink to this definition">¶</a></dt>
+<dd><p>Format string for printing dates in the first column of the table.</p>
+<p>See the documentation on module <a class="reference external" href="https://docs.python.org/3/library/datetime.html#module-datetime" title="(in Python v3.8)"><code class="xref py py-mod docutils literal notranslate"><span class="pre">datetime</span></code></a> for the format strings
+allowed.</p>
+<p>You can query and change property <a class="reference internal" href="#hydpy.core.testtools.IntegrationTest.dateformat" title="hydpy.core.testtools.IntegrationTest.dateformat"><code class="xref py py-const docutils literal notranslate"><span class="pre">dateformat</span></code></a>.
+Passing ill-defined format strings results in the shown error:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy</span> <span class="k">import</span> <span class="n">Element</span><span class="p">,</span> <span class="n">IntegrationTest</span><span class="p">,</span> <span class="n">prepare_model</span><span class="p">,</span> <span class="n">pub</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pub</span><span class="o">.</span><span class="n">timegrids</span> <span class="o">=</span> <span class="s1">&#39;2000-01-01&#39;</span><span class="p">,</span> <span class="s1">&#39;2001-01-01&#39;</span><span class="p">,</span> <span class="s1">&#39;1d&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">element</span> <span class="o">=</span> <span class="n">Element</span><span class="p">(</span><span class="s1">&#39;element&#39;</span><span class="p">,</span> <span class="n">outlets</span><span class="o">=</span><span class="s1">&#39;node&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">element</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">prepare_model</span><span class="p">(</span><span class="s1">&#39;hland_v1&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">__package__</span> <span class="o">=</span> <span class="s1">&#39;testpackage&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tester</span> <span class="o">=</span> <span class="n">IntegrationTest</span><span class="p">(</span><span class="n">element</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tester</span><span class="o">.</span><span class="n">dateformat</span>
+<span class="go">&#39;%Y-%m-%d %H:%M:%S&#39;</span>
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">tester</span><span class="o">.</span><span class="n">dateformat</span> <span class="o">=</span> <span class="s1">&#39;%&#39;</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">ValueError</span>: <span class="n">The given date format `%` is not a valid format string for `datetime` objects.  Please read the documentation on module datetime of the Python standard library for for further information.</span>
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">tester</span><span class="o">.</span><span class="n">dateformat</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%x</span><span class="s1">&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tester</span><span class="o">.</span><span class="n">dateformat</span>
+<span class="go">&#39;%x&#39;</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="hydpy.core.testtools.IntegrationTest.get_output_array">
+<em class="property">static </em><code class="sig-name descname">get_output_array</code><span class="sig-paren">(</span><em class="sig-param">parseqs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/core/testtools.html#IntegrationTest.get_output_array"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hydpy.core.testtools.IntegrationTest.get_output_array" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the array containing the output results of the given
+sequence.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="hydpy.core.testtools.IntegrationTest.prepare_node_sequences">
+<code class="sig-name descname">prepare_node_sequences</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/core/testtools.html#IntegrationTest.prepare_node_sequences"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hydpy.core.testtools.IntegrationTest.prepare_node_sequences" title="Permalink to this definition">¶</a></dt>
+<dd><p>Prepare the simulations sequences of all nodes in.</p>
+<p>This preparation might not be suitable for all types of integration
+tests.  Prepare those node sequences manually, for which this method
+does not result in the desired outcome.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="hydpy.core.testtools.IntegrationTest.prepare_input_model_sequences">
+<code class="sig-name descname">prepare_input_model_sequences</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/core/testtools.html#IntegrationTest.prepare_input_model_sequences"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hydpy.core.testtools.IntegrationTest.prepare_input_model_sequences" title="Permalink to this definition">¶</a></dt>
+<dd><p>Configure the input sequences of the model in a manner that allows
+for applying their time series data in integration tests.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="hydpy.core.testtools.IntegrationTest.extract_print_sequences">
+<code class="sig-name descname">extract_print_sequences</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/core/testtools.html#IntegrationTest.extract_print_sequences"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hydpy.core.testtools.IntegrationTest.extract_print_sequences" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a list of all input, flux and state sequences of the model
+as well as the simulation sequences of all nodes.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="hydpy.core.testtools.IntegrationTest.prepare_model">
+<code class="sig-name descname">prepare_model</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/core/testtools.html#IntegrationTest.prepare_model"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hydpy.core.testtools.IntegrationTest.prepare_model" title="Permalink to this definition">¶</a></dt>
+<dd><p>Derive the secondary parameter values, prepare all required time
+series and set the initial conditions.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="hydpy.core.testtools.IntegrationTest.reset_outputs">
+<code class="sig-name descname">reset_outputs</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/core/testtools.html#IntegrationTest.reset_outputs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hydpy.core.testtools.IntegrationTest.reset_outputs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the values of the simulation sequences of all outlet nodes to
+zero.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="hydpy.core.testtools.IntegrationTest.reset_inits">
+<code class="sig-name descname">reset_inits</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/core/testtools.html#IntegrationTest.reset_inits"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hydpy.core.testtools.IntegrationTest.reset_inits" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set all initial conditions of all models.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="hydpy.core.testtools.IntegrationTest.plot">
+<code class="sig-name descname">plot</code><span class="sig-paren">(</span><em class="sig-param">filename</em>, <em class="sig-param">width=None</em>, <em class="sig-param">height=None</em>, <em class="sig-param">selected=None</em>, <em class="sig-param">activated=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/core/testtools.html#IntegrationTest.plot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hydpy.core.testtools.IntegrationTest.plot" title="Permalink to this definition">¶</a></dt>
+<dd><p>Save a bokeh html file plotting the current test results.</p>
+<dl class="simple">
+<dt>(Optional) arguments:</dt><dd><ul class="simple">
+<li><p>filename: Name of the file.  If necessary, the file ending
+<cite>html</cite> is added automatically.  The file is stored in the
+<cite>html</cite> folder of subpackage <cite>docs</cite>.</p></li>
+<li><p>width: Width of the plot in screen units.  Defaults to 600.</p></li>
+<li><p>height: Height of the plot in screen units.  Defaults to 300.</p></li>
+<li><p>selected: List of the sequences to be plotted.</p></li>
+<li><p>activated: List of the sequences to be shown initially.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="hydpy.core.testtools.IntegrationTest.print_iframe">
+<code class="sig-name descname">print_iframe</code><span class="sig-paren">(</span><em class="sig-param">tabs: int = 4</em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="_modules/hydpy/core/testtools.html#IntegrationTest.print_iframe"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hydpy.core.testtools.IntegrationTest.print_iframe" title="Permalink to this definition">¶</a></dt>
+<dd><p>Print a command for embeding the saved html file into the online
+documentation via an <cite>iframe</cite>.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy</span> <span class="k">import</span> <span class="n">Element</span><span class="p">,</span> <span class="n">IntegrationTest</span><span class="p">,</span> <span class="n">prepare_model</span><span class="p">,</span> <span class="n">pub</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pub</span><span class="o">.</span><span class="n">timegrids</span> <span class="o">=</span> <span class="s1">&#39;2000-01-01&#39;</span><span class="p">,</span> <span class="s1">&#39;2001-01-01&#39;</span><span class="p">,</span> <span class="s1">&#39;1d&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">element</span> <span class="o">=</span> <span class="n">Element</span><span class="p">(</span><span class="s1">&#39;element&#39;</span><span class="p">,</span> <span class="n">outlets</span><span class="o">=</span><span class="s1">&#39;node&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">element</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">prepare_model</span><span class="p">(</span><span class="s1">&#39;hland_v1&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">__package__</span> <span class="o">=</span> <span class="s1">&#39;testpackage&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">IntegrationTest</span><span class="p">(</span><span class="n">element</span><span class="p">)</span><span class="o">.</span><span class="n">print_iframe</span><span class="p">()</span>
+<span class="go">    .. raw:: html</span>
+
+<span class="go">        &lt;iframe</span>
+<span class="go">            src=&quot;None&quot;</span>
+<span class="go">            width=&quot;100&quot;</span>
+<span class="go">            height=&quot;330&quot;</span>
+<span class="go">            frameborder=0</span>
+<span class="go">        &gt;&lt;/iframe&gt;</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="hydpy.core.testtools.UnitTest">
+<em class="property">class </em><code class="sig-prename descclassname">hydpy.core.testtools.</code><code class="sig-name descname">UnitTest</code><span class="sig-paren">(</span><em class="sig-param">model</em>, <em class="sig-param">method</em>, <em class="sig-param">first_example=1</em>, <em class="sig-param">last_example=1</em>, <em class="sig-param">parseqs=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/core/testtools.html#UnitTest"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hydpy.core.testtools.UnitTest" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#hydpy.core.testtools.Test" title="hydpy.core.testtools.Test"><code class="xref py py-class docutils literal notranslate"><span class="pre">hydpy.core.testtools.Test</span></code></a></p>
+<p>Defines unit doctests for a single model method.</p>
+<dl class="attribute">
+<dt id="hydpy.core.testtools.UnitTest.HEADER_OF_FIRST_COL">
+<code class="sig-name descname">HEADER_OF_FIRST_COL</code><em class="property"> = 'ex.'</em><a class="headerlink" href="#hydpy.core.testtools.UnitTest.HEADER_OF_FIRST_COL" title="Permalink to this definition">¶</a></dt>
+<dd><p>The header of the first column containing sequential numbers.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="hydpy.core.testtools.UnitTest.nexts">
+<code class="sig-name descname">nexts</code><em class="property"> = &lt;hydpy.core.testtools.Array object&gt;</em><a class="headerlink" href="#hydpy.core.testtools.UnitTest.nexts" title="Permalink to this definition">¶</a></dt>
+<dd><p>Stores arrays for setting different values of parameters and/or
+sequences before each new experiment.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="hydpy.core.testtools.UnitTest.results">
+<code class="sig-name descname">results</code><em class="property"> = &lt;hydpy.core.testtools.Array object&gt;</em><a class="headerlink" href="#hydpy.core.testtools.UnitTest.results" title="Permalink to this definition">¶</a></dt>
+<dd><p>Stores arrays with the resulting values of parameters and/or
+sequences of each new experiment.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="hydpy.core.testtools.UnitTest.nmb_examples">
+<em class="property">property </em><code class="sig-name descname">nmb_examples</code><a class="headerlink" href="#hydpy.core.testtools.UnitTest.nmb_examples" title="Permalink to this definition">¶</a></dt>
+<dd><p>The number of examples to be calculated.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="hydpy.core.testtools.UnitTest.idx0">
+<em class="property">property </em><code class="sig-name descname">idx0</code><a class="headerlink" href="#hydpy.core.testtools.UnitTest.idx0" title="Permalink to this definition">¶</a></dt>
+<dd><p>First index of the examples selected for printing.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="hydpy.core.testtools.UnitTest.idx1">
+<em class="property">property </em><code class="sig-name descname">idx1</code><a class="headerlink" href="#hydpy.core.testtools.UnitTest.idx1" title="Permalink to this definition">¶</a></dt>
+<dd><p>Last index of the examples selected for printing.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="hydpy.core.testtools.UnitTest.get_output_array">
+<code class="sig-name descname">get_output_array</code><span class="sig-paren">(</span><em class="sig-param">parseqs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/core/testtools.html#UnitTest.get_output_array"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hydpy.core.testtools.UnitTest.get_output_array" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the array containing the output results of the given
+parameter or sequence.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="hydpy.core.testtools.UnitTest.raw_first_col_strings">
+<em class="property">property </em><code class="sig-name descname">raw_first_col_strings</code><a class="headerlink" href="#hydpy.core.testtools.UnitTest.raw_first_col_strings" title="Permalink to this definition">¶</a></dt>
+<dd><p>The raw integer strings of the first column, except the header.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="hydpy.core.testtools.UnitTest.memorize_inits">
+<code class="sig-name descname">memorize_inits</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/core/testtools.html#UnitTest.memorize_inits"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hydpy.core.testtools.UnitTest.memorize_inits" title="Permalink to this definition">¶</a></dt>
+<dd><p>Memorize all initial conditions.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="hydpy.core.testtools.UnitTest.prepare_output_arrays">
+<code class="sig-name descname">prepare_output_arrays</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/core/testtools.html#UnitTest.prepare_output_arrays"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hydpy.core.testtools.UnitTest.prepare_output_arrays" title="Permalink to this definition">¶</a></dt>
+<dd><p>Prepare arrays for storing the calculated results for the
+respective parameters and/or sequences.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="hydpy.core.testtools.UnitTest.reset_inits">
+<code class="sig-name descname">reset_inits</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/core/testtools.html#UnitTest.reset_inits"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hydpy.core.testtools.UnitTest.reset_inits" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set all initial conditions.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="hydpy.core.testtools.Open">
+<em class="property">class </em><code class="sig-prename descclassname">hydpy.core.testtools.</code><code class="sig-name descname">Open</code><a class="reference internal" href="_modules/hydpy/core/testtools.html#Open"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hydpy.core.testtools.Open" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Replace <a class="reference internal" href="#hydpy.core.testtools.Open" title="hydpy.core.testtools.Open"><code class="xref py py-class docutils literal notranslate"><span class="pre">Open</span></code></a> in doctests temporarily.</p>
+<p>Class <a class="reference internal" href="#hydpy.core.testtools.Open" title="hydpy.core.testtools.Open"><code class="xref py py-class docutils literal notranslate"><span class="pre">Open</span></code></a> to intended to make writing to files visible and testable
+in docstrings.  Therefore, Python’s built in function <a class="reference internal" href="#hydpy.core.testtools.Open" title="hydpy.core.testtools.Open"><code class="xref py py-class docutils literal notranslate"><span class="pre">Open</span></code></a> is
+temporarily replaced by another object, printing the filename and the
+file contend as shown in the following example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">os</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s1">&#39;folder&#39;</span><span class="p">,</span> <span class="s1">&#39;test.py&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy</span> <span class="k">import</span> <span class="n">Open</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">Open</span><span class="p">():</span>
+<span class="gp">... </span>    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">file_</span><span class="p">:</span>
+<span class="gp">... </span>        <span class="n">file_</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;first line</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+<span class="gp">... </span>        <span class="n">file_</span><span class="o">.</span><span class="n">writelines</span><span class="p">([</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">,</span> <span class="s1">&#39;third line</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">])</span>
+<span class="go">~~~~~~~~~~~~~~</span>
+<span class="go">folder/test.py</span>
+<span class="go">--------------</span>
+<span class="go">first line</span>
+
+<span class="go">third line</span>
+
+<span class="go">~~~~~~~~~~~~~~</span>
+</pre></div>
+</div>
+<p>Note that, for simplicity, the UNIX style path seperator <cite>/</cite> is used
+to print the file path on all systems.</p>
+<p>Class <a class="reference internal" href="#hydpy.core.testtools.Open" title="hydpy.core.testtools.Open"><code class="xref py py-class docutils literal notranslate"><span class="pre">Open</span></code></a> is rather restricted at the moment.  Functionalities
+like reading are not supported so far:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">Open</span><span class="p">():</span>
+<span class="gp">... </span>    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">file_</span><span class="p">:</span>
+<span class="gp">... </span>        <span class="n">file_</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">NotImplementedError</span>: <span class="n">Reading is not possible at the moment.  Please see the documentation on class `Open` of module `testtools` for further information.</span>
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">Open</span><span class="p">():</span>
+<span class="gp">... </span>    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">file_</span><span class="p">:</span>
+<span class="gp">... </span>        <span class="n">file_</span><span class="o">.</span><span class="n">readline</span><span class="p">()</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">NotImplementedError</span>: <span class="n">Reading is not possible at the moment.  Please see the documentation on class `Open` of module `testtools` for further information.</span>
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">Open</span><span class="p">():</span>
+<span class="gp">... </span>    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">file_</span><span class="p">:</span>
+<span class="gp">... </span>        <span class="n">file_</span><span class="o">.</span><span class="n">readlines</span><span class="p">()</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">NotImplementedError</span>: <span class="n">Reading is not possible at the moment.  Please see the documentation on class `Open` of module `testtools` for further information.</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="class">
+<dt id="hydpy.core.testtools.TestIO">
+<em class="property">class </em><code class="sig-prename descclassname">hydpy.core.testtools.</code><code class="sig-name descname">TestIO</code><span class="sig-paren">(</span><em class="sig-param">clear_own=False</em>, <em class="sig-param">clear_all=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/core/testtools.html#TestIO"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hydpy.core.testtools.TestIO" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Prepare an environment for testing IO functionalities.</p>
+<p>Primarily, <a class="reference internal" href="#hydpy.core.testtools.TestIO" title="hydpy.core.testtools.TestIO"><code class="xref py py-class docutils literal notranslate"><span class="pre">TestIO</span></code></a> changes the current working during the
+execution of with| blocks.  Inspecting your current working
+directory, <a class="reference external" href="https://docs.python.org/3/library/os.html#module-os" title="(in Python v3.8)"><code class="xref py py-mod docutils literal notranslate"><span class="pre">os</span></code></a> will likely find no file called <cite>testfile.txt</cite>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">os</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="s1">&#39;testfile.txt&#39;</span><span class="p">)</span>
+<span class="go">False</span>
+</pre></div>
+</div>
+<p>If some tests require writing such a file, this should be done
+within HydPy’s <cite>iotesting</cite> folder in subpackage <cite>tests</cite>, which
+is achieved by appyling the <cite>with</cite> statement on <a class="reference internal" href="#hydpy.core.testtools.TestIO" title="hydpy.core.testtools.TestIO"><code class="xref py py-class docutils literal notranslate"><span class="pre">TestIO</span></code></a>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy</span> <span class="k">import</span> <span class="n">TestIO</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">TestIO</span><span class="p">():</span>
+<span class="gp">... </span>    <span class="nb">open</span><span class="p">(</span><span class="s1">&#39;testfile.txt&#39;</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+<span class="gp">... </span>    <span class="nb">print</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="s1">&#39;testfile.txt&#39;</span><span class="p">))</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+<p>After the <cite>with</cite> block, the working directory is reset automatically:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="s1">&#39;testfile.txt&#39;</span><span class="p">)</span>
+<span class="go">False</span>
+</pre></div>
+</div>
+<p>Nevertheless, <cite>testfile.txt</cite> still exists in folder <cite>iotesting</cite>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">TestIO</span><span class="p">():</span>
+<span class="gp">... </span>    <span class="nb">print</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="s1">&#39;testfile.txt&#39;</span><span class="p">))</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+<p>Optionally, files and folders created within the current <cite>with</cite> block
+can be removed automatically by setting <cite>clear_own</cite> to <code class="xref py py-const docutils literal notranslate"><span class="pre">True</span></code>
+(modified files and folders are not affected):</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">TestIO</span><span class="p">(</span><span class="n">clear_own</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="nb">open</span><span class="p">(</span><span class="s1">&#39;testfile.txt&#39;</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+<span class="gp">... </span>    <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="s1">&#39;testfolder&#39;</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="nb">print</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="s1">&#39;testfile.txt&#39;</span><span class="p">),</span>
+<span class="gp">... </span>          <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="s1">&#39;testfolder&#39;</span><span class="p">))</span>
+<span class="go">True True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">TestIO</span><span class="p">(</span><span class="n">clear_own</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="nb">print</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="s1">&#39;testfile.txt&#39;</span><span class="p">),</span>
+<span class="gp">... </span>          <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="s1">&#39;testfolder&#39;</span><span class="p">))</span>
+<span class="go">True False</span>
+</pre></div>
+</div>
+<p>Alternatively, all files and folders contained in folder <cite>iotesting</cite>
+can be removed after leaving the <cite>with</cite> block:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">TestIO</span><span class="p">(</span><span class="n">clear_all</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="s1">&#39;testfolder&#39;</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="nb">print</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="s1">&#39;testfile.txt&#39;</span><span class="p">),</span>
+<span class="gp">... </span>          <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="s1">&#39;testfolder&#39;</span><span class="p">))</span>
+<span class="go">True True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">TestIO</span><span class="p">(</span><span class="n">clear_own</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="nb">print</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="s1">&#39;testfile.txt&#39;</span><span class="p">),</span>
+<span class="gp">... </span>          <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="s1">&#39;testfolder&#39;</span><span class="p">))</span>
+<span class="go">False False</span>
+</pre></div>
+</div>
+<p>For just clearing the <cite>iofolder</cite>, one can call method <a class="reference internal" href="#hydpy.core.testtools.TestIO.clear" title="hydpy.core.testtools.TestIO.clear"><code class="xref py py-func docutils literal notranslate"><span class="pre">clear()</span></code></a>
+alternatively:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">TestIO</span><span class="p">():</span>
+<span class="gp">... </span>    <span class="nb">open</span><span class="p">(</span><span class="s1">&#39;testfile.txt&#39;</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+<span class="gp">... </span>    <span class="nb">print</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="s1">&#39;testfile.txt&#39;</span><span class="p">))</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">TestIO</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">TestIO</span><span class="p">():</span>
+<span class="gp">... </span>    <span class="nb">print</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="s1">&#39;testfile.txt&#39;</span><span class="p">))</span>
+<span class="go">False</span>
+</pre></div>
+</div>
+<p>Note that class <a class="reference internal" href="#hydpy.core.testtools.TestIO" title="hydpy.core.testtools.TestIO"><code class="xref py py-class docutils literal notranslate"><span class="pre">TestIO</span></code></a> copies all eventually generated <cite>.coverage</cite>
+files into the <cite>test</cite> subpackage to assure no covered lines are
+reported as uncovered.</p>
+<dl class="method">
+<dt id="hydpy.core.testtools.TestIO.clear">
+<em class="property">classmethod </em><code class="sig-name descname">clear</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/core/testtools.html#TestIO.clear"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hydpy.core.testtools.TestIO.clear" title="Permalink to this definition">¶</a></dt>
+<dd><p>Remove all files from the <cite>iotesting</cite> folder.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="hydpy.core.testtools.make_abc_testable">
+<code class="sig-prename descclassname">hydpy.core.testtools.</code><code class="sig-name descname">make_abc_testable</code><span class="sig-paren">(</span><em class="sig-param">abstract: Type</em><span class="sig-paren">)</span> &#x2192; Type<a class="reference internal" href="_modules/hydpy/core/testtools.html#make_abc_testable"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hydpy.core.testtools.make_abc_testable" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a concrete version of the given abstract base class for
+testing purposes.</p>
+<p>Abstract base classes cannot be (and, at least in production code,
+should not be) instantiated:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy.core.netcdftools</span> <span class="k">import</span> <span class="n">NetCDFVariableBase</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ncvar</span> <span class="o">=</span> <span class="n">NetCDFVariableBase</span><span class="p">()</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">TypeError</span>: <span class="n">Can&#39;t instantiate abstract class NetCDFVariableBase with abstract methods array, dimensions, read, subdevicenames, write</span>
+</pre></div>
+</div>
+<p>However, it is convenient to do so for testing (partly) abstract
+base classes in doctests.  The derived class returned by function
+<a class="reference internal" href="#hydpy.core.testtools.make_abc_testable" title="hydpy.core.testtools.make_abc_testable"><code class="xref py py-func docutils literal notranslate"><span class="pre">make_abc_testable()</span></code></a> is identical with the original one, except that
+its protection against initialization is disabled:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy</span> <span class="k">import</span> <span class="n">make_abc_testable</span><span class="p">,</span> <span class="n">classname</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ncvar</span> <span class="o">=</span> <span class="n">make_abc_testable</span><span class="p">(</span><span class="n">NetCDFVariableBase</span><span class="p">)(</span><span class="kc">False</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>To avoid confusion, <a class="reference internal" href="#hydpy.core.testtools.make_abc_testable" title="hydpy.core.testtools.make_abc_testable"><code class="xref py py-func docutils literal notranslate"><span class="pre">make_abc_testable()</span></code></a> suffixes an underscore the
+original classname:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">classname</span><span class="p">(</span><span class="n">ncvar</span><span class="p">)</span>
+<span class="go">&#39;NetCDFVariableBase_&#39;</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="hydpy.core.testtools.mock_datetime_now">
+<code class="sig-prename descclassname">hydpy.core.testtools.</code><code class="sig-name descname">mock_datetime_now</code><span class="sig-paren">(</span><em class="sig-param">testdatetime</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/core/testtools.html#mock_datetime_now"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hydpy.core.testtools.mock_datetime_now" title="Permalink to this definition">¶</a></dt>
+<dd><p>Let class method <code class="xref py py-func docutils literal notranslate"><span class="pre">now()</span></code> of class <a class="reference external" href="https://docs.python.org/3/library/datetime.html#datetime.datetime" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">datetime</span></code></a>
+of module <a class="reference external" href="https://docs.python.org/3/library/datetime.html#module-datetime" title="(in Python v3.8)"><code class="xref py py-mod docutils literal notranslate"><span class="pre">datetime</span></code></a> return the given date for testing purposes within
+a “with block”.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">datetime</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">testdate</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="p">(</span><span class="mi">2000</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">12</span><span class="p">,</span> <span class="mi">30</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">999</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">testdate</span> <span class="o">==</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span>
+<span class="go">False</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy</span> <span class="k">import</span> <span class="n">classname</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">classname</span><span class="p">(</span><span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="p">)</span>
+<span class="go">&#39;datetime&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy.core.testtools</span> <span class="k">import</span> <span class="n">mock_datetime_now</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">mock_datetime_now</span><span class="p">(</span><span class="n">testdate</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="n">testdate</span> <span class="o">==</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span>
+<span class="gp">... </span>    <span class="n">classname</span><span class="p">(</span><span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="p">)</span>
+<span class="go">True</span>
+<span class="go">&#39;_DateTime&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">testdate</span> <span class="o">==</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span>
+<span class="go">False</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">classname</span><span class="p">(</span><span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="p">)</span>
+<span class="go">&#39;datetime&#39;</span>
+</pre></div>
+</div>
+<p>A test to see that mocking <a class="reference external" href="https://docs.python.org/3/library/datetime.html#datetime.datetime" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">datetime</span></code></a> does not interfere
+with initialising <a class="reference internal" href="timetools.html#hydpy.core.timetools.Date" title="hydpy.core.timetools.Date"><code class="xref py py-class docutils literal notranslate"><span class="pre">Date</span></code></a> objects and that exceptions are property
+handled:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy</span> <span class="k">import</span> <span class="n">Date</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">mock_datetime_now</span><span class="p">(</span><span class="n">testdate</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="n">Date</span><span class="p">(</span><span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="p">(</span><span class="mi">2000</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">12</span><span class="p">,</span> <span class="mi">30</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">999</span><span class="p">))</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">ValueError</span>: <span class="n">While trying to initialise a `Date` object based on argument `2000-10-01 12:30:00.000999`, the following error occurred: For `Date` instances, the microsecond must be zero, but for the given `datetime` object it is `999` instead.</span>
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">classname</span><span class="p">(</span><span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="p">)</span>
+<span class="go">&#39;datetime&#39;</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/HydPy_Logo.png" alt="Logo"/>
+            </a></p>
+  <h3><a href="index.html">Table of Contents</a></h3>
+  <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="install.html">Installation Instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quick Start</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="framework.html">Framework Tools</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="core.html">Core Tools</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="autodoctools.html">autodoctools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="auxfiletools.html">auxfiletools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="devicetools.html">devicetools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="dummytools.html">dummytools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="exceptiontools.html">exceptiontools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="filetools.html">filetools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="hydpytools.html">hydpytools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="importtools.html">importtools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="indextools.html">indextools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="itemtools.html">itemtools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="masktools.html">masktools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="modeltools.html">modeltools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="netcdftools.html">netcdftools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="objecttools.html">objecttools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="optiontools.html">optiontools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="parametertools.html">parametertools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="printtools.html">printtools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="propertytools.html">propertytools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="pubtools.html">pubtools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="selectiontools.html">selectiontools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="sequencetools.html">sequencetools</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">testtools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="timetools.html">timetools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="typingtools.html">typingtools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="variabletools.html">variabletools</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="execution.html">Execution Tools</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cythons.html">Cython Tools</a></li>
+<li class="toctree-l2"><a class="reference internal" href="auxiliaries.html">Auxiliary Tools</a></li>
+<li class="toctree-l2"><a class="reference internal" href="configuration.html">Configuration Tools</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="modelcollection.html">Model Collection</a></li>
+<li class="toctree-l1"><a class="reference internal" href="development.html">Development</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples.html">Example Projects</a></li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="sequencetools.html"
+                        title="previous chapter">sequencetools</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="timetools.html"
+                        title="next chapter">timetools</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/testtools.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="timetools.html" title="timetools"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="sequencetools.html" title="sequencetools"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">HydPy 4.0a11 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="framework.html" >Framework Tools</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="core.html" >Core Tools</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2019, HydPy Developers.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.2.1.
+    </div>
+  </body>
+</html>
