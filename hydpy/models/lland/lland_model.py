@@ -858,8 +858,8 @@ class Calc_QBB_V1(modeltools.Method):
         >>> beta(0.04)
         >>> fbeta(2.0)
         >>> wmax(100.0, 100.0, 100.0, 0.0, 100.0, 100.0, 100.0, 200.0)
-        >>> derived.pwp(10.0)
-        >>> derived.FK(70.0)
+        >>> pwp(10.0)
+        >>> fk(70.0)
 
         Note the time dependence of parameter |Beta|:
 
@@ -883,7 +883,7 @@ class Calc_QBB_V1(modeltools.Method):
         that both exhibit different relative soil moistures.  It is
         common to modify this "pure absolute dependency" to a "mixed
         absolute/relative dependency" through defining the values of
-        parameter |PWP| indirectly via parameter |RelPWP|.
+        parameter |PWP| indirectly via a relative parameter |PWP|.
 
         In the second example, the actual soil water content |BoWa| is set
         to high values.  For values below threshold |FK|, the discussion above
@@ -902,10 +902,8 @@ class Calc_QBB_V1(modeltools.Method):
         lland_control.WMax,
         lland_control.Beta,
         lland_control.FBeta,
-    )
-    DERIVEDPARAMETERS = (
-        lland_derived.PWP,
-        lland_derived.FK,
+        lland_control.PWP,
+        lland_control.FK,
     )
     REQUIREDSEQUENCES = (
         lland_states.BoWa,
@@ -916,19 +914,18 @@ class Calc_QBB_V1(modeltools.Method):
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
-        der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
         sta = model.sequences.states.fastaccess
         for k in range(con.nhru):
             if ((con.lnk[k] in (VERS, WASSER, FLUSS, SEE)) or
-                    (sta.bowa[k] <= der.pwp[k]) or (con.wmax[k] <= 0.)):
+                    (sta.bowa[k] <= con.pwp[k]) or (con.wmax[k] <= 0.)):
                 flu.qbb[k] = 0.
-            elif sta.bowa[k] <= der.fk[k]:
-                flu.qbb[k] = con.beta[k]*(sta.bowa[k]-der.pwp[k])
+            elif sta.bowa[k] <= con.fk[k]:
+                flu.qbb[k] = con.beta[k]*(sta.bowa[k]-con.pwp[k])
             else:
-                flu.qbb[k] = (con.beta[k]*(sta.bowa[k]-der.pwp[k]) *
-                              (1.+(con.fbeta[k]-1.)*((sta.bowa[k]-der.fk[k]) /
-                                                     (con.wmax[k]-der.fk[k]))))
+                flu.qbb[k] = (con.beta[k]*(sta.bowa[k]-con.pwp[k]) *
+                              (1.+(con.fbeta[k]-1.)*((sta.bowa[k]-con.fk[k]) /
+                                                     (con.wmax[k]-con.fk[k]))))
 
 
 class Calc_QIB1_V1(modeltools.Method):
@@ -953,7 +950,7 @@ class Calc_QIB1_V1(modeltools.Method):
         >>> dmax(10.0)
         >>> dmin(4.0)
         >>> wmax(101.0, 101.0, 101.0, 0.0, 101.0, 101.0, 101.0, 202.0)
-        >>> derived.pwp(10.0)
+        >>> pwp(10.0)
         >>> states.bowa = 10.1, 10.1, 10.1, 0.0, 0.0, 10.0, 10.1, 10.1
 
         Note the time dependence of parameter |DMin|:
@@ -982,9 +979,7 @@ class Calc_QIB1_V1(modeltools.Method):
         lland_control.Lnk,
         lland_control.DMin,
         lland_control.WMax,
-    )
-    DERIVEDPARAMETERS = (
-        lland_derived.PWP,
+        lland_control.PWP,
     )
     REQUIREDSEQUENCES = (
         lland_states.BoWa,
@@ -995,12 +990,11 @@ class Calc_QIB1_V1(modeltools.Method):
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
-        der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
         sta = model.sequences.states.fastaccess
         for k in range(con.nhru):
             if ((con.lnk[k] in (VERS, WASSER, FLUSS, SEE)) or
-                    (sta.bowa[k] <= der.pwp[k])):
+                    (sta.bowa[k] <= con.pwp[k])):
                 flu.qib1[k] = 0.
             else:
                 flu.qib1[k] = con.dmin[k]*(sta.bowa[k]/con.wmax[k])
@@ -1029,7 +1023,7 @@ class Calc_QIB2_V1(modeltools.Method):
         >>> dmax(10.0)
         >>> dmin(4.0)
         >>> wmax(100.0, 100.0, 100.0, 50.0, 100.0, 100.0, 100.0, 200.0)
-        >>> derived.fk(50.0)
+        >>> fk(50.0)
         >>> states.bowa = 100.0, 100.0, 100.0, 50.1, 50.0, 75.0, 100.0, 100.0
 
         Note the time dependence of parameters |DMin| (see the example above)
@@ -1062,9 +1056,7 @@ class Calc_QIB2_V1(modeltools.Method):
         lland_control.WMax,
         lland_control.DMax,
         lland_control.DMin,
-    )
-    DERIVEDPARAMETERS = (
-        lland_derived.FK,
+        lland_control.FK,
     )
     REQUIREDSEQUENCES = (
         lland_states.BoWa,
@@ -1075,17 +1067,16 @@ class Calc_QIB2_V1(modeltools.Method):
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
-        der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
         sta = model.sequences.states.fastaccess
         for k in range(con.nhru):
             if ((con.lnk[k] in (VERS, WASSER, FLUSS, SEE)) or
-                    (sta.bowa[k] <= der.fk[k]) or (con.wmax[k] <= der.fk[k])):
+                    (sta.bowa[k] <= con.fk[k]) or (con.wmax[k] <= con.fk[k])):
                 flu.qib2[k] = 0.
             else:
                 flu.qib2[k] = ((con.dmax[k]-con.dmin[k]) *
-                               ((sta.bowa[k]-der.fk[k]) /
-                                (con.wmax[k]-der.fk[k]))**1.5)
+                               ((sta.bowa[k]-con.fk[k]) /
+                                (con.wmax[k]-con.fk[k]))**1.5)
 
 
 class Calc_QDB_V1(modeltools.Method):
