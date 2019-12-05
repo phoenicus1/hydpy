@@ -879,12 +879,9 @@ class Calc_QBB_V1(modeltools.Method):
         >>> fluxes.qbb
         qbb(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.2, 0.2)
 
-        Note that for the last two HRUs the same amount of
-        base flow generation is determined, in spite of the fact
-        that both exhibit different relative soil moistures.  It is
-        common to modify this "pure absolute dependency" to a "mixed
-        absolute/relative dependency" through defining the values of
-        parameter |PWP| indirectly via a relative parameter |PWP|.
+        Note that for the last two HRUs the same amount of base flow
+        generation is determined, in spite of the fact that both exhibit
+        different relative soil moistures.
 
         In the second example, the actual soil water content |BoWa| is set
         to high values.  For values below threshold |FK|, the discussion above
