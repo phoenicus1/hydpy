@@ -298,8 +298,8 @@ class GrasRef_R(parametertools.Parameter):
     INIT = 5.
 
 
-class NFk(lland_parameters.ParameterSoil):
-    """Nutzbare Feldkapazität (usable field capacity) [mm]."""
+class WMax(lland_parameters.ParameterSoil):
+    """Maximaler Bodenwasserspeicher  (maximum soil water storage) [mm]."""
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0., None)
     INIT = 100.
 

@@ -764,7 +764,7 @@ class Calc_EvB_V1(modeltools.Method):
     """Calculate the actual water release from the snow cover.
 
     Basic equations:
-      :math:`temp = exp(-GrasRef_R \\cdot \\frac{BoWa}{NFk})`
+      :math:`temp = exp(-GrasRef_R \\cdot \\frac{BoWa}{WMax})`
 
       :math:`EvB = (EvPo - EvI) \\cdot
       \\frac{1 - temp}{1 + temp -2 \\cdot exp(-GrasRef_R)}`
@@ -783,7 +783,7 @@ class Calc_EvB_V1(modeltools.Method):
         >>> nhru(7)
         >>> lnk(FLUSS, SEE, VERS, ACKER, ACKER, ACKER, ACKER)
         >>> grasref_r(5.0)
-        >>> nfk(100.0, 100.0, 100.0, 0.0, 100.0, 100.0, 100.0)
+        >>> wmax(100.0, 100.0, 100.0, 0.0, 100.0, 100.0, 100.0)
         >>> fluxes.evpo = 5.0
         >>> fluxes.evi = 3.0
         >>> states.bowa = 50.0, 50.0, 50.0, 0.0, 0.0, 50.0, 100.0
@@ -791,7 +791,7 @@ class Calc_EvB_V1(modeltools.Method):
         >>> fluxes.evb
         evb(0.0, 0.0, 0.0, 0.0, 0.0, 1.717962, 2.0)
 
-        In case usable field capacity (|NFk|) is zero, soil evaporation
+        In case maximum soil water storage (|WMax|) is zero, soil evaporation
         (|EvB|) is generally set to zero (see the forth HRU).  The last
         three HRUs demonstrate the rise in soil evaporation with increasing
         soil moisture, which is lessening in the high soil moisture range.
@@ -799,7 +799,7 @@ class Calc_EvB_V1(modeltools.Method):
     CONTROLPARAMETERS = (
         lland_control.NHRU,
         lland_control.Lnk,
-        lland_control.NFk,
+        lland_control.WMax,
         lland_control.GrasRef_R,
     )
     REQUIREDSEQUENCES = (
@@ -816,11 +816,11 @@ class Calc_EvB_V1(modeltools.Method):
         flu = model.sequences.fluxes.fastaccess
         sta = model.sequences.states.fastaccess
         for k in range(con.nhru):
-            if (con.lnk[k] in (VERS, WASSER, FLUSS, SEE)) or (con.nfk[k] <= 0.):
+            if (con.lnk[k] in (VERS, WASSER, FLUSS, SEE)) or (con.wmax[k] <= 0.):
                 flu.evb[k] = 0.
             else:
                 d_temp = modelutils.exp(-con.grasref_r *
-                                        sta.bowa[k]/con.nfk[k])
+                                        sta.bowa[k]/con.wmax[k])
                 flu.evb[k] = ((flu.evpo[k]-flu.evi[k]) * (1.-d_temp) /
                               (1.+d_temp-2.*modelutils.exp(-con.grasref_r)))
 
@@ -833,7 +833,7 @@ class Calc_QBB_V1(modeltools.Method):
       {
       {Beta \\ | \\ BoWa \\leq WZ}
       \\atop
-      {Beta \\cdot (1+(FBeta-1)\\cdot\\frac{BoWa-WZ}{NFk-WZ}) \\|\\ BoWa > WZ}
+      {Beta \\cdot (1+(FBeta-1)\\cdot\\frac{BoWa-WZ}{WMax-WZ}) \\|\\ BoWa > WZ}
       }`
 
       :math:`QBB = \\Bigl \\lbrace
@@ -857,7 +857,7 @@ class Calc_QBB_V1(modeltools.Method):
         >>> lnk(FLUSS, SEE, VERS, ACKER, ACKER, ACKER, ACKER, ACKER)
         >>> beta(0.04)
         >>> fbeta(2.0)
-        >>> nfk(100.0, 100.0, 100.0, 0.0, 100.0, 100.0, 100.0, 200.0)
+        >>> wmax(100.0, 100.0, 100.0, 0.0, 100.0, 100.0, 100.0, 200.0)
         >>> derived.wb(10.0)
         >>> derived.wz(70.0)
 
@@ -890,7 +890,7 @@ class Calc_QBB_V1(modeltools.Method):
         remains valid.  For values above |WZ|, percolation shows a nonlinear
         behaviour when factor |FBeta| is set to values larger than one:
 
-        >>> nfk(0.0, 0.0, 0.0, 100.0, 100.0, 100.0, 100.0, 200.0)
+        >>> wmax(0.0, 0.0, 0.0, 100.0, 100.0, 100.0, 100.0, 200.0)
         >>> states.bowa = 0.0, 0.0, 0.0, 60.0, 70.0, 80.0, 100.0, 200.0
         >>> model.calc_qbb_v1()
         >>> fluxes.qbb
@@ -899,7 +899,7 @@ class Calc_QBB_V1(modeltools.Method):
     CONTROLPARAMETERS = (
         lland_control.NHRU,
         lland_control.Lnk,
-        lland_control.NFk,
+        lland_control.WMax,
         lland_control.Beta,
         lland_control.FBeta,
     )
@@ -921,21 +921,21 @@ class Calc_QBB_V1(modeltools.Method):
         sta = model.sequences.states.fastaccess
         for k in range(con.nhru):
             if ((con.lnk[k] in (VERS, WASSER, FLUSS, SEE)) or
-                    (sta.bowa[k] <= der.wb[k]) or (con.nfk[k] <= 0.)):
+                    (sta.bowa[k] <= der.wb[k]) or (con.wmax[k] <= 0.)):
                 flu.qbb[k] = 0.
             elif sta.bowa[k] <= der.wz[k]:
                 flu.qbb[k] = con.beta[k]*(sta.bowa[k]-der.wb[k])
             else:
                 flu.qbb[k] = (con.beta[k]*(sta.bowa[k]-der.wb[k]) *
                               (1.+(con.fbeta[k]-1.)*((sta.bowa[k]-der.wz[k]) /
-                                                     (con.nfk[k]-der.wz[k]))))
+                                                     (con.wmax[k]-der.wz[k]))))
 
 
 class Calc_QIB1_V1(modeltools.Method):
     """Calculate the first inflow component released from the soil.
 
     Basic equation:
-      :math:`QIB1 = DMin \\cdot \\frac{BoWa}{NFk}`
+      :math:`QIB1 = DMin \\cdot \\frac{BoWa}{WMax}`
 
     Examples:
 
@@ -952,7 +952,7 @@ class Calc_QIB1_V1(modeltools.Method):
         >>> lnk(FLUSS, SEE, VERS, ACKER, ACKER, ACKER, ACKER, ACKER)
         >>> dmax(10.0)
         >>> dmin(4.0)
-        >>> nfk(101.0, 101.0, 101.0, 0.0, 101.0, 101.0, 101.0, 202.0)
+        >>> wmax(101.0, 101.0, 101.0, 0.0, 101.0, 101.0, 101.0, 202.0)
         >>> derived.wb(10.0)
         >>> states.bowa = 10.1, 10.1, 10.1, 0.0, 0.0, 10.0, 10.1, 10.1
 
@@ -981,7 +981,7 @@ class Calc_QIB1_V1(modeltools.Method):
         lland_control.NHRU,
         lland_control.Lnk,
         lland_control.DMin,
-        lland_control.NFk,
+        lland_control.WMax,
     )
     DERIVEDPARAMETERS = (
         lland_derived.WB,
@@ -1003,7 +1003,7 @@ class Calc_QIB1_V1(modeltools.Method):
                     (sta.bowa[k] <= der.wb[k])):
                 flu.qib1[k] = 0.
             else:
-                flu.qib1[k] = con.dmin[k]*(sta.bowa[k]/con.nfk[k])
+                flu.qib1[k] = con.dmin[k]*(sta.bowa[k]/con.wmax[k])
 
 
 class Calc_QIB2_V1(modeltools.Method):
@@ -1011,7 +1011,7 @@ class Calc_QIB2_V1(modeltools.Method):
 
     Basic equation:
       :math:`QIB2 = (DMax-DMin) \\cdot
-      (\\frac{BoWa-WZ}{NFk-WZ})^\\frac{3}{2}`
+      (\\frac{BoWa-WZ}{WMax-WZ})^\\frac{3}{2}`
 
     Examples:
 
@@ -1028,7 +1028,7 @@ class Calc_QIB2_V1(modeltools.Method):
         >>> lnk(FLUSS, SEE, VERS, ACKER, ACKER, ACKER, ACKER, ACKER)
         >>> dmax(10.0)
         >>> dmin(4.0)
-        >>> nfk(100.0, 100.0, 100.0, 50.0, 100.0, 100.0, 100.0, 200.0)
+        >>> wmax(100.0, 100.0, 100.0, 50.0, 100.0, 100.0, 100.0, 200.0)
         >>> derived.wz(50.0)
         >>> states.bowa = 100.0, 100.0, 100.0, 50.1, 50.0, 75.0, 100.0, 100.0
 
@@ -1054,12 +1054,12 @@ class Calc_QIB2_V1(modeltools.Method):
         value of 2 mm/12h is be calculated by method |Calc_QIB1_V1|.
 
         (The fourth zone, which is slightly oversaturated, is only intended
-        to demonstrate that zero division due to |NFk| = |WZ| is circumvented.)
+        to demonstrate that zero division due to |WMax| = |WZ| is circumvented.)
     """
     CONTROLPARAMETERS = (
         lland_control.NHRU,
         lland_control.Lnk,
-        lland_control.NFk,
+        lland_control.WMax,
         lland_control.DMax,
         lland_control.DMin,
     )
@@ -1080,12 +1080,12 @@ class Calc_QIB2_V1(modeltools.Method):
         sta = model.sequences.states.fastaccess
         for k in range(con.nhru):
             if ((con.lnk[k] in (VERS, WASSER, FLUSS, SEE)) or
-                    (sta.bowa[k] <= der.wz[k]) or (con.nfk[k] <= der.wz[k])):
+                    (sta.bowa[k] <= der.wz[k]) or (con.wmax[k] <= der.wz[k])):
                 flu.qib2[k] = 0.
             else:
                 flu.qib2[k] = ((con.dmax[k]-con.dmin[k]) *
                                ((sta.bowa[k]-der.wz[k]) /
-                                (con.nfk[k]-der.wz[k]))**1.5)
+                                (con.wmax[k]-der.wz[k]))**1.5)
 
 
 class Calc_QDB_V1(modeltools.Method):
@@ -1096,13 +1096,13 @@ class Calc_QDB_V1(modeltools.Method):
       {
       {max(Exz, 0) \\ | \\ SfA \\leq 0}
       \\atop
-      {max(Exz + NFk \\cdot SfA^{BSf+1}, 0) \\ | \\ SfA > 0}
+      {max(Exz + WMax \\cdot SfA^{BSf+1}, 0) \\ | \\ SfA > 0}
       }`
 
-      :math:`SFA = (1 - \\frac{BoWa}{NFk})^\\frac{1}{BSf+1} -
-      \\frac{WaDa}{(BSf+1) \\cdot NFk}`
+      :math:`SFA = (1 - \\frac{BoWa}{WMax})^\\frac{1}{BSf+1} -
+      \\frac{WaDa}{(BSf+1) \\cdot WMax}`
 
-      :math:`Exz = (BoWa + WaDa) - NFk`
+      :math:`Exz = (BoWa + WaDa) - WMax`
 
     Examples:
 
@@ -1119,7 +1119,7 @@ class Calc_QDB_V1(modeltools.Method):
         >>> nhru(9)
         >>> lnk(FLUSS, SEE, VERS, ACKER, ACKER, ACKER, ACKER, ACKER, ACKER)
         >>> bsf(0.4)
-        >>> nfk(100.0, 100.0, 100.0, 0.0, 100.0, 100.0, 100.0, 100.0, 100.0)
+        >>> wmax(100.0, 100.0, 100.0, 0.0, 100.0, 100.0, 100.0, 100.0, 100.0)
         >>> fluxes.wada = 10.0
         >>> states.bowa = (
         ...     100.0, 100.0, 100.0, 0.0, -0.1, 0.0, 50.0, 100.0, 100.1)
@@ -1136,7 +1136,7 @@ class Calc_QDB_V1(modeltools.Method):
     CONTROLPARAMETERS = (
         lland_control.NHRU,
         lland_control.Lnk,
-        lland_control.NFk,
+        lland_control.WMax,
         lland_control.BSf,
     )
     REQUIREDSEQUENCES = (
@@ -1158,19 +1158,19 @@ class Calc_QDB_V1(modeltools.Method):
             if con.lnk[k] == WASSER:
                 flu.qdb[k] = 0.
             elif ((con.lnk[k] in (VERS, FLUSS, SEE)) or
-                  (con.nfk[k] <= 0.)):
+                  (con.wmax[k] <= 0.)):
                 flu.qdb[k] = flu.wada[k]
             else:
-                if sta.bowa[k] < con.nfk[k]:
+                if sta.bowa[k] < con.wmax[k]:
                     aid.sfa[k] = (
-                        (1.-sta.bowa[k]/con.nfk[k])**(1./(con.bsf[k]+1.)) -
-                        (flu.wada[k]/((con.bsf[k]+1.)*con.nfk[k])))
+                        (1.-sta.bowa[k]/con.wmax[k])**(1./(con.bsf[k]+1.)) -
+                        (flu.wada[k]/((con.bsf[k]+1.)*con.wmax[k])))
                 else:
                     aid.sfa[k] = 0.
-                aid.exz[k] = sta.bowa[k]+flu.wada[k]-con.nfk[k]
+                aid.exz[k] = sta.bowa[k]+flu.wada[k]-con.wmax[k]
                 flu.qdb[k] = aid.exz[k]
                 if aid.sfa[k] > 0.:
-                    flu.qdb[k] += aid.sfa[k]**(con.bsf[k]+1.)*con.nfk[k]
+                    flu.qdb[k] += aid.sfa[k]**(con.bsf[k]+1.)*con.wmax[k]
                 flu.qdb[k] = max(flu.qdb[k], 0.)
 
 
