@@ -831,16 +831,16 @@ class Calc_QBB_V1(modeltools.Method):
     Basic equations:
       :math:`Beta_{eff} = \\Bigl \\lbrace
       {
-      {Beta \\ | \\ BoWa \\leq WZ}
+      {Beta \\ | \\ BoWa \\leq FK}
       \\atop
-      {Beta \\cdot (1+(FBeta-1)\\cdot\\frac{BoWa-WZ}{WMax-WZ}) \\|\\ BoWa > WZ}
+      {Beta \\cdot (1+(FBeta-1)\\cdot\\frac{BoWa-FK}{WMax-FK}) \\|\\ BoWa > FK}
       }`
 
       :math:`QBB = \\Bigl \\lbrace
       {
-      {0 \\ | \\ BoWa \\leq WB}
+      {0 \\ | \\ BoWa \\leq PWP}
       \\atop
-      {Beta_{eff}  \\cdot (BoWa - WB) \\|\\ BoWa > WB}
+      {Beta_{eff}  \\cdot (BoWa - PWP) \\|\\ BoWa > PWP}
       }`
 
     Examples:
@@ -858,8 +858,8 @@ class Calc_QBB_V1(modeltools.Method):
         >>> beta(0.04)
         >>> fbeta(2.0)
         >>> wmax(100.0, 100.0, 100.0, 0.0, 100.0, 100.0, 100.0, 200.0)
-        >>> derived.wb(10.0)
-        >>> derived.wz(70.0)
+        >>> derived.pwp(10.0)
+        >>> derived.FK(70.0)
 
         Note the time dependence of parameter |Beta|:
 
@@ -869,8 +869,8 @@ class Calc_QBB_V1(modeltools.Method):
         array([ 0.02,  0.02,  0.02,  0.02,  0.02,  0.02,  0.02,  0.02])
 
         In the first example, the actual soil water content |BoWa| is set
-        to low values.  For values below the threshold |WB|, not percolation
-        occurs.  Above |WB| (but below |WZ|), |QBB| increases linearly by
+        to low values.  For values below the threshold |PWP|, no percolation
+        occurs.  Above |PWP| (but below |FK|), |QBB| increases linearly by
         an amount defined by parameter |Beta|:
 
         >>> states.bowa = 20.0, 20.0, 20.0, 0.0, 0.0, 10.0, 20.0, 20.0
@@ -883,11 +883,11 @@ class Calc_QBB_V1(modeltools.Method):
         that both exhibit different relative soil moistures.  It is
         common to modify this "pure absolute dependency" to a "mixed
         absolute/relative dependency" through defining the values of
-        parameter |WB| indirectly via parameter |RelWB|.
+        parameter |PWP| indirectly via parameter |RelPWP|.
 
         In the second example, the actual soil water content |BoWa| is set
-        to high values.  For values below threshold |WZ|, the discussion above
-        remains valid.  For values above |WZ|, percolation shows a nonlinear
+        to high values.  For values below threshold |FK|, the discussion above
+        remains valid.  For values above |FK|, percolation shows a nonlinear
         behaviour when factor |FBeta| is set to values larger than one:
 
         >>> wmax(0.0, 0.0, 0.0, 100.0, 100.0, 100.0, 100.0, 200.0)
@@ -904,8 +904,8 @@ class Calc_QBB_V1(modeltools.Method):
         lland_control.FBeta,
     )
     DERIVEDPARAMETERS = (
-        lland_derived.WB,
-        lland_derived.WZ,
+        lland_derived.PWP,
+        lland_derived.FK,
     )
     REQUIREDSEQUENCES = (
         lland_states.BoWa,
@@ -921,14 +921,14 @@ class Calc_QBB_V1(modeltools.Method):
         sta = model.sequences.states.fastaccess
         for k in range(con.nhru):
             if ((con.lnk[k] in (VERS, WASSER, FLUSS, SEE)) or
-                    (sta.bowa[k] <= der.wb[k]) or (con.wmax[k] <= 0.)):
+                    (sta.bowa[k] <= der.pwp[k]) or (con.wmax[k] <= 0.)):
                 flu.qbb[k] = 0.
-            elif sta.bowa[k] <= der.wz[k]:
-                flu.qbb[k] = con.beta[k]*(sta.bowa[k]-der.wb[k])
+            elif sta.bowa[k] <= der.fk[k]:
+                flu.qbb[k] = con.beta[k]*(sta.bowa[k]-der.pwp[k])
             else:
-                flu.qbb[k] = (con.beta[k]*(sta.bowa[k]-der.wb[k]) *
-                              (1.+(con.fbeta[k]-1.)*((sta.bowa[k]-der.wz[k]) /
-                                                     (con.wmax[k]-der.wz[k]))))
+                flu.qbb[k] = (con.beta[k]*(sta.bowa[k]-der.pwp[k]) *
+                              (1.+(con.fbeta[k]-1.)*((sta.bowa[k]-der.fk[k]) /
+                                                     (con.wmax[k]-der.fk[k]))))
 
 
 class Calc_QIB1_V1(modeltools.Method):
@@ -953,7 +953,7 @@ class Calc_QIB1_V1(modeltools.Method):
         >>> dmax(10.0)
         >>> dmin(4.0)
         >>> wmax(101.0, 101.0, 101.0, 0.0, 101.0, 101.0, 101.0, 202.0)
-        >>> derived.wb(10.0)
+        >>> derived.pwp(10.0)
         >>> states.bowa = 10.1, 10.1, 10.1, 0.0, 0.0, 10.0, 10.1, 10.1
 
         Note the time dependence of parameter |DMin|:
@@ -974,7 +974,7 @@ class Calc_QIB1_V1(modeltools.Method):
         eight HRU, the generation of the first interflow component |QIB1|
         depends on relative soil moisture.  Secondly, as demonstrated with
         the help the sixth and seventh HRU, it starts abruptly whenever
-        the slightest exceedance of the threshold  parameter |WB| occurs.
+        the slightest exceedance of the threshold  parameter |PWP| occurs.
         Such sharp discontinuouties are a potential source of trouble.
     """
     CONTROLPARAMETERS = (
@@ -984,7 +984,7 @@ class Calc_QIB1_V1(modeltools.Method):
         lland_control.WMax,
     )
     DERIVEDPARAMETERS = (
-        lland_derived.WB,
+        lland_derived.PWP,
     )
     REQUIREDSEQUENCES = (
         lland_states.BoWa,
@@ -1000,7 +1000,7 @@ class Calc_QIB1_V1(modeltools.Method):
         sta = model.sequences.states.fastaccess
         for k in range(con.nhru):
             if ((con.lnk[k] in (VERS, WASSER, FLUSS, SEE)) or
-                    (sta.bowa[k] <= der.wb[k])):
+                    (sta.bowa[k] <= der.pwp[k])):
                 flu.qib1[k] = 0.
             else:
                 flu.qib1[k] = con.dmin[k]*(sta.bowa[k]/con.wmax[k])
@@ -1011,7 +1011,7 @@ class Calc_QIB2_V1(modeltools.Method):
 
     Basic equation:
       :math:`QIB2 = (DMax-DMin) \\cdot
-      (\\frac{BoWa-WZ}{WMax-WZ})^\\frac{3}{2}`
+      (\\frac{BoWa-FK}{WMax-FK})^\\frac{3}{2}`
 
     Examples:
 
@@ -1029,7 +1029,7 @@ class Calc_QIB2_V1(modeltools.Method):
         >>> dmax(10.0)
         >>> dmin(4.0)
         >>> wmax(100.0, 100.0, 100.0, 50.0, 100.0, 100.0, 100.0, 200.0)
-        >>> derived.wz(50.0)
+        >>> derived.fk(50.0)
         >>> states.bowa = 100.0, 100.0, 100.0, 50.1, 50.0, 75.0, 100.0, 100.0
 
         Note the time dependence of parameters |DMin| (see the example above)
@@ -1054,7 +1054,7 @@ class Calc_QIB2_V1(modeltools.Method):
         value of 2 mm/12h is be calculated by method |Calc_QIB1_V1|.
 
         (The fourth zone, which is slightly oversaturated, is only intended
-        to demonstrate that zero division due to |WMax| = |WZ| is circumvented.)
+        to demonstrate that zero division due to |WMax| = |FK| is circumvented.)
     """
     CONTROLPARAMETERS = (
         lland_control.NHRU,
@@ -1064,7 +1064,7 @@ class Calc_QIB2_V1(modeltools.Method):
         lland_control.DMin,
     )
     DERIVEDPARAMETERS = (
-        lland_derived.WZ,
+        lland_derived.FK,
     )
     REQUIREDSEQUENCES = (
         lland_states.BoWa,
@@ -1080,12 +1080,12 @@ class Calc_QIB2_V1(modeltools.Method):
         sta = model.sequences.states.fastaccess
         for k in range(con.nhru):
             if ((con.lnk[k] in (VERS, WASSER, FLUSS, SEE)) or
-                    (sta.bowa[k] <= der.wz[k]) or (con.wmax[k] <= der.wz[k])):
+                    (sta.bowa[k] <= der.fk[k]) or (con.wmax[k] <= der.fk[k])):
                 flu.qib2[k] = 0.
             else:
                 flu.qib2[k] = ((con.dmax[k]-con.dmin[k]) *
-                               ((sta.bowa[k]-der.wz[k]) /
-                                (con.wmax[k]-der.wz[k]))**1.5)
+                               ((sta.bowa[k]-der.fk[k]) /
+                                (con.wmax[k]-der.fk[k]))**1.5)
 
 
 class Calc_QDB_V1(modeltools.Method):

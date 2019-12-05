@@ -304,49 +304,51 @@ class WMax(lland_parameters.ParameterSoil):
     INIT = 100.
 
 
-class RelWZ(lland_parameters.ParameterSoil):
-    """Relative Mindestbodenfeuchte für die Interflowentstehung (threshold
-       value of relative soil moisture for interflow generation) [-]."""
+class RelFK(lland_parameters.ParameterSoil):
+    """Relative Mindestbodenfeuchte für die Interflowentstehung. Relative
+       Feldkapazität (threshold value of relative soil moisture for interflow
+       generation. Relative field capacity) [-]."""
     NDIM, TYPE, TIME, SPAN = 1, float, None, (None, 1.)
     INIT = .8
 
     def trim(self, lower=None, upper=None):
-        """Trim upper values in accordance with :math:`RelWB \\leq RelWZ`.
+        """Trim upper values in accordance with :math:`RelPWP \\leq RelFK`.
 
         >>> from hydpy.models.lland import *
         >>> parameterstep('1d')
         >>> nhru(3)
         >>> lnk(ACKER)
-        >>> relwb.values = 0.5
-        >>> relwz(0.2, 0.5, 0.8)
-        >>> relwz
-        relwz(0.5, 0.5, 0.8)
+        >>> relpwp.values = 0.5
+        >>> relfk(0.2, 0.5, 0.8)
+        >>> relfk
+        relfk(0.5, 0.5, 0.8)
         """
         if lower is None:
-            lower = getattr(self.subpars.relwb, 'value', None)
+            lower = getattr(self.subpars.relpwp, 'value', None)
         lland_parameters.ParameterSoil.trim(self, lower, upper)
 
 
-class RelWB(lland_parameters.ParameterSoil):
-    """Relative Mindestbodenfeuchte für die Basisabflussentstehung (threshold
-       value of relative soil moisture for base flow generation) [-]."""
+class RelPWP(lland_parameters.ParameterSoil):
+    """Relative Mindestbodenfeuchte für die Basisabflussentstehung. Relativer
+    permanenter Welkepunkt (threshold value of relative soil moisture for base
+    flow generation. Relative permanent wilting point) [-]."""
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0., None)
     INIT = .05
 
     def trim(self, lower=None, upper=None):
-        """Trim upper values in accordance with :math:`RelWB \\leq RelWZ`.
+        """Trim upper values in accordance with :math:`RelPWP \\leq RelFK`.
 
         >>> from hydpy.models.lland import *
         >>> parameterstep('1d')
         >>> nhru(3)
         >>> lnk(ACKER)
-        >>> relwz.values = 0.5
-        >>> relwb(0.2, 0.5, 0.8)
-        >>> relwb
-        relwb(0.2, 0.5, 0.5)
+        >>> relfk.values = 0.5
+        >>> relpwp(0.2, 0.5, 0.8)
+        >>> relpwp
+        relpwp(0.2, 0.5, 0.5)
         """
         if upper is None:
-            upper = getattr(self.subpars.relwz, 'value', None)
+            upper = getattr(self.subpars.relfk, 'value', None)
         lland_parameters.ParameterSoil.trim(self, lower, upper)
 
 

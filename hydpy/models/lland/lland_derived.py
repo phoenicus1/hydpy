@@ -70,58 +70,77 @@ class KInz(lland_parameters.LanduseMonthParameter):
         self.value = con.hinz*con.lai
 
 
-class WB(lland_parameters.ParameterComplete):
-    """Absolute Mindestbodenfeuchte für die Basisabflussentstehung (threshold
-       value of absolute soil moisture for base flow generation) [-]."""
+class PWP(lland_parameters.ParameterComplete):
+    """Absolute Mindestbodenfeuchte für die Basisabflussentstehung. Permanenter
+     Welkepunkt (threshold value of absolute soil moisture for base flow 
+     generation. Permanent wilting point) [mm]."""
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0., None)
 
     CONTROLPARAMETERS = (
-        lland_control.RelWB,
+        lland_control.RelPWP,
         lland_control.WMax,
     )
 
     def update(self):
-        """Update |WB| based on |RelWB| and |WMax|.
+        """Update |PWP| based on |RelPWP| and |WMax|.
 
         >>> from hydpy.models.lland import *
         >>> parameterstep('1d')
         >>> nhru(2)
         >>> lnk(ACKER)
-        >>> relwb(0.2)
+        >>> relpwp(0.2)
         >>> wmax(100.0, 200.0)
-        >>> derived.wb.update()
-        >>> derived.wb
-        wb(20.0, 40.0)
+        >>> derived.pwp.update()
+        >>> derived.pwp
+        pwp(20.0, 40.0)
         """
         con = self.subpars.pars.control
-        self.value = con.relwb*con.wmax
+        self.value = con.relpwp*con.wmax
 
 
-class WZ(lland_parameters.ParameterComplete):
-    """Absolute Mindestbodenfeuchte für die Interflowentstehung (threshold
-       value of absolute soil moisture for interflow generation) [-]."""
+class FK(lland_parameters.ParameterComplete):
+    """Absolute Mindestbodenfeuchte für die Interflowentstehung. Feldkapazität
+       (threshold value of absolute soil moisture for interflow generation.
+       Field capacity) [mm]."""
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0., None)
 
     CONTROLPARAMETERS = (
-        lland_control.RelWZ,
+        lland_control.RelFK,
         lland_control.WMax,
     )
 
     def update(self):
-        """Update |WZ| based on |RelWZ| and |WMax|.
+        """Update |FK| based on |RelFK| and |WMax|.
 
         >>> from hydpy.models.lland import *
         >>> parameterstep('1d')
         >>> nhru(2)
         >>> lnk(ACKER)
-        >>> relwz(0.8)
+        >>> relfk(0.8)
         >>> wmax(100.0, 200.0)
-        >>> derived.wz.update()
-        >>> derived.wz
-        wz(80.0, 160.0)
+        >>> derived.fk.update()
+        >>> derived.fk
+        fk(80.0, 160.0)
         """
         con = self.subpars.pars.control
-        self.value = con.relwz*con.wmax
+        self.value = con.relfk*con.wmax
+
+
+    def update(self):
+        """Update |NFK| based on |FK| and |PWP|.
+
+        >>> from hydpy.models.lland import *
+        >>> parameterstep('1d')
+        >>> nhru(2)
+        >>> lnk(ACKER)
+        >>> derived.fk(0.8)
+        >>> wmax(100.0, 200.0)
+        >>> derived.nfk.update()
+        >>> derived.nfk
+        nfk(80.0, 160.0)
+        """
+        con = self.subpars.pars.control
+        self.value = derived.FK - control.PWP
 
 
 class KB(parametertools.Parameter):
