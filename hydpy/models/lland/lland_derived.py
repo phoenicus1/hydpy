@@ -77,24 +77,24 @@ class WB(lland_parameters.ParameterComplete):
 
     CONTROLPARAMETERS = (
         lland_control.RelWB,
-        lland_control.NFk,
+        lland_control.WMax,
     )
 
     def update(self):
-        """Update |WB| based on |RelWB| and |NFk|.
+        """Update |WB| based on |RelWB| and |WMax|.
 
         >>> from hydpy.models.lland import *
         >>> parameterstep('1d')
         >>> nhru(2)
         >>> lnk(ACKER)
         >>> relwb(0.2)
-        >>> nfk(100.0, 200.0)
+        >>> wmax(100.0, 200.0)
         >>> derived.wb.update()
         >>> derived.wb
         wb(20.0, 40.0)
         """
         con = self.subpars.pars.control
-        self.value = con.relwb*con.nfk
+        self.value = con.relwb*con.wmax
 
 
 class WZ(lland_parameters.ParameterComplete):
@@ -104,24 +104,24 @@ class WZ(lland_parameters.ParameterComplete):
 
     CONTROLPARAMETERS = (
         lland_control.RelWZ,
-        lland_control.NFk,
+        lland_control.WMax,
     )
 
     def update(self):
-        """Update |WZ| based on |RelWZ| and |NFk|.
+        """Update |WZ| based on |RelWZ| and |WMax|.
 
         >>> from hydpy.models.lland import *
         >>> parameterstep('1d')
         >>> nhru(2)
         >>> lnk(ACKER)
         >>> relwz(0.8)
-        >>> nfk(100.0, 200.0)
+        >>> wmax(100.0, 200.0)
         >>> derived.wz.update()
         >>> derived.wz
         wz(80.0, 160.0)
         """
         con = self.subpars.pars.control
-        self.value = con.relwz*con.nfk
+        self.value = con.relwz*con.wmax
 
 
 class KB(parametertools.Parameter):

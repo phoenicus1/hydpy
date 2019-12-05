@@ -68,7 +68,7 @@ Integration tests:
     >>> cpwasser(4.1868)
     >>> pwmax(1.4)
     >>> grasref_r(5.0)
-    >>> nfk(200.0)
+    >>> wmax(200.0)
     >>> relwz(0.5)
     >>> relwb(0.05)
     >>> beta(0.005)
