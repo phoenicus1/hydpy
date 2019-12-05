@@ -816,7 +816,8 @@ class Calc_EvB_V1(modeltools.Method):
         flu = model.sequences.fluxes.fastaccess
         sta = model.sequences.states.fastaccess
         for k in range(con.nhru):
-            if (con.lnk[k] in (VERS, WASSER, FLUSS, SEE)) or (con.wmax[k] <= 0.):
+            if (con.lnk[k] in (VERS, WASSER, FLUSS, SEE)) or \
+                    (con.wmax[k] <= 0.):
                 flu.evb[k] = 0.
             else:
                 d_temp = modelutils.exp(-con.grasref_r *

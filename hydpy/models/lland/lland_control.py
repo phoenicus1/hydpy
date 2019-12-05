@@ -327,8 +327,8 @@ class FK(lland_parameters.ParameterSoil):
      >>> fk(proportion=1)
      Traceback (most recent call last):
      ...
-     TypeError: While trying to set the values of parameter `fk` of \
-element `?` based on keyword arguments `proportion`, the following error occurred: \
+     TypeError: While trying to set the values of parameter `fk` of element \
+`?` based on keyword arguments `proportion`, the following error occurred: \
 Keyword `proportion` is not among the available model constants.
      >>> fk(relative=0.5, acker=4)
      Traceback (most recent call last):
@@ -371,8 +371,8 @@ Keyword `proportion` is not among the available model constants.
 
 class PWP(lland_parameters.ParameterSoil):
     """Mindestbodenfeuchte für die Basisabflussentstehung (threshold
-       value of soil moisture for base flow generation). Can be given as an
-       absolute value [mm] or relative portion of |Wm| [-]."""
+    value of soil moisture for base flow generation). Can be given as an
+    absolute value [mm] or relative portion of |Wm| [-]."""
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0., None)
     INIT = .0
 
@@ -412,6 +412,7 @@ class PWP(lland_parameters.ParameterSoil):
         if upper is None:
             upper = getattr(self.subpars.fk, 'value', None)
         super().trim(lower, upper)
+
 
 class Beta(lland_parameters.ParameterSoil):
     """Drainageindex des tiefen Bodenspeichers (storage coefficient for
