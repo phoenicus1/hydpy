@@ -362,7 +362,18 @@ Keyword `proportion` is not among the available model constants.
                 raise exc
 
     def trim(self, lower=None, upper=None):
-        """Trim upper values in accordance with :math:`WB \\leq WZ`.
+        """Trim upper values in accordance with :math:`PWP \\leq FK`.
+
+        Example:
+         If we set |FK| to a value smaller than |PWP| the value of |FK| is trimmed:
+         >>> from hydpy.models.lland import *
+         >>> parameterstep('1d')
+         >>> nhru(3)
+         >>> lnk(ACKER)
+         >>> pwp(100)
+         >>> fk(80)
+         >>> fk
+         fk(100.0)
         """
         if lower is None:
             lower = getattr(self.subpars.pwp, 'value', None)
@@ -398,16 +409,18 @@ class PWP(lland_parameters.ParameterSoil):
                 raise exc
 
     def trim(self, lower=None, upper=None):
-        """Trim upper values in accordance with :math:`WB \\leq WZ`.
+        """Trim upper values in accordance with :math:`PWP \\leq FK`.
 
-        >>> from hydpy.models.lland import *
-        >>> parameterstep('1d')
-        >>> nhru(3)
-        >>> lnk(ACKER)
-        >>> fk(100)
-        >>> pwp(80)
-        >>> pwp
-        pwp(80.0)
+        Example:
+         If we set |FK| to a value smaller than |PWP| the value of |FK| is trimmed:
+         >>> from hydpy.models.lland import *
+         >>> parameterstep('1d')
+         >>> nhru(3)
+         >>> lnk(ACKER)
+         >>> fk(100)
+         >>> pwp(80)
+         >>> pwp
+         pwp(80.0)
         """
         if upper is None:
             upper = getattr(self.subpars.fk, 'value', None)
