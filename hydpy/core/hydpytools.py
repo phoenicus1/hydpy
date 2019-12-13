@@ -20,9 +20,47 @@ from hydpy.core import timetools
 from hydpy.core import typingtools
 if TYPE_CHECKING:
     from hydpy.core import auxfiletools
+    from hydpy.core import sequencetools
 
 
 ConditionsType = Dict[str, Dict[str, Dict[str, Union[float, numpy.ndarray]]]]
+
+
+class Logger:
+
+    counter: int
+    sequence2sum: Dict['sequencetools.Sequence', float]
+
+    def __init__(
+            self,
+            firstdate: Optional[timetools.DateConstrArg] = None,
+            lastdate: Optional[timetools.DateConstrArg] = None):
+        if firstdate is None:
+            self._firstdate = hydpy.pub.timegrids.init.firstdate
+        else:
+            self._firstdate = timetools.Date(firstdate)
+        if lastdate is None:
+            self._lastdate = hydpy.pub.timegrids.init.lastdate
+        else:
+            self._lastdate = timetools.Date(lastdate)
+        self._idx0 = hydpy.pub.timegrids.init[self._firstdate]
+        self._idx1 = hydpy.pub.timegrids.init[self._lastdate]
+        self.counter = 0
+        self.sequence2sum = {}
+
+    def add_sequence(self, sequence: 'sequencetools.Sequence') -> None:
+        self.sequence2sum[sequence] = 0.
+
+    def update(self, idx: int) -> None:
+        if self._idx0 <= idx < self._idx1:
+            self.counter += 1
+            for sequence in self.sequence2sum.keys():
+                self.sequence2sum[sequence] += sequence.value
+
+    @property
+    def sequence2mean(self) -> Dict['sequencetools.Sequence', float]:
+        return {seq: sum_/self.counter
+                for seq, sum_ in self.sequence2sum.items()}
 
 
 class HydPy:
@@ -624,10 +662,12 @@ requested to make any internal data available.
     _nodes: Optional[devicetools.Nodes]
     _elements: Optional[devicetools.Elements]
     deviceorder: List[devicetools.Device]
+    logger: Optional[Logger]
 
     def __init__(self, projectname: Optional[str] = None):
         self._nodes = None
         self._elements = None
+        self.logger = None
         self.deviceorder = []
         if projectname is not None:
             hydpy.pub.projectname = projectname
@@ -1871,6 +1911,8 @@ one value needed to be trimmed.  The old and the new value(s) are \
         for node in self.nodes:
             if node.deploymode != 'oldsim':
                 funcs.append(node.sequences.fastaccess.save_simdata)
+        if self.logger:
+            funcs.append(self.logger.update)
         return funcs
 
     @printtools.print_progress
