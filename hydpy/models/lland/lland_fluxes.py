@@ -222,7 +222,7 @@ class EvB(lland_sequences.Flux1DSequence):
     NDIM, NUMERIC = 1, False
 
 
-class EvPoSnow(lland_sequences.Flux1DSequence):
+class EvS(lland_sequences.Flux1DSequence):
     """Potentielle Verdunstung bei Schneebedeckung (actual evaporation at
     wnow cover) [mm]."""
     NDIM, NUMERIC = 1, False

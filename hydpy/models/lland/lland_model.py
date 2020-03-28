@@ -54,7 +54,7 @@ class Calc_NKor_V1(modeltools.Method):
     )
 
     @staticmethod
-    def __call__(model: 'lland.Model') -> None:
+    def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
         inp = model.sequences.inputs.fastaccess
         flu = model.sequences.fluxes.fastaccess
@@ -91,7 +91,7 @@ class Calc_TKor_V1(modeltools.Method):
     )
 
     @staticmethod
-    def __call__(model: 'lland.Model') -> None:
+    def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
         inp = model.sequences.inputs.fastaccess
         flu = model.sequences.fluxes.fastaccess
@@ -127,7 +127,7 @@ class Calc_PsychrometricConstant_V1(modeltools.Method):
     )
 
     @staticmethod
-    def __call__(model: 'lland.Model') -> None:
+    def __call__(model: modeltools.Model) -> None:
         inp = model.sequences.inputs.fastaccess
         flu = model.sequences.fluxes.fastaccess
         flu.psychrometricconstant = 6.65e-4*inp.atmosphericpressure
@@ -166,7 +166,7 @@ class Return_AdjustedWindSpeed_V1(modeltools.Method):
     )
 
     @staticmethod
-    def __call__(model: 'lland.Model', newheight: float) -> float:
+    def __call__(model: modeltools.Model, newheight: float) -> float:
         con = model.parameters.control.fastaccess
         inp = model.sequences.inputs.fastaccess
         d_d = 2./3.*.12
@@ -207,7 +207,7 @@ class Calc_WindSpeed2m_V1(modeltools.Method):
     )
 
     @staticmethod
-    def __call__(model: 'lland.Model') -> None:
+    def __call__(model: modeltools.Model) -> None:
         flu = model.sequences.fluxes.fastaccess
         flu.windspeed2m = model.return_adjustedwindspeed_v1(2.)
 
@@ -243,7 +243,7 @@ class Calc_WindSpeed10m_V1(modeltools.Method):
     )
 
     @staticmethod
-    def __call__(model: 'lland.Model') -> None:
+    def __call__(model: modeltools.Model) -> None:
         flu = model.sequences.fluxes.fastaccess
         flu.windspeed10m = model.return_adjustedwindspeed_v1(10.)
 
@@ -328,7 +328,7 @@ class Calc_EarthSunDistance_V1(modeltools.Method):
     )
 
     @staticmethod
-    def __call__(model: 'lland.Model') -> None:
+    def __call__(model: modeltools.Model) -> None:
         der = model.parameters.derived.fastaccess
         fix = model.parameters.fixed.fastaccess
         flu = model.sequences.fluxes.fastaccess
@@ -412,7 +412,7 @@ class Calc_SolarDeclination_V1(modeltools.Method):
     )
 
     @staticmethod
-    def __call__(model: 'lland.Model') -> None:
+    def __call__(model: modeltools.Model) -> None:
         der = model.parameters.derived.fastaccess
         fix = model.parameters.fixed.fastaccess
         flu = model.sequences.fluxes.fastaccess
@@ -452,7 +452,7 @@ class Calc_SunsetHourAngle_V1(modeltools.Method):
     )
 
     @staticmethod
-    def __call__(model: 'lland.Model') -> None:
+    def __call__(model: modeltools.Model) -> None:
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
         flu.sunsethourangle = modelutils.acos(
@@ -528,7 +528,7 @@ class Calc_SolarTimeAngle_V1(modeltools.Method):
     )
 
     @staticmethod
-    def __call__(model: 'lland.Model') -> None:
+    def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         fix = model.parameters.fixed.fastaccess
@@ -661,7 +661,7 @@ class Calc_ExtraterrestrialRadiation_V1(modeltools.Method):
     )
 
     @staticmethod
-    def __call__(model: 'lland.Model') -> None:
+    def __call__(model: modeltools.Model) -> None:
         der = model.parameters.derived.fastaccess
         fix = model.parameters.fixed.fastaccess
         flu = model.sequences.fluxes.fastaccess
@@ -767,7 +767,7 @@ class Calc_PossibleSunshineDuration_V1(modeltools.Method):
     )
 
     @staticmethod
-    def __call__(model: 'lland.Model') -> None:
+    def __call__(model: modeltools.Model) -> None:
         der = model.parameters.derived.fastaccess
         fix = model.parameters.fixed.fastaccess
         flu = model.sequences.fluxes.fastaccess
@@ -832,7 +832,7 @@ class Update_LoggedPossibleSunshineDuration_V1(modeltools.Method):
     )
 
     @staticmethod
-    def __call__(model: 'lland.Model') -> None:
+    def __call__(model: modeltools.Model) -> None:
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
         log = model.sequences.logs.fastaccess
@@ -910,7 +910,7 @@ class Calc_GlobalRadiation_V1(modeltools.Method):
     )
 
     @staticmethod
-    def __call__(model: 'lland.Model') -> None:
+    def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
@@ -966,7 +966,7 @@ class Update_LoggedSunshineDuration_V1(modeltools.Method):
     )
 
     @staticmethod
-    def __call__(model: 'lland.Model') -> None:
+    def __call__(model: modeltools.Model) -> None:
         der = model.parameters.derived.fastaccess
         inp = model.sequences.inputs.fastaccess
         log = model.sequences.logs.fastaccess
@@ -1014,7 +1014,7 @@ class Calc_ET0_V1(modeltools.Method):
     )
 
     @staticmethod
-    def __call__(model: 'lland.Model') -> None:
+    def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
         inp = model.sequences.inputs.fastaccess
         flu = model.sequences.fluxes.fastaccess
@@ -1082,7 +1082,7 @@ class Calc_ET0_WET0_V1(modeltools.Method):
     )
 
     @staticmethod
-    def __call__(model: 'lland.Model') -> None:
+    def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
         inp = model.sequences.inputs.fastaccess
         flu = model.sequences.fluxes.fastaccess
@@ -1172,7 +1172,7 @@ class Calc_EvPo_V1(modeltools.Method):
     )
 
     @staticmethod
-    def __call__(model: 'lland.Model') -> None:
+    def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
@@ -1287,7 +1287,7 @@ class Calc_NBes_Inzp_V1(modeltools.Method):
     )
 
     @staticmethod
-    def __call__(model: 'lland.Model') -> None:
+    def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
@@ -1349,7 +1349,7 @@ class Calc_SN_Ratio_V1(modeltools.Method):
     )
 
     @staticmethod
-    def __call__(model: 'lland.Model') -> None:
+    def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
         flu = model.sequences.fluxes.fastaccess
         aid = model.sequences.aides.fastaccess
@@ -1399,7 +1399,7 @@ class Calc_SN_Ratio_V1(modeltools.Method):
 #     )
 #
 #     @staticmethod
-#     def __call__(model: 'lland.Model') -> None:
+#     def __call__(model: modeltools.Model) -> None:
 #         con = model.parameters.control.fastaccess
 #         flu = model.sequences.fluxes.fastaccess
 #         for k in range(con.nhru):
@@ -1457,7 +1457,7 @@ class Calc_SN_Ratio_V1(modeltools.Method):
 #     )
 #
 #     @staticmethod
-#     def __call__(model: 'lland.Model') -> None:
+#     def __call__(model: modeltools.Model) -> None:
 #         con = model.parameters.control.fastaccess
 #         der = model.parameters.derived.fastaccess
 #         flu = model.sequences.fluxes.fastaccess
@@ -1498,7 +1498,7 @@ class Calc_SN_Ratio_V1(modeltools.Method):
 #     )
 #
 #     @staticmethod
-#     def __call__(model: 'lland.Model') -> None:
+#     def __call__(model: modeltools.Model) -> None:
 #         con = model.parameters.control.fastaccess
 #         flu = model.sequences.fluxes.fastaccess
 #         sta = model.sequences.states.fastaccess
@@ -1536,7 +1536,7 @@ class Calc_SN_Ratio_V1(modeltools.Method):
 #     )
 #
 #     @staticmethod
-#     def __call__(model: 'lland.Model') -> None:
+#     def __call__(model: modeltools.Model) -> None:
 #         con = model.parameters.control.fastaccess
 #         der = model.parameters.derived.fastaccess
 #         flu = model.sequences.fluxes.fastaccess
@@ -1588,7 +1588,7 @@ class Calc_SN_Ratio_V1(modeltools.Method):
 #     )
 #
 #     @staticmethod
-#     def __call__(model: 'lland.Model') -> None:
+#     def __call__(model: modeltools.Model) -> None:
 #         con = model.parameters.control.fastaccess
 #         der = model.parameters.derived.fastaccess
 #         flu = model.sequences.fluxes.fastaccess
@@ -1647,7 +1647,7 @@ class Calc_SBes_V1(modeltools.Method):
     )
 
     @staticmethod
-    def __call__(model: 'lland.Model') -> None:
+    def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
         flu = model.sequences.fluxes.fastaccess
         aid = model.sequences.aides.fastaccess
@@ -1688,7 +1688,7 @@ class Calc_WATS_V1(modeltools.Method):
     )
 
     @staticmethod
-    def __call__(model: 'lland.Model') -> None:
+    def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
         flu = model.sequences.fluxes.fastaccess
         sta = model.sequences.states.fastaccess
@@ -1753,7 +1753,7 @@ class Calc_WaDa_WAeS_V1(modeltools.Method):
     )
 
     @staticmethod
-    def __call__(model: 'lland.Model') -> None:
+    def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
         flu = model.sequences.fluxes.fastaccess
         sta = model.sequences.states.fastaccess
@@ -1827,7 +1827,7 @@ class Calc_WGTF_V1(modeltools.Method):
     )
 
     @staticmethod
-    def __call__(model: 'lland.Model') -> None:
+    def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
         fix = model.parameters.fixed.fastaccess
         flu = model.sequences.fluxes.fastaccess
@@ -1882,7 +1882,7 @@ class Calc_WNied_V1(modeltools.Method):
     )
 
     @staticmethod
-    def __call__(model: 'lland.Model') -> None:
+    def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
         fix = model.parameters.fixed.fastaccess
         flu = model.sequences.fluxes.fastaccess
@@ -1950,7 +1950,7 @@ class Calc_WNied_ESnow_V1(modeltools.Method):
     )
 
     @staticmethod
-    def __call__(model: 'lland.Model') -> None:
+    def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
         fix = model.parameters.fixed.fastaccess
         flu = model.sequences.fluxes.fastaccess
@@ -1984,7 +1984,7 @@ class Return_SaturationVapourPressure_V1(modeltools.Method):
     """
 
     @staticmethod
-    def __call__(model: 'lland.Model', temperature: float) -> float:
+    def __call__(model: modeltools.Model, temperature: float) -> float:
         return .6108*modelutils.exp(17.08085*temperature/(temperature+234.175))
 
 
@@ -2019,7 +2019,7 @@ class Calc_SaturationVapourPressure_V1(modeltools.Method):
     )
 
     @staticmethod
-    def __call__(model: 'lland.Model') -> None:
+    def __call__(model: modeltools.Model) -> None:
         flu = model.sequences.fluxes.fastaccess
         con = model.parameters.control.fastaccess
         for k in range(con.nhru):
@@ -2057,7 +2057,7 @@ class Calc_SaturationVapourPressureSlope_V1(modeltools.Method):
     )
 
     @staticmethod
-    def __call__(model: 'lland.Model') -> None:
+    def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
         flu = model.sequences.fluxes.fastaccess
         for k in range(con.nhru):
@@ -2087,7 +2087,7 @@ class Return_ActualVapourPressure_V1(modeltools.Method):
     )
 
     @staticmethod
-    def __call__(model: 'lland.Model', saturationvapourpressure: float) \
+    def __call__(model: modeltools.Model, saturationvapourpressure: float) \
             -> float:
         inp = model.sequences.inputs.fastaccess
         return saturationvapourpressure * inp.relativehumidity / 100.
@@ -2123,7 +2123,7 @@ class Calc_ActualVapourPressure_V1(modeltools.Method):
     )
 
     @staticmethod
-    def __call__(model: 'lland.Model') -> None:
+    def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
         flu = model.sequences.fluxes.fastaccess
         for k in range(con.nhru):
@@ -2218,7 +2218,7 @@ class Return_NetLongwaveRadiation_V1(modeltools.Method):
     )
 
     @staticmethod
-    def __call__(model: 'lland.Model', k: int) -> float:
+    def __call__(model: modeltools.Model, k: int) -> float:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         fix = model.parameters.fixed.fastaccess
@@ -2311,7 +2311,7 @@ class Calc_NetLongwaveRadiation_V1(modeltools.Method):
     )
 
     @staticmethod
-    def __call__(model: 'lland.Model') -> None:
+    def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
         flu = model.sequences.fluxes.fastaccess
         sta = model.sequences.states.fastaccess
@@ -2377,7 +2377,7 @@ class Update_TauS_V1(modeltools.Method):
     )
 
     @staticmethod
-    def __call__(model: 'lland.Model') -> None:
+    def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
@@ -2455,7 +2455,7 @@ class Calc_ActualAlbedo_V1(modeltools.Method):
     )
 
     @staticmethod
-    def __call__(model: 'lland.Model') -> None:
+    def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
@@ -2499,7 +2499,7 @@ class Calc_NetShortwaveRadiation_V1(modeltools.Method):
     )
 
     @staticmethod
-    def __call__(model: 'lland.Model') -> None:
+    def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
         flu = model.sequences.fluxes.fastaccess
         for k in range(con.nhru):
@@ -2543,7 +2543,7 @@ class Return_TempS_V1(modeltools.Method):
     )
 
     @staticmethod
-    def __call__(model: 'lland.Model', k: int) -> float:
+    def __call__(model: modeltools.Model, k: int) -> float:
         fix = model.parameters.fixed.fastaccess
         sta = model.sequences.states.fastaccess
         if sta.waes[k] > 0.:
@@ -2586,7 +2586,7 @@ class Return_ESnow_V1(modeltools.Method):
     )
 
     @staticmethod
-    def __call__(model: 'lland.Model', k: int, temps: float) -> float:
+    def __call__(model: modeltools.Model, k: int, temps: float) -> float:
         fix = model.parameters.fixed.fastaccess
         sta = model.sequences.states.fastaccess
         d_ice = fix.cpeis*sta.wats[k]
@@ -2636,7 +2636,7 @@ class Calc_TempS_V1(modeltools.Method):
     )
 
     @staticmethod
-    def __call__(model: 'lland.Model') -> None:
+    def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
         aid = model.sequences.aides.fastaccess
         for k in range(con.nhru):
@@ -2684,7 +2684,7 @@ class Calc_TZ_V1(modeltools.Method):
     )
 
     @staticmethod
-    def __call__(model: 'lland.Model') -> None:
+    def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         fix = model.parameters.fixed.fastaccess
@@ -2746,7 +2746,7 @@ class Return_WG_V1(modeltools.Method):
     )
 
     @staticmethod
-    def __call__(model: 'lland.Model', k: int) -> float:
+    def __call__(model: modeltools.Model, k: int) -> float:
         fix = model.parameters.fixed.fastaccess
         flu = model.sequences.fluxes.fastaccess
         sta = model.sequences.states.fastaccess
@@ -2800,7 +2800,7 @@ class Calc_WG_V1(modeltools.Method):
     )
 
     @staticmethod
-    def __call__(model: 'lland.Model') -> None:
+    def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
         flu = model.sequences.fluxes.fastaccess
         for k in range(con.nhru):
@@ -2856,7 +2856,7 @@ class Update_EBdn_V1(modeltools.Method):
     )
 
     @staticmethod
-    def __call__(model: 'lland.Model') -> None:
+    def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
@@ -2900,7 +2900,7 @@ class Return_WSensSnow_V1(modeltools.Method):
     )
 
     @staticmethod
-    def __call__(model: 'lland.Model', k: int) -> float:
+    def __call__(model: modeltools.Model, k: int) -> float:
         con = model.parameters.control.fastaccess
         flu = model.sequences.fluxes.fastaccess
         return ((con.turb0+con.turb1*flu.windspeed10m) *
@@ -2943,7 +2943,7 @@ class Return_WLatSnow_V1(modeltools.Method):
     )
 
     @staticmethod
-    def __call__(model: 'lland.Model', k: int) -> float:
+    def __call__(model: modeltools.Model, k: int) -> float:
         con = model.parameters.control.fastaccess
         flu = model.sequences.fluxes.fastaccess
         return ((con.turb0+con.turb1*flu.windspeed10m) *
@@ -2985,7 +2985,7 @@ class Return_WSurf_V1(modeltools.Method):
     )
 
     @staticmethod
-    def __call__(model: 'lland.Model', k: int) -> float:
+    def __call__(model: modeltools.Model, k: int) -> float:
         con = model.parameters.control.fastaccess
         flu = model.sequences.fluxes.fastaccess
         aid = model.sequences.aides.fastaccess
@@ -3100,7 +3100,7 @@ class Return_EnergyGainSnowSurface_V1(modeltools.Method):
     )
 
     @staticmethod
-    def __call__(model: 'lland.Model', tempssurface: float) -> float:
+    def __call__(model: modeltools.Model, tempssurface: float) -> float:
         flu = model.sequences.fluxes.fastaccess
 
         k = model.idx_hru
@@ -3234,7 +3234,7 @@ class Return_TempSSurface_V1(modeltools.Method):
     )
 
     @staticmethod
-    def __call__(model: 'lland.Model', k: int) -> float:
+    def __call__(model: modeltools.Model, k: int) -> float:
         aid = model.sequences.aides.fastaccess
         con = model.parameters.control.fastaccess
         flu = model.sequences.fluxes.fastaccess
@@ -3422,7 +3422,7 @@ class Return_BackwardEulerError_V1(modeltools.Method):
     )
 
     @staticmethod
-    def __call__(model: 'lland.Model', esnow: float) -> float:
+    def __call__(model: modeltools.Model, esnow: float) -> float:
         flu = model.sequences.fluxes.fastaccess
         aid = model.sequences.aides.fastaccess
         sta = model.sequences.states.fastaccess
@@ -3579,7 +3579,7 @@ class Update_ESnow_V2(modeltools.Method):
     )
 
     @staticmethod
-    def __call__(model: 'lland.Model') -> None:
+    def __call__(model: modeltools.Model) -> None:
         aid = model.sequences.aides.fastaccess
         con = model.parameters.control.fastaccess
         flu = model.sequences.fluxes.fastaccess
@@ -3638,7 +3638,7 @@ class Calc_NetRadiation_V1(modeltools.Method):
     )
 
     @staticmethod
-    def __call__(model: 'lland.Model') -> None:
+    def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
         flu = model.sequences.fluxes.fastaccess
         sta = model.sequences.states.fastaccess
@@ -3680,7 +3680,7 @@ class Calc_SchmPot_V1(modeltools.Method):
     )
 
     @staticmethod
-    def __call__(model: 'lland.Model') -> None:
+    def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
         fix = model.parameters.fixed.fastaccess
         flu = model.sequences.fluxes.fastaccess
@@ -3721,7 +3721,7 @@ class Calc_SchmPot_V2(modeltools.Method):
     )
 
     @staticmethod
-    def __call__(model: 'lland.Model') -> None:
+    def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
         fix = model.parameters.fixed.fastaccess
         flu = model.sequences.fluxes.fastaccess
@@ -3766,7 +3766,7 @@ class Calc_GefrPot_V1(modeltools.Method):
     )
 
     @staticmethod
-    def __call__(model: 'lland.Model') -> None:
+    def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
         fix = model.parameters.fixed.fastaccess
         flu = model.sequences.fluxes.fastaccess
@@ -3829,7 +3829,7 @@ class Calc_Schm_WATS_V1(modeltools.Method):
     )
 
     @staticmethod
-    def __call__(model: 'lland.Model') -> None:
+    def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
         flu = model.sequences.fluxes.fastaccess
         sta = model.sequences.states.fastaccess
@@ -3902,7 +3902,7 @@ class Calc_Gefr_WATS_V1(modeltools.Method):
     )
 
     @staticmethod
-    def __call__(model: 'lland.Model') -> None:
+    def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
         flu = model.sequences.fluxes.fastaccess
         sta = model.sequences.states.fastaccess
@@ -3965,7 +3965,7 @@ class Update_WaDa_WAeS_V1(modeltools.Method):
     )
 
     @staticmethod
-    def __call__(model: 'lland.Model') -> None:
+    def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
         flu = model.sequences.fluxes.fastaccess
         sta = model.sequences.states.fastaccess
@@ -4009,7 +4009,7 @@ class Update_ESnow_V3(modeltools.Method):
     )
 
     @staticmethod
-    def __call__(model: 'lland.Model') -> None:
+    def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
         fix = model.parameters.fixed.fastaccess
         sta = model.sequences.states.fastaccess
@@ -4057,7 +4057,7 @@ class Calc_SFF_V1(modeltools.Method):
     )
 
     @staticmethod
-    def __call__(model: 'lland.Model') -> None:
+    def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
         fix = model.parameters.fixed.fastaccess
         flu = model.sequences.fluxes.fastaccess
@@ -4105,7 +4105,7 @@ class Calc_FVG_V1(modeltools.Method):
     )
 
     @staticmethod
-    def __call__(model: 'lland.Model') -> None:
+    def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
         flu = model.sequences.fluxes.fastaccess
         for k in range(con.nhru):
@@ -4165,7 +4165,7 @@ class Calc_EvB_V1(modeltools.Method):
     )
 
     @staticmethod
-    def __call__(model: 'lland.Model') -> None:
+    def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
         flu = model.sequences.fluxes.fastaccess
         sta = model.sequences.states.fastaccess
@@ -4206,7 +4206,7 @@ class Calc_DryAirPressure_V1(modeltools.Method):
     )
 
     @staticmethod
-    def __call__(model: 'lland.Model') -> None:
+    def __call__(model: modeltools.Model) -> None:
         inp = model.sequences.inputs.fastaccess
         con = model.parameters.control.fastaccess
         flu = model.sequences.fluxes.fastaccess
@@ -4250,7 +4250,7 @@ class Calc_DensityAir_V1(modeltools.Method):   # ToDo: WASSER Abfragen nicht ver
     )
 
     @staticmethod
-    def __call__(model: 'lland.Model') -> None:
+    def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
         fix = model.parameters.fixed.fastaccess
         flu = model.sequences.fluxes.fastaccess
@@ -4360,7 +4360,7 @@ class Calc_AerodynamicResistance_V1(modeltools.Method):
     )
 
     @staticmethod
-    def __call__(model: 'lland.Model') -> None:
+    def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
@@ -4475,7 +4475,7 @@ class Calc_SoilSurfaceResistance_V1(modeltools.Method):
     )
 
     @staticmethod
-    def __call__(model: 'lland.Model') -> None:
+    def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
@@ -4627,7 +4627,7 @@ class Calc_LanduseSurfaceResistance_V1(modeltools.Method):
     )
 
     @staticmethod
-    def __call__(model: 'lland.Model') -> None:
+    def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
@@ -4794,7 +4794,7 @@ class Calc_SurfaceResistance_V1(modeltools.Method):
     )
 
     @staticmethod
-    def __call__(model: 'lland.Model') -> None:
+    def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
@@ -4963,7 +4963,7 @@ class Return_PenmanMonteith_V1(modeltools.Method):
     )
     FIXEDPARAMETERS = (
         lland_fixed.Sigma,
-        lland_fixed.L,
+        lland_fixed.LW,
         lland_fixed.CPLuft,
     )
     REQUIREDSEQUENCES = (
@@ -4980,7 +4980,7 @@ class Return_PenmanMonteith_V1(modeltools.Method):
     )
 
     @staticmethod
-    def __call__(model: 'lland.Model', k: int) -> float:
+    def __call__(model: modeltools.Model, k: int) -> float:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         fix = model.parameters.fixed.fastaccess
@@ -4996,7 +4996,7 @@ class Return_PenmanMonteith_V1(modeltools.Method):
             (flu.saturationvapourpressureslope[k] +
              flu.psychrometricconstant*d_c *
              (1.+flu.actualsurfaceresistance[k]/flu.aerodynamicresistance[k])) /
-            fix.l)
+            fix.lw)
 
 
 class Return_Penman_V1(modeltools.Method):
@@ -5070,7 +5070,7 @@ class Return_Penman_V1(modeltools.Method):
         lland_derived.Seconds,
     )
     FIXEDPARAMETERS = (
-        lland_fixed.L,
+        lland_fixed.LW,
     )
     REQUIREDSEQUENCES = (
         lland_fluxes.SaturationVapourPressureSlope,
@@ -5082,12 +5082,12 @@ class Return_Penman_V1(modeltools.Method):
     )
 
     @staticmethod
-    def __call__(model: 'lland.Model', k: int) -> float:
+    def __call__(model: modeltools.Model, k: int) -> float:
         der = model.parameters.derived.fastaccess
         fix = model.parameters.fixed.fastaccess
         flu = model.sequences.fluxes.fastaccess
         return (
-            (flu.saturationvapourpressureslope[k]*flu.netradiation[k]/fix.l +
+            (flu.saturationvapourpressureslope[k]*flu.netradiation[k]/fix.lw +
              flu.psychrometricconstant*(1.3+.94*flu.windspeed2m) *
              (flu.saturationvapourpressure[k]-flu.actualvapourpressure[k]) /
              (24*60*60)*der.seconds) /
@@ -5145,50 +5145,56 @@ class Calc_EvPo_V3(modeltools.Method):
     )
 
     @staticmethod
-    def __call__(model: 'lland.Model') -> None:
+    def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
         flu = model.sequences.fluxes.fastaccess
         for k in range(con.nhru):
             flu.evpo[k] = max(model.return_penman_v1(k), 0.)
 
 
-class Calc_EvPoSnow_WAeS_WATS_V1(modeltools.Method):
-    """Calculate evpotranspiration over snow covered surfaces according to
-    latent heat calculated in snow module and update WAeS und WATS,
-    due to evapotranspiration from the snow layer.
+class Calc_EvS_WAeS_WATS_V1(modeltools.Method):
+    """Calculate the evaporation from the snow layer, if it exists, and
+    update the water aequivalent of the snow cover accordingly.
 
     Basic equations:
-      :math:`EvPoSnow = - WLatSnow/WLatVap`
+      :math:`EvS = Min(\\frac{WLatSnow}{L}, 0)`
 
     Example:
+
+        The first hydrological response unit shows that method
+        |Calc_EvS_WAeS_WATS_V1| does never calculate condensation or
+        deposition, even if a negative flux of latent heat suggests so.
+        The other response units show that methods |Calc_EvS_WAeS_WATS_V1|
+        first depletes the liquid water content of the snow layer
+        completely before it depletes its ice content:
 
         >>> from hydpy.models.lland import *
         >>> parameterstep('1d')
         >>> nhru(5)
-        >>> fluxes.wlatsnow = 0.0, -2.0, 1.0, 4.0, 6.0
-        >>> states.waes = 0.0, 5.0, 5.0, 5.0, 5.0
-        >>> states.wats = 0.0, 4.0, 4.0, 4.0, 4.0
-        >>> model.calc_evposnow_waes_wats_v1()
-        >>> fluxes.evposnow
-        evposnow(0.0, -0.812216, 0.406108, 1.624431, 2.436647)
+        >>> fluxes.wlatsnow = -1.0, 0.0, 2.0, 4.0, 6.0
+        >>> states.waes = 2.0
+        >>> states.wats = 1.0
+        >>> model.calc_evs_waes_wats_v1()
+        >>> fluxes.evs
+        evs(0.0, 0.0, 0.74978, 1.49956, 2.0)
         >>> states.waes
-        waes(0.0, 5.812216, 4.593892, 3.375569, 2.563353)
+        waes(2.0, 2.0, 1.25022, 0.50044, 0.0)
         >>> states.wats
-        wats(0.0, 4.0, 4.0, 3.375569, 2.563353)
+        wats(1.0, 1.0, 1.0, 0.50044, 0.0)
     """
 
     CONTROLPARAMETERS = (
         lland_control.NHRU,
     )
     FIXEDPARAMETERS = (
-        lland_fixed.L,
+        lland_fixed.LWE,
     )
     REQUIREDSEQUENCES = (
         lland_fluxes.WLatSnow,
         lland_states.WAeS,
     )
     RESULTSEQUENCES = (
-        lland_fluxes.EvPoSnow,
+        lland_fluxes.EvS,
     )
     UPDATEDSEQUENCES = (
         lland_states.WAeS,
@@ -5196,19 +5202,18 @@ class Calc_EvPoSnow_WAeS_WATS_V1(modeltools.Method):
     )
 
     @staticmethod
-    def __call__(model: 'lland.Model') -> None:
+    def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
         fix = model.parameters.fixed.fastaccess
         flu = model.sequences.fluxes.fastaccess
         sta = model.sequences.states.fastaccess
         for k in range(con.nhru):
-            if sta.waes[k] > 0:
-                flu.evposnow[k] = flu.wlatsnow[k]/fix.l
-                sta.waes[k] -= flu.evposnow[k]
-                sta.waes[k] = max(sta.waes[k], 0)
+            if (sta.waes[k] > 0.) and (flu.wlatsnow[k] > 0.):
+                flu.evs[k] = min(flu.wlatsnow[k]/fix.lwe, sta.waes[k])
+                sta.waes[k] = sta.waes[k]-flu.evs[k]
                 sta.wats[k] = min(sta.waes[k], sta.wats[k])
             else:
-                flu.evposnow[k] = 0.
+                flu.evs[k] = 0.
 
 
 class Calc_EvI_Inzp_V1(modeltools.Method):
@@ -5269,7 +5274,7 @@ class Calc_EvI_Inzp_V1(modeltools.Method):
     )
 
     @staticmethod
-    def __call__(model: 'lland.Model') -> None:
+    def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
         flu = model.sequences.fluxes.fastaccess
         sta = model.sequences.states.fastaccess
@@ -5338,7 +5343,7 @@ class Calc_EvI_Inzp_V2(modeltools.Method):
     )
 
     @staticmethod
-    def __call__(model: 'lland.Model') -> None:
+    def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
         flu = model.sequences.fluxes.fastaccess
         sta = model.sequences.states.fastaccess
@@ -5431,7 +5436,7 @@ class Calc_EvB_V2(modeltools.Method):
     )
 
     @staticmethod
-    def __call__(model: 'lland.Model') -> None:
+    def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
         flu = model.sequences.fluxes.fastaccess
         sta = model.sequences.states.fastaccess
@@ -5537,7 +5542,7 @@ class Calc_QKap_V1(modeltools.Method):
     )
 
     @staticmethod
-    def __call__(model: 'lland.Model') -> None:
+    def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
         flu = model.sequences.fluxes.fastaccess
         sta = model.sequences.states.fastaccess
@@ -5653,7 +5658,7 @@ class Calc_QBB_V1(modeltools.Method):
     )
 
     @staticmethod
-    def __call__(model: 'lland.Model') -> None:
+    def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
         flu = model.sequences.fluxes.fastaccess
         sta = model.sequences.states.fastaccess
@@ -5735,7 +5740,7 @@ class Calc_QIB1_V1(modeltools.Method):
     )
 
     @staticmethod
-    def __call__(model: 'lland.Model') -> None:
+    def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
         flu = model.sequences.fluxes.fastaccess
         sta = model.sequences.states.fastaccess
@@ -5813,7 +5818,7 @@ class Calc_QIB2_V1(modeltools.Method):
     )
 
     @staticmethod
-    def __call__(model: 'lland.Model') -> None:
+    def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
         flu = model.sequences.fluxes.fastaccess
         sta = model.sequences.states.fastaccess
@@ -5887,7 +5892,7 @@ class Calc_QDB_V1(modeltools.Method):
     )
 
     @staticmethod
-    def __call__(model: 'lland.Model') -> None:
+    def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
         flu = model.sequences.fluxes.fastaccess
         sta = model.sequences.states.fastaccess
@@ -5942,7 +5947,7 @@ class Update_QDB_V1(modeltools.Method):
     )
 
     @staticmethod
-    def __call__(model: 'lland.Model') -> None:
+    def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
         flu = model.sequences.fluxes.fastaccess
         for k in range(con.nhru):
@@ -6057,7 +6062,7 @@ class Calc_BoWa_V1(modeltools.Method):
     )
 
     @staticmethod
-    def __call__(model: 'lland.Model') -> None:
+    def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
         flu = model.sequences.fluxes.fastaccess
         sta = model.sequences.states.fastaccess
@@ -6157,7 +6162,7 @@ class Calc_QBGZ_V1(modeltools.Method):
     )
 
     @staticmethod
-    def __call__(model: 'lland.Model') -> None:
+    def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
         flu = model.sequences.fluxes.fastaccess
         sta = model.sequences.states.fastaccess
@@ -6199,7 +6204,7 @@ class Calc_QIGZ1_V1(modeltools.Method):
     )
 
     @staticmethod
-    def __call__(model: 'lland.Model') -> None:
+    def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
         flu = model.sequences.fluxes.fastaccess
         sta = model.sequences.states.fastaccess
@@ -6238,7 +6243,7 @@ class Calc_QIGZ2_V1(modeltools.Method):
     )
 
     @staticmethod
-    def __call__(model: 'lland.Model') -> None:
+    def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
         flu = model.sequences.fluxes.fastaccess
         sta = model.sequences.states.fastaccess
@@ -6297,7 +6302,7 @@ class Calc_QDGZ_V1(modeltools.Method):
     )
 
     @staticmethod
-    def __call__(model: 'lland.Model') -> None:
+    def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
         flu = model.sequences.fluxes.fastaccess
         flu.qdgz = 0.
@@ -6409,7 +6414,7 @@ class Calc_QDGZ1_QDGZ2_V1(modeltools.Method):
     )
 
     @staticmethod
-    def __call__(model: 'lland.Model') -> None:
+    def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
         flu = model.sequences.fluxes.fastaccess
         sta = model.sequences.states.fastaccess
@@ -6473,7 +6478,7 @@ class Calc_QBGA_V1(modeltools.Method):
     )
 
     @staticmethod
-    def __call__(model: 'lland.Model') -> None:
+    def __call__(model: modeltools.Model) -> None:
         der = model.parameters.derived.fastaccess
         old = model.sequences.states.fastaccess_old
         new = model.sequences.states.fastaccess_new
@@ -6541,7 +6546,7 @@ class Calc_QIGA1_V1(modeltools.Method):
     )
 
     @staticmethod
-    def __call__(model: 'lland.Model') -> None:
+    def __call__(model: modeltools.Model) -> None:
         der = model.parameters.derived.fastaccess
         old = model.sequences.states.fastaccess_old
         new = model.sequences.states.fastaccess_new
@@ -6609,7 +6614,7 @@ class Calc_QIGA2_V1(modeltools.Method):
     )
 
     @staticmethod
-    def __call__(model: 'lland.Model') -> None:
+    def __call__(model: modeltools.Model) -> None:
         der = model.parameters.derived.fastaccess
         old = model.sequences.states.fastaccess_old
         new = model.sequences.states.fastaccess_new
@@ -6676,7 +6681,7 @@ class Calc_QDGA1_V1(modeltools.Method):
     )
 
     @staticmethod
-    def __call__(model: 'lland.Model') -> None:
+    def __call__(model: modeltools.Model) -> None:
         der = model.parameters.derived.fastaccess
         old = model.sequences.states.fastaccess_old
         new = model.sequences.states.fastaccess_new
@@ -6743,7 +6748,7 @@ class Calc_QDGA2_V1(modeltools.Method):
     )
 
     @staticmethod
-    def __call__(model: 'lland.Model') -> None:
+    def __call__(model: modeltools.Model) -> None:
         der = model.parameters.derived.fastaccess
         old = model.sequences.states.fastaccess_old
         new = model.sequences.states.fastaccess_new
@@ -6897,7 +6902,7 @@ class Calc_Q_V1(modeltools.Method):
     )
 
     @staticmethod
-    def __call__(model: 'lland.Model') -> None:
+    def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
         flu = model.sequences.fluxes.fastaccess
         sta = model.sequences.states.fastaccess
@@ -6944,7 +6949,7 @@ class Pass_Q_V1(modeltools.Method):
     )
 
     @staticmethod
-    def __call__(model: 'lland.Model') -> None:
+    def __call__(model: modeltools.Model) -> None:
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
         out = model.sequences.outlets.fastaccess
@@ -7046,7 +7051,7 @@ class Model(modeltools.AdHocModel):
         Calc_GefrPot_V1,
         Calc_Schm_WATS_V1,
         Calc_Gefr_WATS_V1,
-        Calc_EvPoSnow_WAeS_WATS_V1,
+        Calc_EvS_WAeS_WATS_V1,
         Update_WaDa_WAeS_V1,
         Update_ESnow_V3,
         Calc_SFF_V1,
