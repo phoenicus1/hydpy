@@ -178,41 +178,41 @@ class KInz(lland_parameters.LanduseMonthParameter):
         self.value = con.hinz*con.lai
 
 
-class F1SIMax(lland_parameters.LanduseMonthParameter):
-    """Faktor zur Berechnung der Schneeinterzeptionskapazität bezogen auf die
-    Blattoberfläche (factor for the calculation of snow interception capacity
-    normalized to leaf area index) [mm]."""
-    NDIM, TYPE, TIME, SPAN = 2, float, None, (0., None)
-
-    CONTROLPARAMETERS = (
-        lland_control.P1SIMax,
-        lland_control.P2SIMax,
-        lland_control.LAI,
-    )
-
-    def update(self):
-        """Update |F1SIMa| based on |P1SIMax|, |P2SIMax| and |LAI|.
-
-            Basic equation:
-
-               :math:`F1SIMax = P1SIMax + P2SIMax \\cdot LAI`
-
-        >>> from hydpy.models.lland import *
-        >>> parameterstep('1d')
-        >>> nhru(2)
-        >>> p1simax(8.0)
-        >>> p2simax(1.5)
-        >>> lai.acker_jun = 1.0
-        >>> lai.vers_dec = 2.0
-        >>> derived.f1simax.update()
-        >>> from hydpy import round_
-        >>> round_(derived.f1simax.acker_jun)
-        9.5
-        >>> round_(derived.f1simax.vers_dec)
-        11.0
-        """
-        con = self.subpars.pars.control
-        self.value = con.p1simax + con.p2simax*con.lai
+# class F1SIMax(lland_parameters.LanduseMonthParameter):
+#     """Faktor zur Berechnung der Schneeinterzeptionskapazität bezogen auf die
+#     Blattoberfläche (factor for the calculation of snow interception capacity
+#     normalized to leaf area index) [mm]."""
+#     NDIM, TYPE, TIME, SPAN = 2, float, None, (0., None)
+#
+#     CONTROLPARAMETERS = (
+#         lland_control.P1SIMax,
+#         lland_control.P2SIMax,
+#         lland_control.LAI,
+#     )
+#
+#     def update(self):
+#         """Update |F1SIMa| based on |P1SIMax|, |P2SIMax| and |LAI|.
+#
+#             Basic equation:
+#
+#                :math:`F1SIMax = P1SIMax + P2SIMax \\cdot LAI`
+#
+#         >>> from hydpy.models.lland import *
+#         >>> parameterstep('1d')
+#         >>> nhru(2)
+#         >>> p1simax(8.0)
+#         >>> p2simax(1.5)
+#         >>> lai.acker_jun = 1.0
+#         >>> lai.vers_dec = 2.0
+#         >>> derived.f1simax.update()
+#         >>> from hydpy import round_
+#         >>> round_(derived.f1simax.acker_jun)
+#         9.5
+#         >>> round_(derived.f1simax.vers_dec)
+#         11.0
+#         """
+#         con = self.subpars.pars.control
+#         self.value = con.p1simax + con.p2simax*con.lai
 
 
 class HeatOfFusion(lland_parameters.ParameterLand):

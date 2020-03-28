@@ -3201,7 +3201,7 @@ class Return_TempSSurface_V1(modeltools.Method):
         ...              fluxes.wsenssnow -
         ...              fluxes.wlatsnow +
         ...              fluxes.wsurf)
-        nan, -0.0, -0.0, 0.0, 0.0
+        nan, 0.0, 0.0, 0.0, 0.0
     """
     CONTROLPARAMETERS = (
         lland_control.Turb0,
@@ -3307,7 +3307,7 @@ class Return_BackwardEulerError_V1(modeltools.Method):
         >>> from hydpy import round_
         >>> model.idx_hru = 0
         >>> round_(model.return_backwardeulererror_v1(-0.10503956))
-        -0.0
+        0.0
 
         As a side-effect, method |Return_BackwardEulerError_V1| calculates
         the following flux sequences for the given amount of energy:
@@ -3494,8 +3494,8 @@ class Update_ESnow_V2(modeltools.Method):
 
         >>> model.update_esnow_v2()
         >>> states.esnow
-        esnow(0.0, -0.92156, -0.090193, -0.010653, -0.001067, -0.000107, -0.0,
-              -0.0)
+        esnow(0.0, -0.92156, -0.090193, -0.010653, -0.001067, -0.000107, 0.0,
+              0.0)
         >>> aides.temps
         temps(nan, -3.148092, -3.596224, -3.639221, -3.644405, -3.644924,
               -3.644982, -3.644982)
@@ -3524,8 +3524,8 @@ class Update_ESnow_V2(modeltools.Method):
         >>> ktschnee(0.432)
         >>> model.update_esnow_v2()
         >>> states.esnow
-        esnow(0.0, -0.444773, -0.049844, -0.00597, -0.000599, -0.00006, -0.0,
-              -0.0)
+        esnow(0.0, -0.444773, -0.049844, -0.00597, -0.000599, -0.00006, 0.0, \
+0.0)
         >>> aides.temps
         temps(nan, -1.519365, -1.987383, -2.039381, -2.045747, -2.046385,
               -2.046456, -2.046456)
@@ -3542,7 +3542,7 @@ class Update_ESnow_V2(modeltools.Method):
         ...     model.idx_hru = hru
         ...     errors.append(model.return_backwardeulererror_v1(esnow[hru]))
         >>> print_values(errors)
-        nan, -0.0, -0.0, -0.0, -0.0, -0.0, -0.0, -0.0
+        nan, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0
     """
     SUBMETHODS = (
         Return_ESnow_V1,
