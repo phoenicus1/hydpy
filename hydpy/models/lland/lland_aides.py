@@ -7,12 +7,6 @@
 from hydpy.core import sequencetools
 
 
-class EPW(sequencetools.AideSequence):
-    """Potenzielle Evaporation/Evapotranspiration von Wasserflächen (potential
-    evaporation/evapotranspiration combined from all water areas) [mm]."""
-    NDIM, NUMERIC = 0, False
-
-
 class K(sequencetools.AideSequence):
     """Float to help nhru iterating for Pegasus"""
     NDIM, NUMERIC = 0, False

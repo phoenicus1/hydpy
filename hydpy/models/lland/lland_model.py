@@ -6156,7 +6156,7 @@ class Calc_QBGZ_V1(modeltools.Method):
             if con.lnk[k] == SEE:
                 sta.qbgz += con.fhru[k] * (flu.nkor[k] - flu.evi[k])
             elif con.lnk[k] not in (WASSER, FLUSS, VERS):
-                sta.qbgz += con.fhru[k] * (flu.qbb[k] - flu.qkap[k])
+                sta.qbgz += con.fhru[k]*(flu.qbb[k]-flu.qkap[k])
 
 
 class Calc_QIGZ1_V1(modeltools.Method):
@@ -6195,7 +6195,7 @@ class Calc_QIGZ1_V1(modeltools.Method):
         sta = model.sequences.states.fastaccess
         sta.qigz1 = 0.
         for k in range(con.nhru):
-            sta.qigz1 += con.fhru[k] * flu.qib1[k]
+            sta.qigz1 += con.fhru[k]*flu.qib1[k]
 
 
 class Calc_QIGZ2_V1(modeltools.Method):
@@ -6234,7 +6234,7 @@ class Calc_QIGZ2_V1(modeltools.Method):
         sta = model.sequences.states.fastaccess
         sta.qigz2 = 0.
         for k in range(con.nhru):
-            sta.qigz2 += con.fhru[k] * flu.qib2[k]
+            sta.qigz2 += con.fhru[k]*flu.qib2[k]
 
 
 class Calc_QDGZ_V1(modeltools.Method):
@@ -6293,9 +6293,9 @@ class Calc_QDGZ_V1(modeltools.Method):
         flu.qdgz = 0.
         for k in range(con.nhru):
             if con.lnk[k] == FLUSS:
-                flu.qdgz += con.fhru[k] * (flu.nkor[k] - flu.evi[k])
+                flu.qdgz += con.fhru[k]*(flu.nkor[k]-flu.evi[k])
             elif con.lnk[k] not in (WASSER, SEE):
-                flu.qdgz += con.fhru[k] * flu.qdb[k]
+                flu.qdgz += con.fhru[k]*flu.qdb[k]
 
 
 class Calc_QDGZ1_QDGZ2_V1(modeltools.Method):
@@ -6404,8 +6404,8 @@ class Calc_QDGZ1_QDGZ2_V1(modeltools.Method):
         flu = model.sequences.fluxes.fastaccess
         sta = model.sequences.states.fastaccess
         if flu.qdgz > con.a2:
-            sta.qdgz2 = (flu.qdgz - con.a2) ** 2 / (flu.qdgz + con.a1 - con.a2)
-            sta.qdgz1 = flu.qdgz - sta.qdgz2
+            sta.qdgz2 = (flu.qdgz-con.a2)**2/(flu.qdgz+con.a1-con.a2)
+            sta.qdgz1 = flu.qdgz-sta.qdgz2
         else:
             sta.qdgz2 = 0.
             sta.qdgz1 = flu.qdgz
@@ -6470,12 +6470,12 @@ class Calc_QBGA_V1(modeltools.Method):
         if der.kb <= 0.:
             new.qbga = new.qbgz
         elif der.kb > 1e200:
-            new.qbga = old.qbga + new.qbgz - old.qbgz
+            new.qbga = old.qbga+new.qbgz-old.qbgz
         else:
-            d_temp = (1. - modelutils.exp(-1. / der.kb))
-            new.qbga = (old.qbga +
-                        (old.qbgz - old.qbga) * d_temp +
-                        (new.qbgz - old.qbgz) * (1. - der.kb * d_temp))
+            d_temp = 1.-modelutils.exp(-1./der.kb)
+            new.qbga = (old.qbga+
+                        (old.qbgz-old.qbga)*d_temp +
+                        (new.qbgz-old.qbgz)*(1.-der.kb*d_temp))
 
 
 class Calc_QIGA1_V1(modeltools.Method):
@@ -6538,12 +6538,12 @@ class Calc_QIGA1_V1(modeltools.Method):
         if der.ki1 <= 0.:
             new.qiga1 = new.qigz1
         elif der.ki1 > 1e200:
-            new.qiga1 = old.qiga1 + new.qigz1 - old.qigz1
+            new.qiga1 = old.qiga1+new.qigz1-old.qigz1
         else:
-            d_temp = (1. - modelutils.exp(-1. / der.ki1))
+            d_temp = 1.-modelutils.exp(-1./der.ki1)
             new.qiga1 = (old.qiga1 +
-                         (old.qigz1 - old.qiga1) * d_temp +
-                         (new.qigz1 - old.qigz1) * (1. - der.ki1 * d_temp))
+                         (old.qigz1-old.qiga1)*d_temp +
+                         (new.qigz1-old.qigz1)*(1.-der.ki1*d_temp))
 
 
 class Calc_QIGA2_V1(modeltools.Method):
@@ -6606,12 +6606,12 @@ class Calc_QIGA2_V1(modeltools.Method):
         if der.ki2 <= 0.:
             new.qiga2 = new.qigz2
         elif der.ki2 > 1e200:
-            new.qiga2 = old.qiga2 + new.qigz2 - old.qigz2
+            new.qiga2 = old.qiga2+new.qigz2-old.qigz2
         else:
-            d_temp = (1. - modelutils.exp(-1. / der.ki2))
+            d_temp = 1.-modelutils.exp(-1./der.ki2)
             new.qiga2 = (old.qiga2 +
-                         (old.qigz2 - old.qiga2) * d_temp +
-                         (new.qigz2 - old.qigz2) * (1. - der.ki2 * d_temp))
+                         (old.qigz2-old.qiga2)*d_temp +
+                         (new.qigz2-old.qigz2)*(1.-der.ki2*d_temp))
 
 
 class Calc_QDGA1_V1(modeltools.Method):
@@ -6673,12 +6673,12 @@ class Calc_QDGA1_V1(modeltools.Method):
         if der.kd1 <= 0.:
             new.qdga1 = new.qdgz1
         elif der.kd1 > 1e200:
-            new.qdga1 = old.qdga1 + new.qdgz1 - old.qdgz1
+            new.qdga1 = old.qdga1+new.qdgz1-old.qdgz1
         else:
-            d_temp = (1. - modelutils.exp(-1. / der.kd1))
+            d_temp = 1.-modelutils.exp(-1./der.kd1)
             new.qdga1 = (old.qdga1 +
-                         (old.qdgz1 - old.qdga1) * d_temp +
-                         (new.qdgz1 - old.qdgz1) * (1. - der.kd1 * d_temp))
+                         (old.qdgz1-old.qdga1)*d_temp +
+                         (new.qdgz1-old.qdgz1)*(1.-der.kd1*d_temp))
 
 
 class Calc_QDGA2_V1(modeltools.Method):
@@ -6740,12 +6740,12 @@ class Calc_QDGA2_V1(modeltools.Method):
         if der.kd2 <= 0.:
             new.qdga2 = new.qdgz2
         elif der.kd2 > 1e200:
-            new.qdga2 = old.qdga2 + new.qdgz2 - old.qdgz2
+            new.qdga2 = old.qdga2+new.qdgz2-old.qdgz2
         else:
-            d_temp = (1. - modelutils.exp(-1. / der.kd2))
+            d_temp = 1.-modelutils.exp(-1./ der.kd2)
             new.qdga2 = (old.qdga2 +
-                         (old.qdgz2 - old.qdga2) * d_temp +
-                         (new.qdgz2 - old.qdgz2) * (1. - der.kd2 * d_temp))
+                         (old.qdgz2-old.qdga2)*d_temp +
+                         (new.qdgz2-old.qdgz2)*(1.-der.kd2*d_temp))
 
 
 class Calc_Q_V1(modeltools.Method):
@@ -6883,7 +6883,6 @@ class Calc_Q_V1(modeltools.Method):
     )
     RESULTSEQUENCES = (
         lland_fluxes.Q,
-        lland_aides.EPW,
     )
 
     @staticmethod
@@ -6891,7 +6890,6 @@ class Calc_Q_V1(modeltools.Method):
         con = model.parameters.control.fastaccess
         flu = model.sequences.fluxes.fastaccess
         sta = model.sequences.states.fastaccess
-        aid = model.sequences.aides.fastaccess
         flu.q = sta.qbga + sta.qiga1+sta.qiga2+sta.qdga1+sta.qdga2
         if (not con.negq) and (flu.q < 0.):
             d_area = 0.
@@ -6903,17 +6901,17 @@ class Calc_Q_V1(modeltools.Method):
                     if con.lnk[k] in (FLUSS, SEE):
                         flu.evi[k] += flu.q/d_area
             flu.q = 0.
-        aid.epw = 0.
+        d_epw = 0.
         for k in range(con.nhru):
             if con.lnk[k] == WASSER:
                 flu.q += con.fhru[k]*flu.nkor[k]
-                aid.epw += con.fhru[k]*flu.evi[k]
-        if (flu.q > aid.epw) or con.negq:
-            flu.q -= aid.epw
-        elif aid.epw > 0.:
+                d_epw += con.fhru[k]*flu.evi[k]
+        if (flu.q > d_epw) or con.negq:
+            flu.q -= d_epw
+        elif d_epw > 0.:
             for k in range(con.nhru):
                 if con.lnk[k] == WASSER:
-                    flu.evi[k] *= flu.q/aid.epw
+                    flu.evi[k] *= flu.q/d_epw
             flu.q = 0.
 
 
@@ -6938,7 +6936,7 @@ class Pass_Q_V1(modeltools.Method):
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
         out = model.sequences.outlets.fastaccess
-        out.q[0] += der.qfactor * flu.q
+        out.q[0] += der.qfactor*flu.q
 
 
 class PegasusESnow(roottools.Pegasus):

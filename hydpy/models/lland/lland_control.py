@@ -248,8 +248,8 @@ class LAI(lland_parameters.LanduseMonthParameter):
 
 
 class TRefT(lland_parameters.ParameterLand):
-    """Lufttemperaturgrenzwert des grundlegenden Grad-Tag-Verfahrens # ToDo: ?
-    (air temperature threshold of the degree-day method) [°C]."""
+    """Lufttemperaturgrenzwert des Grad-Tag-Verfahrens (air temperature
+    threshold of the degree-day method) [°C]."""
     NDIM, TYPE, TIME, SPAN = 1, float, None, (None, None)
     INIT = 0.
 
@@ -865,8 +865,8 @@ class RBeta(lland_parameters.ParameterSoil):
     """Boolscher Parameter der steuert, ob the Perkolation unterhalb der
      Feldkapazität auf Null reduziert wird (flag to indicate if seepage is
      reduced to zero below field capacity) [-]."""
-    NDIM, TYPE, TIME, SPAN = 1, bool, None, (False, True)
-    INIT = False
+    NDIM, TYPE, TIME, SPAN = 1, bool, None, (0, 1)
+    INIT = 0
 
 
 class DMin(lland_parameters.ParameterSoil):
