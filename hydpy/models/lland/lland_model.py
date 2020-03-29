@@ -5690,7 +5690,7 @@ class Calc_QBB_V1(modeltools.Method):
                     (sta.bowa[k] <= con.pwp[k]) or (con.wmax[k] <= 0.)):
                 flu.qbb[k] = 0.
             elif sta.bowa[k] <= con.fk[k]:
-                if con.rbeta[k]:
+                if con.rbeta:
                     flu.qbb[k] = 0.
                 else:
                     flu.qbb[k] = con.beta[k]*(sta.bowa[k]-con.pwp[k])
