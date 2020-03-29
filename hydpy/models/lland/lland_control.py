@@ -865,7 +865,7 @@ class RBeta(lland_parameters.ParameterSoil):
     """Boolscher Parameter der steuert, ob the Perkolation unterhalb der
      Feldkapazität auf Null reduziert wird (flag to indicate if seepage is
      reduced to zero below field capacity) [-]."""
-    NDIM, TYPE, TIME, SPAN = 1, bool, None, (0, 1)
+    NDIM, TYPE, TIME, SPAN = 1, bool, None, (None, None)
     INIT = 0
 
 
