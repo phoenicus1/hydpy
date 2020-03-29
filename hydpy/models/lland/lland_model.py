@@ -2815,25 +2815,29 @@ class Update_EBdn_V1(modeltools.Method):
 
     Example:
 
+        Water areas do not posses a soil energy content. For all other
+        landuse types, the above equation applies:
+
         >>> from hydpy.models.lland import *
         >>> from hydpy import pub
         >>> parameterstep()
-        >>> nhru(3)
+        >>> nhru(6)
+        >>> lnk(WASSER, FLUSS, SEE, ACKER, ACKER, ACKER)
         >>> pub.timegrids = '2019-04-29', '2019-05-03', '1d'
         >>> derived.moy.update()
         >>> derived.seconds.update()
         >>> wg2z.apr = -0.03
         >>> wg2z.mai = -0.04
         >>> states.ebdn = 0.0
-        >>> fluxes.wg = 0.5, 1.0, 2.0
+        >>> fluxes.wg = 0.0, 0.0, 0.0, 0.5, 1.0, 2.0
         >>> model.idx_sim = 1
         >>> model.update_ebdn_v1()
         >>> states.ebdn
-        ebdn(-0.53, -1.03, -2.03)
+        ebdn(0.0, 0.0, 0.0, -0.53, -1.03, -2.03)
         >>> model.idx_sim = 2
         >>> model.update_ebdn_v1()
         >>> states.ebdn
-        ebdn(-1.07, -2.07, -4.07)
+        ebdn(0.0, 0.0, 0.0, -1.07, -2.07, -4.07)
 
         .. testsetup::
 
@@ -2841,8 +2845,8 @@ class Update_EBdn_V1(modeltools.Method):
         """
     CONTROLPARAMETERS = (
         lland_control.NHRU,
-        lland_control.WG2Z,
         lland_control.Lnk,
+        lland_control.WG2Z,
     )
     DERIVEDPARAMETERS = (
         lland_derived.MOY,
@@ -2862,7 +2866,10 @@ class Update_EBdn_V1(modeltools.Method):
         flu = model.sequences.fluxes.fastaccess
         sta = model.sequences.states.fastaccess
         for k in range(con.nhru):
-            sta.ebdn[k] += con.wg2z[der.moy[model.idx_sim]]-flu.wg[k]
+            if con.lnk[k] in (WASSER, FLUSS, SEE):
+                sta.ebdn[k] = 0.
+            else:
+                sta.ebdn[k] += con.wg2z[der.moy[model.idx_sim]]-flu.wg[k]
 
 
 class Return_WSensSnow_V1(modeltools.Method):
@@ -3834,8 +3841,11 @@ class Calc_Schm_WATS_V1(modeltools.Method):
         flu = model.sequences.fluxes.fastaccess
         sta = model.sequences.states.fastaccess
         for k in range(con.nhru):
-            flu.schm[k] = min(flu.schmpot[k], sta.wats[k])
-            sta.wats[k] -= flu.schm[k]
+            if con.lnk[k] in (WASSER, FLUSS, SEE):
+                flu.schm[k] = 0.
+            else:
+                flu.schm[k] = min(flu.schmpot[k], sta.wats[k])
+                sta.wats[k] -= flu.schm[k]
 
 
 class Calc_Gefr_WATS_V1(modeltools.Method):
@@ -3907,11 +3917,11 @@ class Calc_Gefr_WATS_V1(modeltools.Method):
         flu = model.sequences.fluxes.fastaccess
         sta = model.sequences.states.fastaccess
         for k in range(con.nhru):
-            if con.refreezeflag:
+            if con.lnk[k] in (WASSER, FLUSS, SEE) or not con.refreezeflag:
+                flu.gefr[k] = 0.
+            else:
                 flu.gefr[k] = min(flu.gefrpot[k], (sta.waes[k]-sta.wats[k]))
                 sta.wats[k] += flu.gefr[k]
-            else:
-                flu.gefr[k] = 0.
 
 
 class Update_WaDa_WAeS_V1(modeltools.Method):
@@ -3984,17 +3994,19 @@ class Update_ESnow_V3(modeltools.Method):
 
         >>> from hydpy.models.lland import *
         >>> parameterstep('1d')
-        >>> nhru(4)
-        >>> fluxes.gefr = 0.0, 4.0, 0.0, 4.0
-        >>> fluxes.schm = 0.0, 0.0, 4.0, 4.0
-        >>> states.esnow = 1.0, -1.5, 1.336, 0.0
-        >>> states.wats = 0.0, 5.0, 5.0, 10.0
+        >>> nhru(7)
+        >>> lnk(WASSER, FLUSS, SEE, ACKER, ACKER, ACKER, ACKER)
+        >>> fluxes.gefr = 0.0, 0.0, 0.0, 0.0, 4.0, 0.0, 4.0
+        >>> fluxes.schm = 0.0, 0.0, 0.0, 0.0, 0.0, 4.0, 4.0
+        >>> states.esnow = 1.0, 1.0, 1.0, 1.0, -1.5, 1.336, 0.0
+        >>> states.wats = 1.0, 1.0, 1.0, 0.0, 5.0, 5.0, 10.0
         >>> model.update_esnow_v3()
         >>> states.esnow
-        esnow(0.0, -0.164, 0.0, 0.0)
+        esnow(0.0, 0.0, 0.0, 0.0, -0.164, 0.0, 0.0)
     """
     CONTROLPARAMETERS = (
         lland_control.NHRU,
+        lland_control.Lnk,
     )
     FIXEDPARAMETERS = (
         lland_fixed.RSchmelz,
@@ -4015,11 +4027,11 @@ class Update_ESnow_V3(modeltools.Method):
         sta = model.sequences.states.fastaccess
         flu = model.sequences.fluxes.fastaccess
         for k in range(con.nhru):
-            if sta.wats[k] > 0.:
+            if (con.lnk[k] in (WASSER, FLUSS, SEE)) or (sta.wats[k] <= 0.):
+                sta.esnow[k] = 0.
+            else:
                 sta.esnow[k] -= flu.schm[k]*fix.rschmelz
                 sta.esnow[k] += flu.gefr[k]*fix.rschmelz
-            else:
-                sta.esnow[k] = 0.
 
 
 class Calc_SFF_V1(modeltools.Method):
@@ -4215,7 +4227,7 @@ class Calc_DryAirPressure_V1(modeltools.Method):
                 inp.atmosphericpressure-flu.actualvapourpressure[k]
 
 
-class Calc_DensityAir_V1(modeltools.Method):   # ToDo: WASSER Abfragen nicht vergessen
+class Calc_DensityAir_V1(modeltools.Method):
     """Calculate the density of the air.
 
     Basic equation:
@@ -4499,8 +4511,8 @@ class Calc_LanduseSurfaceResistance_V1(modeltools.Method):
     Basic equation:
 
        :math:`LanduseSurfaceResistance = SurfaceResistance* \\cdot
-       (3.5 \\cdot (1 - \\frac{min(BoWa, PWP)}{PWP}) +
-       exp(\\frac{0.2 \\cdot PWP}{min(BoWa, 0)}))`
+       (3.5 \\cdot (1 - \\frac{min(BoWa, PY)}{PY}) +
+       exp(\\frac{0.2 \\cdot PY}{min(BoWa, 0)}))`
 
     Modification for coniferous trees:
 
@@ -4542,12 +4554,12 @@ class Calc_LanduseSurfaceResistance_V1(modeltools.Method):
         landusesurfaceresistance(500.0, 0.0, 0.0, 0.0)
 
         For all "soil areas", we sligthly increase the original parameter
-        value by a constant factor for wet soils (|BoWa| > |PWP) and
-        increase it even more for dry soils (|BoWa| > |PWP).  For
+        value by a constant factor for wet soils (|BoWa| > |PY|) and
+        increase it even more for dry soils (|BoWa| > |PY|).  For
         a completely dry soil, surface resistance becomes infinite:
 
         >>> lnk(ACKER)
-        >>> pwp(0.0)
+        >>> py(0.0)
         >>> surfaceresistance.acker_jun = 40.0
         >>> states.bowa = 0.0, 10.0, 20.0, 30.0
         >>> model.idx_sim = 2
@@ -4555,7 +4567,7 @@ class Calc_LanduseSurfaceResistance_V1(modeltools.Method):
         >>> fluxes.landusesurfaceresistance
         landusesurfaceresistance(inf, 48.85611, 48.85611, 48.85611)
 
-        >>> pwp(20.0)
+        >>> py(20.0)
         >>> model.calc_landusesurfaceresistance_v1()
         >>> fluxes.landusesurfaceresistance
         landusesurfaceresistance(inf, 129.672988, 48.85611, 48.85611)
@@ -4612,6 +4624,7 @@ class Calc_LanduseSurfaceResistance_V1(modeltools.Method):
     CONTROLPARAMETERS = (
         lland_control.Lnk,
         lland_control.SurfaceResistance,
+        lland_control.PY,
     )
     DERIVEDPARAMETERS = (
         lland_derived.MOY,
@@ -4650,10 +4663,10 @@ class Calc_LanduseSurfaceResistance_V1(modeltools.Method):
             if con.lnk[k] not in (WASSER, FLUSS, SEE, VERS):
                 if sta.bowa[k] <= 0.:
                     flu.landusesurfaceresistance[k] = modelutils.inf
-                elif sta.bowa[k] < con.pwp[k]:
+                elif sta.bowa[k] < con.py[k]:
                     flu.landusesurfaceresistance[k] *= (
-                        3.5*(1.-sta.bowa[k]/con.pwp[k]) +
-                        modelutils.exp(.2*con.pwp[k]/sta.bowa[k]))
+                        3.5*(1.-sta.bowa[k]/con.py[k]) +
+                        modelutils.exp(.2*con.py[k]/sta.bowa[k]))
                 else:
                     flu.landusesurfaceresistance[k] *= modelutils.exp(.2)
 
@@ -5153,7 +5166,7 @@ class Calc_EvPo_V3(modeltools.Method):
 
 
 class Calc_EvS_WAeS_WATS_V1(modeltools.Method):
-    """Calculate the evaporation from the snow layer, if it exists, and
+    """Calculate the evaporation from the snow layer, if any exists, and
     update the water aequivalent of the snow cover accordingly.
 
     Basic equations:
@@ -5164,27 +5177,31 @@ class Calc_EvS_WAeS_WATS_V1(modeltools.Method):
         The first hydrological response unit shows that method
         |Calc_EvS_WAeS_WATS_V1| does never calculate condensation or
         deposition, even if a negative flux of latent heat suggests so.
-        The other response units show that methods |Calc_EvS_WAeS_WATS_V1|
-        first depletes the liquid water content of the snow layer
-        completely before it depletes its ice content:
+        Response units two to five show that methods |Calc_EvS_WAeS_WATS_V1|
+        first depletes the liquid water content of the snow layer completely
+        before it depletes its ice content.  The last three response units
+        that method |Calc_EvS_WAeS_WATS_V1| sets |EvS|, |WATS| and |WAeS|
+        to zero for all kinds of water areas:
 
         >>> from hydpy.models.lland import *
         >>> parameterstep('1d')
-        >>> nhru(5)
-        >>> fluxes.wlatsnow = -1.0, 0.0, 2.0, 4.0, 6.0
+        >>> nhru(8)
+        >>> lnk(ACKER, ACKER, ACKER, ACKER, ACKER, WASSER, FLUSS, SEE)
+        >>> fluxes.wlatsnow = -1.0, 0.0, 2.0, 4.0, 6.0, 6.0, 6.0, 6.0
         >>> states.waes = 2.0
         >>> states.wats = 1.0
         >>> model.calc_evs_waes_wats_v1()
         >>> fluxes.evs
-        evs(0.0, 0.0, 0.74978, 1.49956, 2.0)
+        evs(0.0, 0.0, 0.74978, 1.49956, 2.0, 0.0, 0.0, 0.0)
         >>> states.waes
-        waes(2.0, 2.0, 1.25022, 0.50044, 0.0)
+        waes(2.0, 2.0, 1.25022, 0.50044, 0.0, 0.0, 0.0, 0.0)
         >>> states.wats
-        wats(1.0, 1.0, 1.0, 0.50044, 0.0)
+        wats(1.0, 1.0, 1.0, 0.50044, 0.0, 0.0, 0.0, 0.0)
     """
 
     CONTROLPARAMETERS = (
         lland_control.NHRU,
+        lland_control.Lnk,
     )
     FIXEDPARAMETERS = (
         lland_fixed.LWE,
@@ -5208,12 +5225,17 @@ class Calc_EvS_WAeS_WATS_V1(modeltools.Method):
         flu = model.sequences.fluxes.fastaccess
         sta = model.sequences.states.fastaccess
         for k in range(con.nhru):
-            if (sta.waes[k] > 0.) and (flu.wlatsnow[k] > 0.):
+            if con.lnk[k] in (WASSER, SEE, FLUSS):
+                flu.evs[k] = 0.
+                sta.waes[k] = 0.
+                sta.wats[k] = 0.
+            elif (sta.waes[k] > 0.) and (flu.wlatsnow[k] > 0.):
                 flu.evs[k] = min(flu.wlatsnow[k]/fix.lwe, sta.waes[k])
                 sta.waes[k] = sta.waes[k]-flu.evs[k]
                 sta.wats[k] = min(sta.waes[k], sta.wats[k])
             else:
                 flu.evs[k] = 0.
+
 
 
 class Calc_EvI_Inzp_V1(modeltools.Method):
@@ -5288,7 +5310,7 @@ class Calc_EvI_Inzp_V1(modeltools.Method):
 
 
 class Calc_EvI_Inzp_V2(modeltools.Method):
-    """Calculate interception evaporation and update the interception
+    """Calculate the interception evaporation and update the interception
     storage accordingly for snow-free surfaces.
 
     Method |Calc_EvI_Inzp_V2| works exactly like method |Calc_EvI_Inzp_V1|,
@@ -5361,7 +5383,7 @@ class Calc_EvI_Inzp_V2(modeltools.Method):
 class Calc_EvB_V2(modeltools.Method):
     """Calculate the actual evapotranspiration from the soil.
 
-    :math:`EvB = \\frac{EvPo - EvI}{EvPo}  \\cdot EvB_{Penman-Monteith}`
+    :math:`EvB = \\frac{EvPo - EvI}{EvPo} \\cdot EvB_{Penman-Monteith}`
 
     Example:
 
@@ -5453,86 +5475,73 @@ class Calc_EvB_V2(modeltools.Method):
 
 
 class Calc_QKap_V1(modeltools.Method):
-    """"Calculate the amount of capillary rise.
+    """"Calculate the capillary rise.
 
     Basic equation:
-      :math:`Q_{kap} = \\Bigl \\lbrace
+      :math:`QKap = \\Bigl \\lbrace
       {
-      QMAX_{kap} \\|\\ BoWa<KapGrenz1
+      KapMax \\|\\ BoWa \\leq KapGrenz_1
       \\atop
-      QMAX_{kap}-\\frac{QMAX_{kap}(BoWa-KapGrenz1)}{KapGrenz2-KapGrenz1}
-      \\|\\ KapGrenz1 \\leq BoWa<KapGrenz2
+      KapMax \\cdot (1 - \\frac{BoWa-KapGrenz_1}{KapGrenz_2-KapGrenz_1})
+      \\|\\ KapGrenz_1 < BoWa \\leq KapGrenz_2
       \\atop
-      0 \\|\\ KapGrenz2 \\leq BoWa
+      0 \\|\\ KapGrenz_2 < BoWa
       }`
+
 
     Examples:
 
-        To calculate the capillary rise |QKap|, we need to define the maximum
-        capillary rise rate |KapMax| and threshold values |KapGrenz| for
-        capillary rise or at least an option (e.g. option='KapAquantec') how
-        |KapGrenz| should be parametrized.
+        We prepare six hydrological response units of landuse type |ACKER|
+        with different soil water contents:
 
         >>> from hydpy.models.lland import *
         >>> simulationstep('12h')
         >>> parameterstep('1d')
-        >>> nhru(3)
+        >>> nhru(6)
         >>> lnk(ACKER)
-        >>> wmax(160.)
-        >>> states.bowa(5.,80.,140.)
-        >>> kapmax(1.5)
+        >>> wmax(100.0)
+        >>> states.bowa(0.0, 20.0, 40.0, 60.0, 80.0, 100.0)
 
-        |FK| is needed to calculate |KapGrenz| for the options 'KapAquantec'
-        and 'kapillarerAufstieg'
+        The maximum capillary rise is 3 mm/d (which is 1.5 mm for the
+        actual simulation time step of 12 hours):
 
-        >>> fk(80)
+        >>> kapmax(3.0)
 
-        with the option 'KapAquantec'
+        Please read the documentation on parameter |KapGrenz|, which gives
+        some examples on how to configure the capillary rise thresholds.
+        The following examples show the calculation results for with and
+        without a range of linear transition:
 
-        >>> kapgrenz(option='KapAquantec')
-        >>> kapgrenz
-        kapgrenz([[40.0, 80.0],
-                  [40.0, 80.0],
-                  [40.0, 80.0]])
+        >>> kapgrenz(20.0, 80.0)
         >>> model.calc_qkap_v1()
         >>> fluxes.qkap
-        qkap(0.75, 0.0, 0.0)
+        qkap(1.5, 1.5, 1.0, 0.5, 0.0, 0.0)
 
-        with the option 'BodenGrundwasser'
-
-        >>> kapgrenz(option='BodenGrundwasser')
-        >>> kapgrenz
-        kapgrenz([[0.0, 16.0],
-                  [0.0, 16.0],
-                  [0.0, 16.0]])
+        >>> kapgrenz(40.0, 40.0)
         >>> model.calc_qkap_v1()
         >>> fluxes.qkap
-        qkap(0.515625, 0.0, 0.0)
+        qkap(1.5, 1.5, 1.5, 0.0, 0.0, 0.0)
 
-        with the option 'kapillarerAufstieg'
+        You are allowed to set the lower threshold to values lower than
+        zero and the larger one to values larger than |WMax|:
 
-        >>> kapgrenz(option='kapillarerAufstieg')
-        >>> kapgrenz
-        kapgrenz(80.0)
+        >>> kapgrenz(-50.0, 150.0)
         >>> model.calc_qkap_v1()
         >>> fluxes.qkap
-        qkap(0.75, 0.75, 0.0)
+        qkap(1.125, 0.975, 0.825, 0.675, 0.525, 0.375)
 
-        with predefined |KapGrenz| values
-        >>> kapgrenz(20, 180)
-        >>> kapgrenz
-        kapgrenz([[20.0, 180.0],
-                  [20.0, 180.0],
-                  [20.0, 180.0]])
+        For water areas and sealed surfaces, capillary rise is always zero:
+
+        >>> lnk(WASSER, FLUSS, SEE, VERS, VERS, VERS)
         >>> model.calc_qkap_v1()
         >>> fluxes.qkap
-        qkap(0.75, 0.46875, 0.1875)
+        qkap(0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
     """
     CONTROLPARAMETERS = (
         lland_control.NHRU,
+        lland_control.Lnk,
         lland_control.KapMax,
         lland_control.KapGrenz,
-        lland_control.Lnk,
     )
     REQUIREDSEQUENCES = (
         lland_states.BoWa,
@@ -5552,14 +5561,11 @@ class Calc_QKap_V1(modeltools.Method):
                 flu.qkap[k] = 0.
             elif sta.bowa[k] <= con.kapgrenz[k, 0]:
                 flu.qkap[k] = con.kapmax[k]
-            elif ((sta.bowa[k] > con.kapgrenz[k, 0]) and
-                  (sta.bowa[k] <= con.kapgrenz[k, 1])):
-                flu.qkap[k] = (
-                    con.kapmax[k] -
-                    (sta.bowa[k] - con.kapgrenz[k, 0]) *
-                    ((con.kapmax[k]) / (
-                        con.kapgrenz[k, 1] - con.kapgrenz[k, 0])))
-            elif sta.bowa[k] > con.kapgrenz[k, 1]:
+            elif sta.bowa[k] <= con.kapgrenz[k, 1]:
+                flu.qkap[k] = con.kapmax[k] * (
+                    1.-(sta.bowa[k]-con.kapgrenz[k, 0]) /
+                    (con.kapgrenz[k, 1]-con.kapgrenz[k, 0]))
+            else:
                 flu.qkap[k] = 0
 
 
@@ -5584,9 +5590,10 @@ class Calc_QBB_V1(modeltools.Method):
     Examples:
 
         For water and sealed areas, no base flow is calculated (see the
-        first three HRUs of type |VERS|, |FLUSS|, and |SEE|).  No principal
-        distinction is made between the remaining land use classes (arable
-        land |ACKER| has been selected for the last five HRUs arbitrarily):
+        first three hydrological response units of type |VERS|, |FLUSS|, and
+        |SEE|).  No principal distinction is made between the remaining land
+        use classes (arable land |ACKER| has been selected for the last five
+        HRUs arbitrarily):
 
         >>> from hydpy.models.lland import *
         >>> parameterstep('1d')
@@ -5595,9 +5602,10 @@ class Calc_QBB_V1(modeltools.Method):
         >>> lnk(FLUSS, SEE, VERS, ACKER, ACKER, ACKER, ACKER, ACKER)
         >>> beta(0.04)
         >>> fbeta(2.0)
-        >>> wmax(100.0, 100.0, 100.0, 0.0, 100.0, 100.0, 100.0, 200.0)
-        >>> pwp(10.0)
+        >>> wmax(0.0, 0.0, 0.0, 0.0, 100.0, 100.0, 100.0, 200.0)
         >>> fk(70.0)
+        >>> pwp(10.0)
+        >>> rbeta(False)
 
         Note the time dependence of parameter |Beta|:
 
@@ -5616,25 +5624,33 @@ class Calc_QBB_V1(modeltools.Method):
         >>> fluxes.qbb
         qbb(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.2, 0.2)
 
-        Note that for the last two HRUs the same amount of base flow
-        generation is determined, in spite of the fact that both exhibit
+        Note that for the last two response units the same amount of base
+        flow generation is determined, in spite of the fact that both exhibit
         different relative soil moistures.
 
-        In the second example, the actual soil water content |BoWa| is set
+        If we set the reduction option |RBeta| to |False|, |QBB| is
+        reduced to zero as long as |BoWa| does not exceed |FK|:
+
+        >>> rbeta(True)
+        >>> model.calc_qbb_v1()
+        >>> fluxes.qbb
+        qbb(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
+
+        In the second example, we set the actual soil water content |BoWa|
         to high values.  For values below threshold |FK|, the discussion above
         remains valid.  For values above |FK|, percolation shows a nonlinear
         behaviour when factor |FBeta| is set to values larger than one:
 
+        >>> rbeta(False)
         >>> wmax(0.0, 0.0, 0.0, 100.0, 100.0, 100.0, 100.0, 200.0)
+        >>> fk(70.0)
+        >>> pwp(10.0)
         >>> states.bowa = 0.0, 0.0, 0.0, 60.0, 70.0, 80.0, 100.0, 200.0
         >>> model.calc_qbb_v1()
         >>> fluxes.qbb
         qbb(0.0, 0.0, 0.0, 1.0, 1.2, 1.866667, 3.6, 7.6)
 
-        If we do not want to have capillary rise and  percolation at the same
-        time we activate the flag |CorrQBBFlag|:
-
-        >>> corrqbbflag(1)
+        >>> rbeta(True)
         >>> model.calc_qbb_v1()
         >>> fluxes.qbb
         qbb(0.0, 0.0, 0.0, 0.0, 0.0, 1.866667, 3.6, 7.6)
@@ -5645,6 +5661,7 @@ class Calc_QBB_V1(modeltools.Method):
         lland_control.WMax,
         lland_control.Beta,
         lland_control.FBeta,
+        lland_control.RBeta,
         lland_control.KapGrenz,
         lland_control.PWP,
         lland_control.FK,
@@ -5667,16 +5684,15 @@ class Calc_QBB_V1(modeltools.Method):
                     (sta.bowa[k] <= con.pwp[k]) or (con.wmax[k] <= 0.)):
                 flu.qbb[k] = 0.
             elif sta.bowa[k] <= con.fk[k]:
-                if con.corrqbbflag[k] == 1:
+                if con.rbeta[k]:
                     flu.qbb[k] = 0.
                 else:
                     flu.qbb[k] = con.beta[k]*(sta.bowa[k]-con.pwp[k])
             else:
                 flu.qbb[k] = (
-                    (con.beta[k]*(sta.bowa[k]-con.pwp[k]) *
-                     (1.+(con.fbeta[k]-1.) *
-                      ((sta.bowa[k]-con.fk[k])/(con.wmax[k]-con.fk[k]))))
-                )
+                    con.beta[k]*(sta.bowa[k]-con.pwp[k]) *
+                    (1.+(con.fbeta[k]-1.) *
+                     (sta.bowa[k]-con.fk[k])/(con.wmax[k]-con.fk[k])))
 
 
 class Calc_QIB1_V1(modeltools.Method):
@@ -5955,95 +5971,75 @@ class Update_QDB_V1(modeltools.Method):
 
 
 class Calc_BoWa_V1(modeltools.Method):
-    """Update soil moisture and correct fluxes if necessary.
+    """Update the soil moisture and, if necessary, correct ingoing and
+    outgoing fluxes.
 
     Basic equations:
        :math:`\\frac{dBoWa}{dt} = WaDa + Qkap - EvB - QBB - QIB1 - QIB2 - QDB`
 
-       :math:`BoWa \\geq 0`
+       :math:`0 \\leq BoWa \\geq WMax`
 
     Examples:
 
-        For water areas (|FLUSS| and |SEE|) and sealed areas (|VERS|),
-        soil moisture |BoWa| is simply set to zero and no flux correction
-        are performed (see the first three HRUs).  No principal distinction
-        is made between the remaining land use classes (arable land |ACKER|
-        has been selected for the last four HRUs arbitrarily):
+        For water areas and sealed surfaces, we simply set soil moisture |BoWa|
+        to zero and do not need to perform any flux corrections:
 
         >>> from hydpy.models.lland import *
         >>> parameterstep('1d')
-        >>> nhru(7)
-        >>> lnk(FLUSS, SEE, VERS, ACKER, ACKER, ACKER, ACKER)
-        >>> fk(1.0)
-        >>> corrqbbflag(0)
-        >>> states.bowa = 2.0
-        >>> fluxes.wada = 1.0
-        >>> fluxes.evb = 1.0, 1.0, 1.0, 0.0, 0.1, 0.2, 0.3
-        >>> fluxes.qbb = 1.0, 1.0, 1.0, 0.0, 0.2, 0.4, 0.6
-        >>> fluxes.qkap = 0.5, 0.5, 0.5, 0.0, 0.1, 0.2, 0.3
-        >>> fluxes.qib1 = 1.0, 1.0, 1.0, 0.0, 0.3, 0.6, 0.9
-        >>> fluxes.qib2 = 1.0, 1.0, 1.0, 0.0, 0.4, 0.8, 1.2
-        >>> fluxes.qdb = 1.0, 1.0, 1.0, 0.0, 0.5, 1.0, 1.5
+        >>> nhru(4)
+        >>> lnk(FLUSS, SEE, WASSER, VERS)
+        >>> states.bowa = 100.0
         >>> model.calc_bowa_v1()
         >>> states.bowa
-        bowa(0.0, 0.0, 0.0, 3.0, 1.5, 0.2, 0.0)
-        >>> fluxes.evb
-        evb(1.0, 1.0, 1.0, 0.0, 0.1, 0.2, 0.22)
-        >>> fluxes.qbb
-        qbb(1.0, 1.0, 1.0, 0.0, 0.2, 0.4, 0.44)
-        >>> fluxes.qkap
-        qkap(0.5, 0.5, 0.5, 0.0, 0.0, 0.2, 0.3)
-        >>> fluxes.qib1
-        qib1(1.0, 1.0, 1.0, 0.0, 0.3, 0.6, 0.66)
-        >>> fluxes.qib2
-        qib2(1.0, 1.0, 1.0, 0.0, 0.4, 0.8, 0.88)
-        >>> fluxes.qdb
-        qdb(1.0, 1.0, 1.0, 0.0, 0.5, 1.0, 1.1)
+        bowa(0.0, 0.0, 0.0, 0.0)
 
-        The capillary rise is reduced for all cases where |BoWa| is bigger
-        than |FK|
+        We make no principal distinction between the remaining land use
+        classes and select arable land (|ACKER|) for the following examples:
 
-        >>> fluxes.qkap   # ToDo
-        qkap(0.5, 0.5, 0.5, 0.0, 0.0, 0.2, 0.3)
-
-        For the seventh HRU, the original total loss terms would result in a
-        negative soil moisture value.  Hence it is reduced to the total loss
-        term of the sixt HRU, which results exactly in a complete emptying
-        of the soil storage.
-
-        If we set the correction flag true:
-
-        >>> fk(2.5)
-        >>> corrqbbflag(1)
-        >>> states.bowa = 2.0
-        >>> fluxes.wada = 1.0
-        >>> fluxes.evb = 1.0, 1.0, 1.0, 0.0, 0.1, 0.2, 0.3
-        >>> fluxes.qbb = 1.0, 1.0, 1.0, 0.0, 0.2, 0.4, 0.6
-        >>> fluxes.qkap = 0.5, 0.5, 0.5, 0.0, 0.1, 0.2, 0.3
-        >>> fluxes.qib1 = 1.0, 1.0, 1.0, 0.0, 0.3, 0.6, 0.9
-        >>> fluxes.qib2 = 1.0, 1.0, 1.0, 0.0, 0.4, 0.8, 1.2
-        >>> fluxes.qdb = 1.0, 1.0, 1.0, 0.0, 0.5, 1.0, 1.5
+        >>> lnk(ACKER)
+        >>> wmax(100.0)
+        >>> states.bowa = 90.0
+        >>> fluxes.wada = 0.0, 5.0, 10.0, 15.0
+        >>> fluxes.qkap = 5.0
+        >>> fluxes.evb = 0.0
+        >>> fluxes.qbb = 0.0
+        >>> fluxes.qib1 = 0.0
+        >>> fluxes.qib2 = 0.0
+        >>> fluxes.qdb = 0.0
         >>> model.calc_bowa_v1()
         >>> states.bowa
-        bowa(0.0, 0.0, 0.0, 3.0, 1.8, 0.6, 0.0)
-        >>> fluxes.evb
-        evb(1.0, 1.0, 1.0, 0.0, 0.1, 0.2, 0.253846)
-        >>> fluxes.qbb
-        qbb(1.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0)
+        bowa(95.0, 100.0, 100.0, 100.0)
+        >>> fluxes.wada
+        wada(0.0, 5.0, 3.333333, 7.5)
         >>> fluxes.qkap
-        qkap(0.5, 0.5, 0.5, 0.0, 0.1, 0.2, 0.3)
+        qkap(5.0, 5.0, 1.666667, 2.5)
+
+        >>> states.bowa = 10.0
+        >>> fluxes.wada = 0.0
+        >>> fluxes.qkap = 0.0
+        >>> fluxes.evb = 0.0, 5.0, 10.0, 15.0
+        >>> fluxes.qbb = 1.25
+        >>> fluxes.qib1 = 1.25
+        >>> fluxes.qib2 = 1.25
+        >>> fluxes.qdb = 1.25
+        >>> model.calc_bowa_v1()
+        >>> states.bowa
+        bowa(5.0, 0.0, 0.0, 0.0)
+        >>> fluxes.evb
+        evb(0.0, 5.0, 6.666667, 7.5)
+        >>> fluxes.qbb
+        qbb(1.25, 1.25, 0.833333, 0.625)
         >>> fluxes.qib1
-        qib1(1.0, 1.0, 1.0, 0.0, 0.3, 0.6, 0.761538)
+        qib1(1.25, 1.25, 0.833333, 0.625)
         >>> fluxes.qib2
-        qib2(1.0, 1.0, 1.0, 0.0, 0.4, 0.8, 1.015385)
+        qib2(1.25, 1.25, 0.833333, 0.625)
         >>> fluxes.qdb
-        qdb(1.0, 1.0, 1.0, 0.0, 0.5, 1.0, 1.269231)
+        qdb(1.25, 1.25, 0.833333, 0.625)
     """
     CONTROLPARAMETERS = (
         lland_control.NHRU,
         lland_control.Lnk,
-        lland_control.CorrQBBFlag,
-        lland_control.FK,
+        lland_control.WMax,
     )
     REQUIREDSEQUENCES = (
         lland_fluxes.WaDa,
@@ -6057,9 +6053,6 @@ class Calc_BoWa_V1(modeltools.Method):
         lland_fluxes.QDB,
         lland_fluxes.QKap,
     )
-    RESULTSEQUENCES = (
-
-    )
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -6070,21 +6063,11 @@ class Calc_BoWa_V1(modeltools.Method):
             if con.lnk[k] in (VERS, WASSER, FLUSS, SEE):
                 sta.bowa[k] = 0.
             else:
-                d_bvl = \
-                    flu.evb[k]+flu.qbb[k]+flu.qib1[k]+flu.qib2[k]+flu.qdb[k]
+                d_bvl = flu.evb[k]+flu.qbb[k]+flu.qib1[k]+flu.qib2[k]+flu.qdb[k]
                 d_mvl = sta.bowa[k]+flu.wada[k]+flu.qkap[k]
                 if d_bvl > d_mvl:
-                    if con.corrqbbflag[k] and flu.qbb[k] > 0.:
-                        d_delta = min(d_bvl-d_mvl, flu.qbb[k])
-                        flu.qbb[k] -= d_delta
-                        d_bvl = (flu.evb[k]+flu.qbb[k]+flu.qib1[k] +
-                                 flu.qib2[k]+flu.qdb[k])
-                        d_mvl = sta.bowa[k]+flu.wada[k]+flu.qkap[k]
-                        if d_bvl > d_mvl:
-                            sta.bowa[k] = d_mvl-d_bvl
                     d_rvl = d_mvl/d_bvl
-                    if flu.evb[k] > 0:
-                        flu.evb[k] *= d_rvl
+                    flu.evb[k] *= d_rvl
                     flu.qbb[k] *= d_rvl
                     flu.qib1[k] *= d_rvl
                     flu.qib2[k] *= d_rvl
@@ -6092,16 +6075,12 @@ class Calc_BoWa_V1(modeltools.Method):
                     sta.bowa[k] = 0.
                 else:
                     sta.bowa[k] = d_mvl-d_bvl
-                    if con.corrqbbflag[k] and (sta.bowa[k] < con.fk[k]):
-                        if flu.qbb[k] > 0.:
-                            d_delta = min(con.fk[k]-sta.bowa[k], flu.qbb[k])
-                            flu.qbb[k] -= d_delta
-                            sta.bowa[k] += d_delta
-                    elif sta.bowa[k] > con.fk[k]:
-                        if flu.qkap[k] > 0.:
-                            d_delta = min(sta.bowa[k]-con.fk[k], flu.qkap[k])
-                            flu.qkap[k] -= d_delta
-                            sta.bowa[k] -= d_delta
+                    if sta.bowa[k] > con.wmax[k]:
+                        d_factor = \
+                            (sta.bowa[k]-con.wmax[k])/(flu.wada[k]+flu.qkap[k])
+                        flu.wada[k] *= d_factor
+                        flu.qkap[k] *= d_factor
+                        sta.bowa[k] = con.wmax[k]
 
 
 class Calc_QBGZ_V1(modeltools.Method):
