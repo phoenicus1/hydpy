@@ -2762,28 +2762,31 @@ class Calc_WG_V1(modeltools.Method):
     """Calculate the soil heat flux.
 
     Method |Calc_WG_V1| uses method |Return_WG_V1| to calculate the
-    soil heat flux for all hydrological response units.
+    soil heat flux for all hydrological response units that do not
+    represent water areas.
 
     Examples:
 
         >>> from hydpy.models.lland import *
         >>> simulationstep('1h')
         >>> parameterstep('1d')
-        >>> nhru(2)
+        >>> nhru(5)
+        >>> lnk(ACKER, VERS, WASSER, FLUSS, SEE)
         >>> fixed.lambdag.restore()
         >>> fluxes.tz = 2.0
         >>> fluxes.tkor = 10.0
-        >>> states.waes = 0.0, 1.0
-        >>> aides.temps = nan, -1.0
+        >>> states.waes = 0.0, 1.0, 0.0, 0.0, 0.0
+        >>> aides.temps = nan, -1.0, nan, nan, nan
         >>> model.calc_wg_v1()
         >>> fluxes.wg
-        wg(-0.1728, 0.0648)
+        wg(-0.1728, 0.0648, 0.0, 0.0, 0.0)
     """
     SUBMETHODS = (
         Return_WG_V1,
     )
     CONTROLPARAMETERS = (
         lland_control.NHRU,
+        lland_control.Lnk,
     )
     FIXEDPARAMETERS = (
         lland_fixed.Z,
@@ -2804,7 +2807,10 @@ class Calc_WG_V1(modeltools.Method):
         con = model.parameters.control.fastaccess
         flu = model.sequences.fluxes.fastaccess
         for k in range(con.nhru):
-            flu.wg[k] = model.return_wg_v1(k)
+            if con.lnk[k] in (FLUSS, SEE, WASSER):
+                flu.wg[k] = 0.
+            else:
+                flu.wg[k] = model.return_wg_v1(k)
 
 
 class Update_EBdn_V1(modeltools.Method):
