@@ -20,6 +20,7 @@ class SN_Ratio(sequencetools.AideSequence):
 class TempS(sequencetools.AideSequence):
     """Temperatur der Schneedecke (temperature of the snow layer) [°C].
 
-    Note that the value of sequence |TempS| is |nan| for snow-free surfaces.
+    Note that the value of sequence |TempS| is |numpy.nan| for snow-free
+    surfaces.
     """
     NDIM, NUMERIC = 1, False

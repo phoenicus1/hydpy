@@ -76,7 +76,7 @@ Integration tests:
 
     In the first example, arable land is the land-use class of our choice
     (for all other land-use types, except the ones mentioned below, the results
-     would be the same):
+    would be the same):
 
     >>> lnk(ACKER)
 
@@ -671,7 +671,7 @@ Integration tests:
     of the linear storages for direct flow (|QDGZ|).  In contrast to water
     type |SEE|, using water type |FLUSS| increases the responsiveness of a
     catchment, but to a lesser extent than type |WASSER|.  Using |FLUSS|
-    instead of |WASSER< reduces the discussed problem during low flow
+    instead of |WASSER| reduces the discussed problem during low flow
     conditions.  However, for catchments with a very dense stream network,
     it may persist.  Compare the series |EvPo| and |EvI| to see how
     |lland_v1| adjusts actual evaporation in the most extreme case of a
@@ -923,7 +923,7 @@ Integration tests:
     the LARSIM option `KAPILLARER AUFSTIEG` in combination with
     `ERW. BODENPARAMETER`.  Now capillary rise and deep percolation exclude
     each other.  Accordingly, there is an abrupt transition from capillary
-     rise to deep percolation when the soil moisture exceeds |FK|:
+    rise to deep percolation when the soil moisture exceeds |FK|:
 
     >>> lnk(ACKER)
     >>> pwp(0.0)

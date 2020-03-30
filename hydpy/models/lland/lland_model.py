@@ -1733,8 +1733,8 @@ class Calc_WaDa_WAeS_V1(modeltools.Method):
         and |SEE|.  For water areas, stand precipitaton |NBes| is generally
         passed to |WaDa| and |WAeS| is set to zero.  For all other land
         use classes (of which only |ACKER| is selected), method
-        |Calc_WaDa_WAeS_V1|only the amount only passes the part of |NBes|
-        exceeding the actual snow holding capacity to |WaDa|.
+        |Calc_WaDa_WAeS_V1| only passes the part of |NBes| exceeding the
+        actual snow holding capacity to |WaDa|.
     """
     CONTROLPARAMETERS = (
         lland_control.NHRU,
@@ -2138,17 +2138,17 @@ class Return_NetLongwaveRadiation_V1(modeltools.Method):
     Method |Return_NetLongwaveRadiation_V1| relies on two different
     equations for snow-covered and snow-free surfaces.
 
-    Basic equation (above a snow layer):
-       :math:`-(Sigma \\cdot (TKor + 273.15)^4 \\cdot
-       (FrAtm \\cdot (ActualVapourPressure \\cdot \\frac{10}
-       {TKor + 273.15})^{\\frac{1}{7}}-Emissivity) \\cdot (0.2+0.8 \\cdot
-       (\frac{SunshineDuration}{PossibleSunshineDuration})))`
+    Basic equation above a snow-free surface:
+       :math:`Sigma \\cdot (TKor + 273.15)^4 \\cdot
+       (Emissivity - FrAtm \\cdot  (\\frac{ActualVapourPressure \\cdot 10}
+       {TKor + 273.15})^{1/7}) \\cdot (0.2 + 0.8 \\cdot
+       \\frac{SunshineDuration}{PossibleSunshineDuration})`
 
-    Basic equation (above a snow-free surface):
-       :math:`(Sigma \\cdot (TempSSurface+273.15)^4 - Sigma \\cdot
-       (Tkor + 273.15)^4 \\cdot FrAtm \\cdot (ActualVapourPressure \\cdot
-       \\frac{10}{TKor[k] + 273.15})^{\\frac{1}{7}} \\cdot (1 + 0.22
-       \\cdot (1-\frac{SunshineDuration}{PossibleSunshineDuration})^2))`
+    Basic equation above a snow layer:
+       :math:`Sigma \\cdot ((TempSSurface + 273.15)^4 -
+       (Tkor + 273.15)^4 \\cdot FrAtm \\cdot (\\frac{ActualVapourPressure
+       \\cdot 10}{TKor + 273.15})^{1/7} \\cdot (1 + 0.22
+       \\cdot (1 - \\frac{SunshineDuration}{PossibleSunshineDuration})^2))`
 
     Examples:
 
@@ -2246,8 +2246,8 @@ class Return_NetLongwaveRadiation_V1(modeltools.Method):
         if sta.waes[k] > 0.:
             return (fix.sigma*(flu.tempssurface[k]+273.15)**4 -
                     d_temp1*con.fratm*d_temp2*(1.+.22*(1.-d_relsunshine)**2))
-        return -(d_temp1*(con.fratm*d_temp2-con.emissivity) *
-                 (.2+.8*d_relsunshine))
+        return (d_temp1*(con.emissivity-con.fratm*d_temp2) *
+                (.2+.8*d_relsunshine))
 
 
 class Calc_NetLongwaveRadiation_V1(modeltools.Method):
@@ -2386,11 +2386,11 @@ class Update_TauS_V1(modeltools.Method):
         for k in range(con.nhru):
             if sta.waes[k] > 0:
                 if modelutils.isnan(sta.taus[k]):
-                    sta.taus[k] = 0
-                d_r1 = modelutils.exp(5000*(1/273.15-1/(273.15+aid.temps[k])))
-                d_r2 = min(d_r1**10, 1)
-                sta.taus[k] *= max(1-0.1*flu.sbes[k], 0)
-                sta.taus[k] += (d_r1+d_r2+0.03)/1e6*der.seconds
+                    sta.taus[k] = 0.
+                d_r1 = modelutils.exp(5000.*(1/273.15-1./(273.15+aid.temps[k])))
+                d_r2 = min(d_r1**10, 1.)
+                sta.taus[k] *= max(1-0.1*flu.sbes[k], 0.)
+                sta.taus[k] += (d_r1+d_r2+.03)/1e6*der.seconds
             else:
                 sta.taus[k] = modelutils.nan
 
@@ -2398,7 +2398,7 @@ class Update_TauS_V1(modeltools.Method):
 class Calc_ActualAlbedo_V1(modeltools.Method):
     """Calculate the current albedo value.
 
-    For snow-free surfaces, method |Calc_AlbedoCorr_V1| takes the
+    For snow-free surfaces, method |Calc_ActualAlbedo_V1| takes the
     value of parameter |Albedo| relevant for the given landuse and month.
     For snow conditions, it estimates the albedo based on the snow age,
     as shown by the following equation.
@@ -3201,7 +3201,7 @@ class Return_TempSSurface_V1(modeltools.Method):
         the iterative search for the correct surface temperature.  Instead,
         method |Return_TempSSurface_V1| simply uses the bulk temperature of
         the snow layer as its surface temperature and sets |WSurf| so that
-        the energy gain of the snow surface is zero::
+        the energy gain of the snow surface is zero:
 
         >>> ktschnee(inf)
         >>> for hru in range(5):
@@ -3935,7 +3935,7 @@ class Update_WaDa_WAeS_V1(modeltools.Method):
     the snow layer due to melting.
 
     Basic equations:
-      :math:`\\delta = Max(WAeS-PWMax \\cdot WATS, 0)'
+      :math:`\\delta = Max(WAeS-PWMax \\cdot WATS, 0)`
 
       :math:`WaDa_{new} = WaDa_{old} + \\delta`
 
@@ -4480,7 +4480,7 @@ class Calc_SoilSurfaceResistance_V1(modeltools.Method):
     CONTROLPARAMETERS = (
         lland_control.NHRU,
         lland_control.Lnk,
-        lland_control.PWP,
+        lland_control.PWP,   # ToDo: py?
     )
     DERIVEDPARAMETERS = (
         lland_derived.NFk,

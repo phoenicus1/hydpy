@@ -56,9 +56,9 @@ class Pegasus(modeltools.Submodel):
         Instead, it returns the relevant `xmin` or `xmax` value.
 
         In the following, we explain the details of our Pegasus implementation
-        by using method |lland_model.Return_TempsSurface_V1|.
+        by using method |lland_model.Return_TempSSurface_V1|.
 
-        Method |lland_model.Return_TempsSurface_V1| (used by application model
+        Method |lland_model.Return_TempSSurface_V1| (used by application model
         |lland_v3|) implements the Pegasus iteration to determine the surface
         temperature of the snow layer with the help of the Pegasus subclass
         |lland_model.PegasusTempSSurface|.  For the correct surface
@@ -69,7 +69,7 @@ class Pegasus(modeltools.Submodel):
         temperature in a non-linear manner.
 
         As a starting point, we use the setting provided by the documentation
-        on method |lland_model.Return_TempsSurface_V1| but work in pure Python
+        on method |lland_model.Return_TempSSurface_V1| but work in pure Python
         mode for flexibility (more specifically, to have direct access to
         method `find_x`) and focus on a single hydrological response unit
         for simplicity:
@@ -95,7 +95,7 @@ class Pegasus(modeltools.Submodel):
         >>> fluxes.windspeed10m = 3.0
         >>> aides.temps = -2.0
 
-        Method |lland_model.Return_TempsSurface_V1| finds the following
+        Method |lland_model.Return_TempSSurface_V1| finds the following
         surface temperature value:
 
         >>> model.idx_hru = 0
@@ -118,7 +118,7 @@ class Pegasus(modeltools.Submodel):
 
         To check for some exceptional cases, we call the `find_x` method of
         class |lland_model.PegasusTempSSurface| directly.  First, we pass
-        the same arguments as in method |lland_model.Return_TempsSurface_V1|
+        the same arguments as in method |lland_model.Return_TempSSurface_V1|
         and thus get the same result:
 
         >>> round_(model.pegasustempssurface.find_x(

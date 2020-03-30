@@ -227,11 +227,11 @@ class HeatOfFusion(lland_parameters.ParameterLand):
     )
 
     def update(self):
-        """Update |HeatofFusion| based on |RSchmelz| and |BoWa2z|.
+        """Update |HeatOfFusion| based on |RSchmelz| and |BoWa2Z|.
 
             Basic equation:
 
-               :math:`HeatOfFusion = RSchmelz \\cdot BoWa2z`
+               :math:`HeatOfFusion = RSchmelz \\cdot BoWa2Z`
 
         >>> from hydpy.models.lland import *
         >>> parameterstep('1d')

@@ -254,15 +254,12 @@ class WSnow(lland_sequences.Flux1DSequence):
 
 
 class TempSSurface(lland_sequences.Flux1DSequence):
-    """Schneetemperatur an der Schneeoberfläche (the snow temperature at the snow
-    surface) [°C].
-    Gibt es keinen Schnee (|WAeS|=0), so wird die Schneeoberflächentemperatur
-    auf NaN gesetzt (If there is no snow (|WAeS|=0), the snow surface
-    temperature is set to NaN).
-    Ist die |TempSSurfaceFlag| auf 'False' gesetzt entspricht die Schneeober-
-    flächentemperatur der Schneetemperatur (If the |TempSSurfaceFlag| is set
-    to 'False' the snow surface temperature equals the snow layer
-    temperature)."""
+    """Schneetemperatur an der Schneeoberfläche (the snow temperature at the
+    snow surface) [°C].
+
+    Note that the value of sequence |TempSSurface| is |numpy.nan| for
+    snow-free surfaces.
+    """
     NDIM, NUMERIC = 1, False
 
 
