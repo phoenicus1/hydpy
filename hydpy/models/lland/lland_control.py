@@ -28,10 +28,10 @@ class NHRU(parametertools.Parameter):
 
     Note that |NHRU| determines the length of most 1-dimensional HydPy-L-Land
     parameters and sequences as well the shape of 2-dimensional log sequences
-    with a predefined length of one axis (see |WET0|).  This required that
+    with a predefined length of one axis (see |WET0|).  This requires that
     the value of the respective |NHRU| instance is set before any of the
     values of these 1-dimensional parameters or sequences are set.  Changing
-    the value of the |NHRU| instance necessitates setting their values again.
+    the value of the |NHRU| instance necessitates setting their values again:
 
     Examples:
 
@@ -60,11 +60,10 @@ class NHRU(parametertools.Parameter):
                     par.shape = self.value, 2
         for subseqs in self.subpars.pars.model.sequences:
             for seq in subseqs:
-                if (((seq.NDIM == 1) and (seq.name != 'moy')  and
-                     (not isinstance(seq, sequencetools.LogSequence))) or
-                        (isinstance(seq, lland_logs.WET0))):
+                if (((seq.NDIM == 1) and (seq.name != 'moy') and
+                        not isinstance(seq, sequencetools.LogSequence)) or
+                        isinstance(seq, lland_logs.WET0)):
                     seq.shape = self.value
-                #todo: kann man das einfacher formulieren?
 
 
 class FHRU(lland_parameters.ParameterComplete):

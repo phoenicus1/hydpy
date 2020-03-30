@@ -3,44 +3,45 @@
 """
 Version 1 of the L-Land model is designed to agree with the LARSIM-ME
 configuration of the LARSIM model used by the German Federal Institute
-of Hydrology (BfG) but offers more flexibility in some regards (e.g. in
-parameterization).  It can briefly be summarized as follows:
+of Hydrology (BfG) but provides some additional features and offers more
+flexibility in some regards (e.g. in parameterisation).  The following
+list summarises its main-components:
 
- * Simple routines for adjusting the meteorological input data.
- * Reference evapotranspiration after Turc-Wendling.
- * An enhanced degree-day method for calculating snowmelt.
- * A simple snow retention routine.
+ * Simple routines for adjusting the meteorological input data
+ * Reference evapotranspiration after Turc-Wendling
+ * An enhanced degree-day method for calculating snowmelt
+ * A simple snow retention routine
  * Landuse and month specific potential evapotranspiration.
- * Actual soil evapotranspiration after ATV-DVWK- 504 (2002).
- * A Soil routine based on the Xinanjiang model.
- * three capillary rise options
- * One base flow, two interflow and two direct flow components.
- * separate linear storages for modelling runoff concentration.
- * Additional evaporation from water areas.
+ * Actual soil evapotranspiration after ATV-DVWK-504 (2002)
+ * A soil routine based on the Xinanjiang model
+ * One base flow, two interflow and two direct flow components
+ * A freely configurable capillary rise routine
+ * Separate linear storages for modelling runoff concentration
+ * Additional evaporation from water areas
 
-The following figure shows the general structure of L-Land Version 1.  Note
-that, besides water areas and sealed surface areas, all land use types rely
-on the same set of process equations:
+The following figure shows the general structure of L-Land Version 1.
+Note that, besides water areas and sealed surfaces, all land-use types
+rely on the same set of process equations:
 
 .. image:: HydPy-L-Land_Version-1.png
 
-As all models implemented in HydPy, base model L-Land can principally be
-applied on arbitrary simulation step sizes.  But for the L-Land version 1
-application model one has to be aware, that the Turc-Wendling equation
-for calculating reference evaporation is designed for daily time steps only.
+As for all models implemented in HydPy, you can principally apply all L-Land
+models on arbitrary simulation step sizes.  But application model |lland_v1|
+one has to be aware that the Turc-Wendling equation for calculating reference
+evaporation targets daily time steps only.
 
 Integration tests:
 
-    All integration tests are performed over a period of five days.  Despite
-    of the mentioned  limitation of the Turc-Wendling equation, an hourly
-    simulation step size is selected (this results in evaporation values
-    that are unrealistically high, but allows for inspecting the effect of
-    evaporative soil moisture depletion within this short simulation period):
+    We perform all integration tests over five days.  Despite the mentioned
+    limitation of the Turc-Wendling equation, we select an hourly simulation
+    step size (this results in evaporation values that are unrealistically
+    high but allows for inspecting the effect of evaporative soil moisture
+    depletion within a short simulation period):
 
     >>> from hydpy import pub
     >>> pub.timegrids = '01.01.2000', '05.01.2000', '1h'
 
-    Prepare the model instance and build the connections to element `land`
+    We prepare the model instance and build its connections to element `land`
     and node `outlet`:
 
     >>> from hydpy.models.lland_v1 import *
@@ -50,15 +51,15 @@ Integration tests:
     >>> land = Element('land', outlets=outlet)
     >>> land.model = model
 
-    All tests shall be performed using a single hydrological response unit
-    with a size of one square kilometre at an altitude of 100 meter:
+    We focus on a single hydrological response unit with a size of one
+    square kilometre at an altitude of 100 meters:
 
     >>> nhru(1)
     >>> ft(1.0)
     >>> fhru(1.0)
     >>> hnn(100.0)
 
-    Initialize a test function object, which prepares and runs the tests
+    We initialise a test function object which prepares and runs the tests
     and prints their results for the given sequences:
 
     >>> from hydpy import IntegrationTest
@@ -72,16 +73,16 @@ Integration tests:
 
     **Example 1**
 
-    In the first example, arable land is selected as the only land use
-    class (for all other land types, except the ones mentioned below,
-    the results would be the same):
+
+    In the first example, arable land is the land-use class of our choice
+    (for all other land-use types, except the ones mentioned below, the results
+     would be the same):
 
     >>> lnk(ACKER)
 
     The following set of control parameter values tries to configure
-    application model |lland_v1| in a manner that allows to retrace
-    the influence of the different implemented methods on the shown
-    results:
+    application model |lland_v1| in a manner that allows retracing the
+    influence of all the different implemented methods on the shown results:
 
     >>> kg(1.2)
     >>> kt(0.8)
@@ -119,7 +120,7 @@ Integration tests:
     >>> negq(False)
 
     Initially, relative soil moisture is 10 %, but all other "physical"
-    storages are empty.  Also, only baseflow is initialized with a value
+    storages are empty.  Also, we initialise only baseflow with a value
     above zero:
 
     >>> test.inits = ((states.inzp, 0.0),
@@ -137,7 +138,7 @@ Integration tests:
     ...               (states.qiga2, 0.0),
     ...               (states.qbga, 0.5))
 
-    The first input data set mimics a extreme precipitation event in summer:
+    The first input data set mimics an extreme precipitation event in summer:
 
     >>> inputs.nied.series = (
     ...     0.0, 0.0,  0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
@@ -170,13 +171,13 @@ Integration tests:
     ...     593.4, 493.0, 391.2, 186.0, 82.4, 17.0, 0.0, 0.0, 0.0, 0.0)
 
     The following results show that all relevant model components, except
-    the snow routines (too hot), are activated at least once within the
-    simulation period.  Take your time to click and scroll through the figure,
-    to see e.g. how the soil moisture content |BoWa| is varying over time.
-    One might realize the "linear storage" type of relationship between inflow
-    |Nied| and outflow |lland_fluxes.Q|.  This is due to the dominance of the
-    direct runoff generation (|QDGZ|) based on the Xinanjiang model and runoff
-    concentration being modelled by linear storages only (easy inspectable
+    the snow routines, are activated at least once within the simulation
+    period.  Take your time to click and scroll through the figure, to see,
+    for example, how the soil moisture content |BoWa| is varying over time.
+    One might realise the "linear storage" type of relationship between input
+    |Nied| and outflow |lland_fluxes.Q|.  This pattern is due to the dominance
+    of the direct runoff generation (|QDGZ|) based on the Xinanjiang model
+    and modelling runoff concentration via linear storages (inspectable
     through clicking e.g. on |QDGZ1| and |QDGA1|):
 
     >>> test('lland_v1_ex1')
@@ -293,17 +294,18 @@ Integration tests:
     **Example 2.1**
 
     HydPy-L-Land defines three types of water areas. The first one, |WASSER|,
-    is also implemented in the original LARSIM model.  Precipitation (|NKor|)
-    and potential evaporation (|EvPo|) are simply added to and subtracted
-    from total discharge (|lland_fluxes.Q|), respectively.
+    is also implemented in the original LARSIM model.  To represent the
+    effects of water areas in a straightforward manner,|lland_v1| adds
+    precipitation (|NKor|) to removes and potential evaporation (|EvPo|)
+    from the total discharge (|lland_fluxes.Q|.
 
     In the following example, this simple approach has the unfavourable side
     effect of discharge dropping to zero in periods with no precipitation but
     relevant potential evaporation during the daytime.  Comparable problems
-    do arise when |WASSER| is only one of many selected land types, possibly
+    do arise when |WASSER| is only one of many selected land-use types, possibly
     even when the water area is below 1 % of the total catchment area.  Hence
-    it seems advisable to use land type |FLUSS| and/or land type |SEE| instead
-    of land type |WASSER| under most circumstances:
+    it seems advisable to use the land-use types |FLUSS| and |SEE| instead,
+    under most circumstances:
 
     >>> lnk(WASSER)
     >>> test('lland_v1_ex2_1')
@@ -419,10 +421,11 @@ Integration tests:
 
     **Example 2.2**
 
-    This modification of example 2 shows the necessary amount of trimming of
-    flux sequence |lland_fluxes.Q| by setting parameter |NegQ| to `True`.
-    This allows for negative values, resulting in some negative discharge
-    peaks (hence set |NegQ| to `True` only for very good reasons):
+    In the above example, discharge is zero in all periods with evaporation
+    exceeding precipitation but not negative. This non-negativity is due to
+    trimming flux sequence |lland_fluxes.Q|, which we can disable by setting
+    parameter |NegQ| to |True| (negative values might be problematic for the
+    models downstream, so set |NegQ| to |True| only for good reasons):
 
     >>> negq(True)
     >>> test('lland_v1_ex2_2')
@@ -540,13 +543,13 @@ Integration tests:
 
     **Example 3**
 
-    As an alternative for water type |WASSER|, HydPy-L offers water type |SEE|
-    for representing lakes not directly connected to the stream network, but
-    to the groundwater.  In some agreement with the implementation of
-    "internal lakes" in the HBV96 model (see |hland|), precipitation and
-    evaporation values of |SEE| HRUs are directly added and removed from the
-    input of the linear storage for base flow (|QBGZ|).  Hence, defining
-    |SEE| HRUs results in a reduced responsiveness of a catchment:
+    As an alternative for water type |WASSER|, HydPy-L offers water type
+    |SEE| for representing lakes not directly connected to the stream
+    network but the groundwater.  In some agreement with the implementation
+    of "internal lakes" in the HBV96 model (see |hland|), precipitation and
+    evaporation values are directly added and removed from the input of the
+    linear storage for base flow (|QBGZ|).  Hence, defining |SEE| areas
+    results in reduced responsiveness of a catchment:
 
     >>> lnk(SEE)
     >>> test('lland_v1_ex3')
@@ -662,17 +665,17 @@ Integration tests:
 
     **Example 4**
 
-    The second alternative for water type |WASSER| is water type |FLUSS|
-    for representing streams.  Precipitation and evaporation values of
-    |FLUSS| HRUs are directly added and removed from the (not yet separated)
-    input of the linear storages for direct flow (|QDGZ|).  In contrast
-    to water type |SEE|, defining HRUs of type |FLUSS| increases the
-    responsiveness of a catchment, but to a lessen extent than type |WASSER|.
-    This lessens the discussed problem during low flow conditions, but for
-    catchments with a very dense stream network, it may still persist.
-    Click on the series |EvI| to see how evaporation values have to be
-    adjusted belatedly in the most extreme case of an "stream network only"
-    catchment:
+    The second alternative for water type |WASSER| is water type |FLUSS| for
+    representing streams.  Precipitation and evaporation values of |FLUSS|
+    areas are directly added and removed from the (not yet separated) input
+    of the linear storages for direct flow (|QDGZ|).  In contrast to water
+    type |SEE|, using water type |FLUSS| increases the responsiveness of a
+    catchment, but to a lesser extent than type |WASSER|.  Using |FLUSS|
+    instead of |WASSER< reduces the discussed problem during low flow
+    conditions.  However, for catchments with a very dense stream network,
+    it may persist.  Compare the series |EvPo| and |EvI| to see how
+    |lland_v1| adjusts actual evaporation in the most extreme case of a
+    "stream network only" catchment:
 
     >>> lnk(FLUSS)
     >>> test('lland_v1_ex4')
@@ -788,8 +791,8 @@ Integration tests:
 
     **Example 5**
 
-    For sealed surfaces, retention processes below the surface are assumed
-    to be negligible.  All water reaching the sealed surface becomes direct
+    For sealed surfaces, we assume retention processes below the surface to
+    be negligible.  All water reaching the sealed surface becomes direct
     discharge immediately:
 
     >>> lnk(VERS)
@@ -906,38 +909,27 @@ Integration tests:
 
     **Example 6**
 
-    ToDo: prüfen
+    Now we focus on how to configure the capillary rise (|QKap|). In the
+    first example, we calculated capillary rise only for a short period
+    with a dried-up soil (:math:`BoWa < WMax/10`) due to assigning
+    `BodenGrundwasser` to parameter |KapGrenz|.  In combination with
+    assigning |False| to parameter |RBeta|, which allows for deep percolation
+    (|QBB|) below field capacity, this corresponds to the option
+    `KOPPELUNG BODEN/GRUNDWASSER` of the original LARSIM model.
 
-    The sixth example shows the influence of capillary rise. In the first
-    example we defined the maximum capillary rise |KapMax| and chose the option
-    'BodenGrundwasser' for |KapGrenz| which calculates the capillary rise
-    according to the LARSIM version without extended soil parameters.
-    This leads to capillary rise only for very low soil moisture contents
-    (|BoWa|<0,1*|WMax|). In the original LARSIM version capillary rise was only
-    dependent on the soil moisture content of the previous time step which could
-    leed to soil moisture contents |BoWa| above |FK| due to capillary rise. This
-    was corrected in HydPy.
-
-    In this example we change the option of |KapGrenz| to 'kapillarerAufstieg'
-    which is equivalent to the LARSIM capillary rise with extended soil
-    parameters. In LARSIM |PWP| is always set to 0 if this option is activated.
-    In comparison to the 'BodenGrundwasser' capillary rise takes
-    place with its maximum rise rate and drops quickly at the threshold value.
-
-    ToDo
-
-    Additionally we activate |RBeta|. If this option is activated
-    deep infiltration is deactivated if capillary rise takes place. This is in
-    accordance to the LARSIM option of 'kapillarerAufstieg'.
-    Furthermore the infiltration is reduced if the soil moisture content |BoWa|
-    drops below field capacity.
+    In the sixth example, we assign `kapillarerAufstieg` and |True| to
+    parameter |KapGrenz| and |RBeta|, respectively, and additionally set the
+    value of parameter |PWP| to zero, which corresponds to the LARSIM option
+    `KAPILLARER AUFSTIEG` in combination with `ERW. BODENPARAMETER`.  Now capillary rise and deep percolation
+    exclude each other.  Accordingly, there is an abrupt transition from from capillary
+    rise to deep percolation when the soil moisture exceeds |FK|:
 
     >>> lnk(ACKER)
-    >>> pwp(0)
+    >>> pwp(0.0)
     >>> kapgrenz(option='kapillarerAufstieg')
     >>> rbeta(True)
 
-    >>> test('lland_v1_ex7')
+    >>> test('lland_v1_ex6')
     |   date | nied | teml |  glob |  nkor | tkor |      et0 |     evpo |      nbes | sbes |      evi |      evb |   wgtf |    wnied |   schmpot | schm |      wada |       qdb |     qib1 |     qib2 |      qbb | qkap |      qdgz |        q |     inzp | wats | waes |       bowa |    qdgz1 |    qdgz2 |    qigz1 |    qigz2 |     qbgz |    qdga1 |    qdga2 |    qiga1 |    qiga2 |     qbga |   outlet |
     -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     | 01.01. |  0.0 | 21.2 |   0.0 |   0.0 | 22.0 | 0.040283 | 0.020141 |       0.0 |  0.0 |      0.0 | 0.004975 |  3.674 |      0.0 |      11.0 |  0.0 |       0.0 |       0.0 |     0.01 |      0.0 |      0.0 | 0.08 |       0.0 | 0.497356 |      0.0 |  0.0 |  0.0 |  20.065025 |      0.0 |      0.0 |     0.01 |      0.0 |    -0.08 |      0.0 |      0.0 | 0.000246 |      0.0 |  0.49711 | 0.138154 |
@@ -1050,14 +1042,13 @@ Integration tests:
 
     **Example 7**
 
-    In the seventh example, the land type is set to |ACKER| again, and the
-    input temperature series |TemL| is modified, to demonstrate the
-    functioning of the snow routine.  For simplicity, |TemL| increases
-    constantly from -10 to +10 °C.  The ice content of the snow layer
-    (WATS) starts to melt when temperature crosses the threshold temperatures
-    |TGr|, |TRefT| and |TRefN|. But the actual water release from the
-    snow layer (|WaDa|) starts one day later, when the water holding
-    capacity of the snow layer is exceeded:
+    In the seventh example, we modify the input temperature series |TemL|
+    to demonstrate the functioning of the snow routine.  For simplicity,
+    |TemL| increases linearly from -10 to +10 °C.  The ice content of the
+    snow layer (|WATS|) starts to melt when the temperature crosses the
+    threshold temperature |TGr|. However,  the actual water release from
+    the snow layer (|WaDa|) starts one day later when the liquid water
+    content of the snow layer finally exceeds its holding capacity:
 
     >>> inputs.teml.series = numpy.linspace(-10.0, 10.0, 96)
     >>> test('lland_v1_ex7')
@@ -1181,7 +1172,7 @@ from hydpy.models.lland.lland_constants import *
 
 
 class Model(modeltools.AdHocModel):
-    """LARSIM-Land version of HydPy-L-Land (|lland_v1|)."""
+    """LARSIM-ME version of HydPy-L-Land (|lland_v1|)."""
     INLET_METHODS = ()
     RECEIVER_METHODS = ()
     ADD_METHODS = ()
