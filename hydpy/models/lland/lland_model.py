@@ -4843,7 +4843,7 @@ class Return_PenmanMonteith_V1(modeltools.Method):
     {SaturationVapourPressureSlope \\cdot (NetRadiation + WG) +
     Seconds \\cdot C \\cdot DensitiyAir \\cdot CPLuft \\cdot
     (SaturationVapourPressure - ActualVapourPressure) / AerodynamicResistance}
-    {L \\cdot (SaturationVapourPressureSlope +
+    {LW \\cdot (SaturationVapourPressureSlope +
     PsychrometricConstant \\cdot
     C \\cdot (1 + SurfaceResistance/AerodynamicResistance))}`
 
@@ -5023,7 +5023,8 @@ class Return_Penman_V1(modeltools.Method):
     Penman.
 
     Basic equation:
-      :math:`\\frac{SaturationVapourPressureSlope \\cdot \\frac{NetRadiation}{L}
+      :math:`\\frac{SaturationVapourPressureSlope \\cdot
+      \\frac{NetRadiation}{LW}
       + \\PsychrometricConstant \\cdot (1.3 + 0.94 \\cdot WindSpeed2m) \\cdot
       (SaturationVapourPressure-ActualVapourPressure)}
       {SaturationVapourPressureSlope + PsychrometricConstant}`
