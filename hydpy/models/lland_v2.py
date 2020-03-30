@@ -3,25 +3,26 @@
 """
 Version 2 of the L-Land model |lland_v2| is a slight modification of
 |lland_v1|.  |lland_v1| implements a specific equation for the calculation
-of reference evaporation (|ET0|) for each hydrological response unit (HRU).
-In contrast, |lland_v2| expects subbasin wide potential evaporation values
-(|PET|) to be calculated externally and adjusts them to the different HRUs
-of the subbasin.
+of reference evaporation (|ET0|) for each hydrological response unit.
+In contrast, |lland_v2| expects subbasin-wide potential evaporation values
+(|PET|) to be calculated externally and adjusts them to the different
+response units of the subbasin.  We created |lland_v2| for the flood
+forecasting system of the German Free State of Saxony.
 
-|lland_v1| should be applied on daily step sized only due to the restrictions
-of the Turc-Wendling equation for calculating reference evaporation.
-Instead, |lland_v2| can be applied on arbitrary simulation step sizes.
+|lland_v1| should only be applied on daily step sized due to calculating
+reference evaporation with the Turc-Wendling equation. As |lland_v2| does
+not rely on Turc-Wendling, we can apply it on arbitrary simulation step sizes.
 
 Integration tests:
 
-    The following integration tests are mostly recalculations of the ones
-    performed for |lland_v1| in order to show that both models function
-    in an equal manner.  Hence, most configurations are identical.
-    One exception is that |lland_v2| requires no global radiation input
-    (|Glob|).  Instead, potential evaporation needs (|PET|) to be defined,
-    which is taken from the integration tests results of model |lland_v1|
-    to achieve comparability.  Another exception is that |lland_v1| allows
-    to smooth calculated |ET0| values over time, which is discussed below.
+    The following integration tests are recalculations of the tests performed
+    for |lland_v1|. Their purpose is to show that both models function in an
+    equal manner.   Hence, most configurations are identical.  One exception
+    is that |lland_v2| requires no global radiation input (|Glob|).  Instead,
+    potential evaporation needs (|PET|) to be defined, which we take from the
+    integration test results of model |lland_v1| to achieve comparability.
+    Another exception is that |lland_v1| allows for smoothing the calculated
+    |ET0| values over time, which we discuss below.
 
     The following general setup is identical with the one of |lland_v1|:
 
@@ -102,10 +103,11 @@ Integration tests:
     ...               (logs.wet0, 0.0))
 
     The values of the input sequences of |Nied| (precipitation) and |TemL|
-    (air temperature) are also taken from the input data of the example on
-    |lland_v1|.  But the values of |PET| (potential evaporation) are taken
-    from the output data of |lland_v1| (divided by 0.4 to account for the
-    set value of the evaporation adjustment factor |KE|):
+    (air temperature) also stem from the input data of the example on
+    |lland_v1|.  But we take the values of |PET| (potential evaporation)
+    from the the output data of |lland_v1| and divide the original values
+    by 0.4 to account for the selected value of the evaporation adjustment
+    factor |KE|:
 
     >>> inputs.nied.series = (
     ...     0.0, 0.0,  0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
@@ -144,9 +146,8 @@ Integration tests:
     ...     10.715238, 9.383394, 7.861915, 6.298329, 2.948416, 1.309232,
     ...     0.32955, 0.089508, 0.085771, 0.0845, 0.084864)
 
-
-    The following calculation shows, that the outflow values of the
-    integration test for arable land (|ACKER|) are reproduced exactly:
+    The following calculation reproduces the outflow values of the
+    integration test for arable land (|ACKER|) exactly:
 
     >>> test('lland_v2_ex1')
     |   date | nied | teml |       pet |  nkor | tkor |      et0 |     evpo |      nbes | sbes |      evi |      evb |   wgtf |    wnied |   schmpot | schm |      wada |      qdb |     qib1 |     qib2 |      qbb |     qkap |     qdgz |        q |     inzp | wats | waes |       bowa |    qdgz1 |    qdgz2 |    qigz1 |    qigz2 |     qbgz |    qdga1 |    qdga2 |    qiga1 |    qiga2 |     qbga |   outlet |
@@ -260,14 +261,14 @@ Integration tests:
     :ref:`Modification of example 2.1 <lland_v1_ex2_1>`
 
     As discussed in the documentation of |lland_v1|, the handling of
-    evaporation from water surfaces might be problematic.  |lland_v1|
-    offers a smoothung option for the calculation of |ET0| (see method
-    |Calc_ET0_WET0_V1|. In principle, the "delay weighing factor" |WfET0|
-    can be applied on all land use classes.  However, its original
-    intention is to allow for reflecting the temporal persistence of
-    (large) water bodies.  This is demonstrated by setting the weighting
-    parameter |WfET0| to a value smaller than one and defining a suitable
-    "old" evaporation value (|WET0|):
+    evaporation from water surfaces can be problematic.  |lland_v1| offers
+    a smoothing option for the calculation of |ET0| (see method
+    |Calc_ET0_WET0_V1|) that is freely configurable via the "delay weighting
+    factor" |WfET0|. In principle, you could apply this mechanism to all
+    land-use classes.  However, its original intention is to take the temporal
+    persistence of (large) water bodies into account.  We demonstrate this
+    functionality is by setting the weighting parameter |WfET0| to a value
+    smaller than one and defining a suitable "old" evaporation value (|WET0|):
 
     >>> wfet0(0.01)
     >>> test.inits.wet0 = 1.0
@@ -389,12 +390,12 @@ Integration tests:
 
     :ref:`Recalculation of example 2.2 <lland_v1_ex2_2>`
 
-    The following calculation shows, that the outflow values of the
-    integration test for water areas of type |WASSER| are reproduced
-    exactly (parameter |NegQ| set to |True|):
+    The following calculation reproduces the outflow values of the integration
+    test for water areas of type |WASSER| exactly (with :math:`NegQ =False`):
 
     >>> lnk(WASSER)
     >>> negq(True)
+
     >>> test('lland_v2_ex2_2')
     |   date | nied | teml |       pet |  nkor | tkor |      et0 |     evpo | nbes | sbes |      evi | evb | wgtf | wnied | schmpot | schm | wada | qdb | qib1 | qib2 | qbb | qkap | qdgz |         q | inzp | wats | waes | bowa | qdgz1 | qdgz2 | qigz1 | qigz2 | qbgz | qdga1 | qdga2 | qiga1 | qiga2 |     qbga |    outlet |
     -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -507,12 +508,12 @@ Integration tests:
 
     :ref:`Recalculation of example 3 <lland_v1_ex3>`
 
-    The following calculation shows, that the outflow values of the
-    integration test for water areas of type |SEE| are reproduced
-    exactly (parameter |NegQ| set to |False|):
+    The following calculation reproduces the outflow values of the integration
+    test for water areas of type |SEE| exactly (with :math:`NegQ =True`):
 
     >>> lnk(SEE)
     >>> negq(False)
+
     >>> test('lland_v2_ex3')
     |   date | nied | teml |       pet |  nkor | tkor |      et0 |     evpo | nbes | sbes |      evi | evb | wgtf | wnied | schmpot | schm | wada | qdb | qib1 | qib2 | qbb | qkap | qdgz |        q | inzp | wats | waes | bowa | qdgz1 | qdgz2 | qigz1 | qigz2 |      qbgz | qdga1 | qdga2 | qiga1 | qiga2 |     qbga |   outlet |
     --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -624,11 +625,11 @@ Integration tests:
 
     :ref:`Recalculation of example 4 <lland_v1_ex4>`
 
-    The following calculation shows, that the outflow values of the
-    integration test for water areas of type |FLUSS| are reproduced
-    exactly (parameter |NegQ| set to |False|):
+    The following calculation reproduces the outflow values of the integration
+    test for water areas of type |FLUSS| exactly (with :math:`NegQ =True`):
 
     >>> lnk(FLUSS)
+
     >>> test('lland_v2_ex4')
     |   date | nied | teml |       pet |  nkor | tkor |      et0 |     evpo | nbes | sbes |       evi | evb | wgtf | wnied | schmpot | schm | wada | qdb | qib1 | qib2 | qbb | qkap |      qdgz |         q | inzp | wats | waes | bowa |     qdgz1 |     qdgz2 | qigz1 | qigz2 | qbgz |     qdga1 |     qdga2 | qiga1 | qiga2 |     qbga |   outlet |
     --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -740,10 +741,11 @@ Integration tests:
 
     :ref:`Recalculation of example 5 <lland_v1_ex5>`
 
-    The following calculation shows, that the outflow values of the
-    integration test for sealed areas (|VERS|) are reproduced exactly:
+    The following calculation reproduces the outflow values of the integration
+    test for water areas of type |VERS| exactly:
 
     >>> lnk(VERS)
+
     >>> test('lland_v2_ex5')
     |   date | nied | teml |       pet |  nkor | tkor |      et0 |     evpo |      nbes | sbes |      evi | evb |   wgtf |    wnied |   schmpot | schm |      wada |       qdb | qib1 | qib2 | qbb | qkap |      qdgz |         q |     inzp | wats | waes | bowa |    qdgz1 |     qdgz2 | qigz1 | qigz2 | qbgz |    qdga1 |     qdga2 | qiga1 | qiga2 |     qbga |   outlet |
     --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -855,9 +857,11 @@ Integration tests:
 
     :ref:`Recalculation of example 6 <lland_v1_ex6>`
 
-    # ToDo: prüfen
+    The following calculation reproduces the outflow values of the integration
+    test emulating the LARSIM option `KAPILLARER AUFSTIEG` in combination with
+    `ERW. BODENPARAMETER` exactly:
 
-    >>> pwp(0)
+    >>> pwp(0.0)
     >>> kapgrenz(option='kapillarerAufstieg')
     >>> rbeta(True)
     >>> test('lland_v2_ex6')
@@ -971,9 +975,9 @@ Integration tests:
 
     :ref:`Recalculation of example 7 <lland_v1_ex7>`
 
-    The following calculation shows, that the outflow values of the
-    integration test for snow events are reproduced exactly (note that
-    the |PET| values have to be adapted to the changed |TemL| values):
+   The following calculation reproduces the outflow values of the integration
+   test for a snow event exactly (note that we need to adapt the |PET| values
+   to the changed |TemL| values):
 
     >>> lnk(ACKER)
     >>> inputs.teml.series = numpy.linspace(-10.0, 10.0, 96)

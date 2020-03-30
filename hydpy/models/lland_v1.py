@@ -917,13 +917,13 @@ Integration tests:
     (|QBB|) below field capacity, this corresponds to the option
     `KOPPELUNG BODEN/GRUNDWASSER` of the original LARSIM model.
 
-    In the sixth example, we assign `kapillarerAufstieg` to parameter |KapGrenz|
-    and True to |RBeta|. Additionally we set the value of parameter |PWP| to
-    zero, which corresponds to the LARSIM option `KAPILLARER AUFSTIEG` in
-    combination with `ERW. BODENPARAMETER`.  Now capillary rise and deep
-    percolation exclude each other.  Accordingly, there is an abrupt transition
-    from from capillary rise to deep percolation when the soil moisture exceeds
-    |FK|:
+    In the sixth example, we assign `kapillarerAufstieg` to parameter
+    |KapGrenz| and |True| to parameter |RBeta|. Additionally, we set the
+    value of parameter |PWP| to zero.  This configuration corresponds to
+    the LARSIM option `KAPILLARER AUFSTIEG` in combination with
+    `ERW. BODENPARAMETER`.  Now capillary rise and deep percolation exclude
+    each other.  Accordingly, there is an abrupt transition from capillary
+     rise to deep percolation when the soil moisture exceeds |FK|:
 
     >>> lnk(ACKER)
     >>> pwp(0.0)
