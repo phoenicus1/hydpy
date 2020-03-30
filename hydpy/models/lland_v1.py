@@ -1039,7 +1039,7 @@ Integration tests:
             frameborder=0
         ></iframe>
 
-        .. _lland_v1_ex7:
+    .. _lland_v1_ex7:
 
     **Example 7**
 
