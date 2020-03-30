@@ -4517,8 +4517,8 @@ class Calc_LanduseSurfaceResistance_V1(modeltools.Method):
     Basic equation:
 
        :math:`LanduseSurfaceResistance = SurfaceResistance* \\cdot
-       (3.5 \\cdot (1 - \\frac{min(BoWa, PY)}{PY}) +
-       exp(\\frac{0.2 \\cdot PY}{min(BoWa, 0)}))`
+       (3.5 \\cdot (1 - \\frac{min(BoWa, WZPf)}{WZPf}) +
+       exp(\\frac{0.2 \\cdot WZPf}{min(BoWa, 0)}))`
 
     Modification for coniferous trees:
 
@@ -4560,12 +4560,12 @@ class Calc_LanduseSurfaceResistance_V1(modeltools.Method):
         landusesurfaceresistance(500.0, 0.0, 0.0, 0.0)
 
         For all "soil areas", we sligthly increase the original parameter
-        value by a constant factor for wet soils (|BoWa| > |PY|) and
-        increase it even more for dry soils (|BoWa| > |PY|).  For
+        value by a constant factor for wet soils (|BoWa| > |WZPf|) and
+        increase it even more for dry soils (|BoWa| > |WZPf|).  For
         a completely dry soil, surface resistance becomes infinite:
 
         >>> lnk(ACKER)
-        >>> py(0.0)
+        >>> wzpf(0.0)
         >>> surfaceresistance.acker_jun = 40.0
         >>> states.bowa = 0.0, 10.0, 20.0, 30.0
         >>> model.idx_sim = 2
@@ -4573,7 +4573,7 @@ class Calc_LanduseSurfaceResistance_V1(modeltools.Method):
         >>> fluxes.landusesurfaceresistance
         landusesurfaceresistance(inf, 48.85611, 48.85611, 48.85611)
 
-        >>> py(20.0)
+        >>> wzpf(20.0)
         >>> model.calc_landusesurfaceresistance_v1()
         >>> fluxes.landusesurfaceresistance
         landusesurfaceresistance(inf, 129.672988, 48.85611, 48.85611)
@@ -4630,7 +4630,8 @@ class Calc_LanduseSurfaceResistance_V1(modeltools.Method):
     CONTROLPARAMETERS = (
         lland_control.Lnk,
         lland_control.SurfaceResistance,
-        lland_control.PY,
+        lland_control.WZPf,
+        lland_control.WZBo,
     )
     DERIVEDPARAMETERS = (
         lland_derived.MOY,
@@ -4669,10 +4670,10 @@ class Calc_LanduseSurfaceResistance_V1(modeltools.Method):
             if con.lnk[k] not in (WASSER, FLUSS, SEE, VERS):
                 if sta.bowa[k] <= 0.:
                     flu.landusesurfaceresistance[k] = modelutils.inf
-                elif sta.bowa[k] < con.py[k]:
+                elif sta.bowa[k] < con.wzpf[k]:
                     flu.landusesurfaceresistance[k] *= (
-                        3.5*(1.-sta.bowa[k]/con.py[k]) +
-                        modelutils.exp(.2*con.py[k]/sta.bowa[k]))
+                        3.5*(1.-sta.bowa[k]/con.wzpf[k]) +
+                        modelutils.exp(.2*con.wzpf[k]/sta.bowa[k]))
                 else:
                     flu.landusesurfaceresistance[k] *= modelutils.exp(.2)
 
