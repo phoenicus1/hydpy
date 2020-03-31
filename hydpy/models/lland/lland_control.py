@@ -668,28 +668,28 @@ class WZPf(lland_parameters.ParameterSoilThreshold):
         # WZBo,   # ToDo: circular dependency, how to solve this?
     )
 
-    def trim(self, lower=None, upper=None):
-        """Trim values in accordance with :math:`WZPf \\leq WZBo \\leq WMax`.
-
-        >>> from hydpy.models.lland import *
-        >>> parameterstep()
-        >>> nhru(3)
-        >>> lnk(ACKER)
-        >>> wmax(100.0)
-        >>> wzpf(-10.0, 50.0, 110.0)
-        >>> wzpf
-        wzpf(0.0, 50.0, 100.0)
-
-        >>> wzbo.values = 80.0
-        >>> wzpf.trim()
-        >>> wzpf
-        wzpf(0.0, 50.0, 80.0)
-        """
-        if upper is None:
-            upper = getattr(self.subpars.wzbo, 'value', None)
-            if upper is None:
-                upper = getattr(self.subpars.wmax, 'value', None)
-        super().trim(lower, upper)
+    # def trim(self, lower=None, upper=None):
+    #     """Trim values in accordance with :math:`WZPf \\leq WZBo \\leq WMax`.
+    #
+    #     >>> from hydpy.models.lland import *
+    #     >>> parameterstep()
+    #     >>> nhru(3)
+    #     >>> lnk(ACKER)
+    #     >>> wmax(100.0)
+    #     >>> wzpf(-10.0, 50.0, 110.0)
+    #     >>> wzpf
+    #     wzpf(0.0, 50.0, 100.0)
+    #
+    #     >>> wzbo.values = 80.0
+    #     >>> wzpf.trim()
+    #     >>> wzpf
+    #     wzpf(0.0, 50.0, 80.0)
+    #     """
+    #     if upper is None:
+    #         upper = getattr(self.subpars.wzbo, 'value', None)
+    #         if upper is None:
+    #             upper = getattr(self.subpars.wmax, 'value', None)
+    #     super().trim(lower, upper)
 
 
 class WZBo(lland_parameters.ParameterSoilThreshold):
@@ -708,24 +708,24 @@ class WZBo(lland_parameters.ParameterSoilThreshold):
         WZPf,
     )
 
-    def trim(self, lower=None, upper=None):
-        """Trim values in accordance with :math:`WZPf \\leq WZBo \\leq WMax`.
-
-        >>> from hydpy.models.lland import *
-        >>> parameterstep()
-        >>> nhru(3)
-        >>> lnk(ACKER)
-        >>> wzpf(20.0)
-        >>> wmax(80.0)
-        >>> wzbo(10.0, 50.0, 90.0)
-        >>> wzbo
-        wzbo(20.0, 50.0, 80.0)
-        """
-        if lower is None:
-            lower = getattr(self.subpars.wzpf, 'value', None)
-        if upper is None:
-            upper = getattr(self.subpars.wmax, 'value', None)
-        super().trim(lower, upper)
+    # def trim(self, lower=None, upper=None):
+    #     """Trim values in accordance with :math:`WZPf \\leq WZBo \\leq WMax`.
+    #
+    #     >>> from hydpy.models.lland import *
+    #     >>> parameterstep()
+    #     >>> nhru(3)
+    #     >>> lnk(ACKER)
+    #     >>> wzpf(20.0)
+    #     >>> wmax(80.0)
+    #     >>> wzbo(10.0, 50.0, 90.0)
+    #     >>> wzbo
+    #     wzbo(20.0, 50.0, 80.0)
+    #     """
+    #     if lower is None:
+    #         lower = getattr(self.subpars.wzpf, 'value', None)
+    #     if upper is None:
+    #         upper = getattr(self.subpars.wmax, 'value', None)
+    #     super().trim(lower, upper)
 
 
 class KapMax(lland_parameters.ParameterSoil):

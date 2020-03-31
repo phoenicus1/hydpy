@@ -4417,9 +4417,8 @@ class Calc_SoilSurfaceResistance_V1(modeltools.Method):
         >>> parameterstep()
         >>> nhru(4)
         >>> lnk(VERS, WASSER, FLUSS, SEE)
-        >>> fk(0.0)
-        >>> pwp(0.0)
-        >>> derived.nfk.update()
+        >>> wzbo(0.0)
+        >>> wzpf(0.0)
         >>> states.bowa = 0.0
         >>> model.calc_soilsurfaceresistance_v1()
         >>> fluxes.soilsurfaceresistance
@@ -4429,9 +4428,8 @@ class Calc_SoilSurfaceResistance_V1(modeltools.Method):
         than 20 mm, we set the soil surface resistance to 100.0 s/m:
 
         >>> lnk(ACKER)
-        >>> fk(20.1, 30.0, 40.0, 40.0)
-        >>> pwp(0.0, 0.0, 10.0, 10.0)
-        >>> derived.nfk.update()
+        >>> wzbo(20.1, 30.0, 30.0, 30.0)
+        >>> wzpf(0.0, 0.0, 10.0, 10.0)
         >>> states.bowa = 0.0, 20.0, 5.0, 30.0
         >>> model.calc_soilsurfaceresistance_v1()
         >>> fluxes.soilsurfaceresistance
@@ -4441,8 +4439,8 @@ class Calc_SoilSurfaceResistance_V1(modeltools.Method):
         is 10'000 s/m as long as the soil water content does not exceed
         the permanent wilting point:
 
-        >>> pwp(0.1, 20.0, 20.0, 30.0)
-        >>> derived.nfk.update()
+        >>> wzbo(20.0, 10.0, 20.0, 10.0)
+        >>> wzpf(0.1, 20.0, 20.0, 30.0)
         >>> states.bowa = 0.0, 10.0, 20.0, 30.0
         >>> model.calc_soilsurfaceresistance_v1()
         >>> fluxes.soilsurfaceresistance
@@ -4451,17 +4449,15 @@ class Calc_SoilSurfaceResistance_V1(modeltools.Method):
         With increasing soil water contents, resistance decreases and
         reaches a value of 99 s/m:
 
-        >>> pwp(0.0)
-        >>> fk(20.0)
-        >>> derived.nfk.update()
+        >>> wzbo(20.0)
+        >>> wzpf(0.0)
         >>> states.bowa = 5.0, 10.0, 15.0, 20.0
         >>> model.calc_soilsurfaceresistance_v1()
         >>> fluxes.soilsurfaceresistance
         soilsurfaceresistance(384.615385, 196.078431, 131.578947, 99.009901)
 
-        >>> fk(50.0)
-        >>> pwp(40.0)
-        >>> derived.nfk.update()
+        >>> wzbo(10.0)
+        >>> wzpf(40.0)
         >>> states.bowa = 42.5, 45.0, 47.5, 50.0
         >>> model.calc_soilsurfaceresistance_v1()
         >>> fluxes.soilsurfaceresistance
@@ -4469,9 +4465,8 @@ class Calc_SoilSurfaceResistance_V1(modeltools.Method):
 
         For zero field capacity, we set the soil surface resistance to zero:
 
-        >>> pwp(0.0)
-        >>> fk(0.0)
-        >>> derived.nfk.update()
+        >>> wzbo(0.0)
+        >>> wzpf(0.0)
         >>> states.bowa = 0.0
         >>> model.calc_soilsurfaceresistance_v1()
         >>> fluxes.soilsurfaceresistance
@@ -4480,7 +4475,8 @@ class Calc_SoilSurfaceResistance_V1(modeltools.Method):
     CONTROLPARAMETERS = (
         lland_control.NHRU,
         lland_control.Lnk,
-        lland_control.PWP,   # ToDo: py?
+        lland_control.WZPf,
+        lland_control.WZBo,
     )
     DERIVEDPARAMETERS = (
         lland_derived.NFk,
@@ -4495,18 +4491,17 @@ class Calc_SoilSurfaceResistance_V1(modeltools.Method):
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
-        der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
         sta = model.sequences.states.fastaccess
         for k in range(con.nhru):
             if con.lnk[k] in (VERS, FLUSS, SEE, WASSER):
                 flu.soilsurfaceresistance[k] = modelutils.nan
-            elif der.nfk[k] > 20.:
+            elif con.wzbo[k] > 20.:
                 flu.soilsurfaceresistance[k] = 100.
-            elif der.nfk[k] > 0.:
-                d_free = min(max(sta.bowa[k]-con.pwp[k], 0.), der.nfk[k])
+            elif con.wzbo[k] > 0.:
+                d_free = min(max(sta.bowa[k]-con.wzpf[k], 0.), con.wzbo[k])
                 flu.soilsurfaceresistance[k] = \
-                    100.*der.nfk[k]/(d_free+.01*der.nfk[k])
+                    100.*con.wzbo[k]/(d_free+.01*con.wzbo[k])
             else:
                 flu.soilsurfaceresistance[k] = modelutils.inf
 
@@ -4631,7 +4626,6 @@ class Calc_LanduseSurfaceResistance_V1(modeltools.Method):
         lland_control.Lnk,
         lland_control.SurfaceResistance,
         lland_control.WZPf,
-        lland_control.WZBo,
     )
     DERIVEDPARAMETERS = (
         lland_derived.MOY,
