@@ -3,6 +3,8 @@
 hydrological modelling.
 """
 # import...
+# ...from standard library
+from typing import *
 # ...from site-packages
 import numpy
 # ...from HydPy
@@ -708,3 +710,10 @@ which does not match with number of given alternative names beeing 1.
     table = pandas.DataFrame(
         data=data, index=nodenames, columns=critnames)
     return table
+
+
+@objecttools.excmessage_decorator('calculate the root mean square error')
+def calc_rmse(sim: Iterable[float], obs: Iterable[float]) -> float:
+    sim = numpy.array(list(sim))
+    obs = numpy.array(list(obs))
+    return numpy.sqrt(numpy.mean(numpy.square(sim-obs)))

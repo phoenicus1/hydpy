@@ -14,6 +14,7 @@ from typing import *
 # ...from site-packages
 import numpy
 # ...from HydPy
+from hydpy.auxs import statstools
 from hydpy.core import exceptiontools
 from hydpy.core import objecttools
 from hydpy.core import parametertools
@@ -23,6 +24,8 @@ from hydpy.core import variabletools
 from hydpy.cythons.autogen import annutils
 pyplot = exceptiontools.OptionalImport(
     'pyplot', ['matplotlib.pyplot'], locals())
+optimize = exceptiontools.OptionalImport(
+    'optimize', ['scipy.optimize'], locals())
 
 
 class _ANNArrayProperty(propertytools.DependentProperty):
@@ -1854,3 +1857,240 @@ neural network `seasonalann` of element `?` none has been defined so far.
         verify
         """
         return objecttools.dir_(self) + [str(toy) for toy in self.toys]
+
+
+class ManualCalibrator:
+
+    def __init__(self, ann, inputs=None, targets=None):
+        self.ann = ann
+        self.inputs = numpy.array(inputs)
+        self.targets = numpy.array(targets)
+        self.results = None
+        self.skips = []
+
+    def process_input(self):
+        self.results = numpy.zeros(self.targets.shape)
+        shape = [self.targets.shape[0]] + list(self.ann.shape_intercepts_hidden)
+        self.hiddens = numpy.zeros(shape)
+        # shape = [self.targets.shape[0]] + list(self.ann.responses.shape)
+        # self.responses = numpy.zeros(shape)
+        for idx, input_ in enumerate(self.inputs):
+            self.ann.inputs = input_
+            self.ann.process_actual_input()
+            self.results[idx] = self.ann.outputs.copy()
+            # self.hiddens[idx] = self.ann.hiddens.copy()
+            # self.responses[idx] = self.ann.responses.copy()
+
+    def _get_parameters(self):
+        """
+        >>> from hydpy.auxs.anntools import ANN, ManualCalibrator
+        >>> ann = ANN()
+        >>> ann(nmb_inputs=3, nmb_neurons=(4,5), nmb_outputs=2)
+        >>> mancal = ManualCalibrator(ann)
+        >>> import numpy
+        >>> mancal.parameters = numpy.arange(ann.nmb_parameters)
+        >>> ann
+        ann(nmb_inputs=3,
+            nmb_neurons=(4, 5),
+            nmb_outputs=2,
+            weights_input=[[0.0, 1.0, 2.0, 3.0],
+                           [4.0, 5.0, 6.0, 7.0],
+                           [8.0, 9.0, 10.0, 11.0]],
+            weights_hidden=[[[12.0, 13.0, 14.0, 15.0, 16.0],
+                             [17.0, 18.0, 19.0, 20.0, 21.0],
+                             [22.0, 23.0, 24.0, 25.0, 26.0],
+                             [27.0, 28.0, 29.0, 30.0, 31.0],
+                             [nan, nan, nan, nan, nan]]],
+            weights_output=[[32.0, 33.0],
+                            [34.0, 35.0],
+                            [36.0, 37.0],
+                            [38.0, 39.0],
+                            [40.0, 41.0]],
+            intercepts_hidden=[[42.0, 43.0, 44.0, 45.0, nan],
+                               [46.0, 47.0, 48.0, 49.0, 50.0]],
+            intercepts_output=[51.0, 52.0])
+
+        >>> mancal.parameters = mancal.parameters
+        >>> ann
+        ann(nmb_inputs=3,
+            nmb_neurons=(4, 5),
+            nmb_outputs=2,
+            weights_input=[[0.0, 1.0, 2.0, 3.0],
+                           [4.0, 5.0, 6.0, 7.0],
+                           [8.0, 9.0, 10.0, 11.0]],
+            weights_hidden=[[[12.0, 13.0, 14.0, 15.0, 16.0],
+                             [17.0, 18.0, 19.0, 20.0, 21.0],
+                             [22.0, 23.0, 24.0, 25.0, 26.0],
+                             [27.0, 28.0, 29.0, 30.0, 31.0],
+                             [nan, nan, nan, nan, nan]]],
+            weights_output=[[32.0, 33.0],
+                            [34.0, 35.0],
+                            [36.0, 37.0],
+                            [38.0, 39.0],
+                            [40.0, 41.0]],
+            intercepts_hidden=[[42.0, 43.0, 44.0, 45.0, nan],
+                               [46.0, 47.0, 48.0, 49.0, 50.0]],
+            intercepts_output=[51.0, 52.0])
+        """
+        ann = self.ann
+        values = numpy.zeros(ann.nmb_parameters)
+        idx1 = ann.nmb_weights_input
+        values[:idx1] = ann.weights_input.flatten()
+        idx2 = idx1
+        for idx_layer in range(ann.nmb_layers-1):
+            for idx_neuron1 in range(ann.nmb_neurons[idx_layer]):
+                for idx_neuron2 in range(ann.nmb_neurons[idx_layer+1]):
+                    values[idx2] = \
+                        ann.weights_hidden[idx_layer, idx_neuron1, idx_neuron2]
+                    idx2 += 1
+        idx3 = idx2 + ann.nmb_weights_output
+        values[idx2: idx3] = ann.weights_output.flatten()
+        idx4 = idx3 + ann.nmb_intercepts_hidden
+        idx4 = idx3
+        for idx_layer in range(ann.nmb_layers):
+            for idx_neuron in range(ann.nmb_neurons[idx_layer]):
+                values[idx4] = ann.intercepts_hidden[idx_layer, idx_neuron]
+                idx4 += 1
+        if 'intercepts_output' not in self.skips:
+            idx5 = idx4 + ann.nmb_intercepts_output
+            values[idx4: idx5] = ann.intercepts_output
+        return values
+
+    def _set_parameters(self, values):
+        values = numpy.array(values)
+        ann = self.ann
+        idx1 = ann.nmb_weights_input
+        ann.weights_input = values[:idx1].reshape(
+                                            ann.weights_input.shape)
+        idx2 = idx1 + ann.nmb_weights_hidden
+        idx2 = idx1
+        for idx_layer in range(ann.nmb_layers-1):
+            for idx_neuron1 in range(ann.nmb_neurons[idx_layer]):
+                for idx_neuron2 in range(ann.nmb_neurons[idx_layer+1]):
+                    ann.weights_hidden[idx_layer, idx_neuron1, idx_neuron2] = \
+                            values[idx2]
+                    idx2 += 1
+        idx3 = idx2 + ann.nmb_weights_output
+        ann.weights_output = values[idx2: idx3].reshape(
+                                            ann.weights_output.shape)
+        idx4 = idx3
+        for idx_layer in range(ann.nmb_layers):
+            for idx_neuron in range(ann.nmb_neurons[idx_layer]):
+                ann.intercepts_hidden[idx_layer, idx_neuron] = values[idx4]
+                idx4 += 1
+        if 'intercepts_output' not in self.skips:
+            idx5 = idx4 + ann.nmb_intercepts_output
+            ann.intercepts_output = values[idx4: idx5]
+
+    parameters = property(_get_parameters, _set_parameters)
+
+    def parameters2error(self, parameters):
+        self.parameters = parameters
+        self.process_input()
+        return statstools.calc_rmse(self.targets, self.results)
+
+    def initialize(self, std=1.):
+        self.parameters = numpy.random.normal(
+                            0., std, self.ann.nmb_parameters)
+
+    def perturb(self, std=0.01):
+        self.parameters += numpy.random.normal(
+                            0., std, self.ann.nmb_parameters)
+
+    def calibrate(self):
+        pars = self.parameters
+        result = optimize.fmin_bfgs(self.parameters2error, pars)
+        return result
+
+    def plot1(self):
+        pyplot.plot(self.inputs, self.targets, 'o', label='targets')
+        pyplot.plot(self.inputs, self.results, 'o', label='results')
+#        for idx_layer, nmb_neurons in enumerate(self.ann.nmb_neurons):
+#            for idx_neuron in range(nmb_neurons):
+#                pyplot.plot(self.inputs,
+#                            self.hiddens[:, idx_layer, idx_neuron],
+#                            'x', label='L-%d N-%d' % (idx_layer, idx_neuron))
+        pyplot.legend()
+
+    def plot2(self):
+        pyplot.plot(self.inputs, self.targets, 'o', label='targets')
+        pyplot.plot(self.inputs, self.results, 'o', label='results')
+        for idx_layer, nmb_neurons in enumerate(self.ann.nmb_neurons):
+            for idx_neuron1 in range(nmb_neurons):
+                if idx_layer < self.ann.nmb_layers-1:
+                    for idx_neuron2 in range(self.ann.nmb_neurons[idx_layer+1]):
+                        label = ('L%d-N%d --> L%d-N%d' %
+                                 (idx_layer+1, idx_neuron1+1, idx_layer+1+1, idx_neuron2+1))
+                        values = self.responses[:, idx_layer, idx_neuron1, idx_neuron2]
+                        pyplot.plot(self.inputs, values, 'x', label=label)
+                else:
+                    for idx_output in range(self.ann.nmb_outputs):
+                        label = ('L%d-N%d --> O-N%d' %
+                                 (idx_layer+1, idx_neuron1+1, idx_output+1))
+                        values = self.responses[:, idx_layer, idx_neuron1, idx_output]
+                        pyplot.plot(self.inputs, values, 'x', label=label)
+        pyplot.legend()
+
+
+class AutomaticCalibrator:
+
+    def __init__(self, inputs=None, targets=None, initial_ann=None):
+        self.inputs = inputs
+        self.targets = targets
+        self.initial_ann = initial_ann
+        self.anns = []
+        self.errors = []
+
+    def doit(self, max_nmb_neurons=10, nmb_trials=10,
+             std_initialization=1.0, std_perturbation=1e-5):
+
+        min_error = numpy.inf
+        for idx_trials in range(nmb_trials):
+            ann = ANN()
+            ann()
+            mancal = ManualCalibrator(ann, self.inputs, self.targets)
+            if self.initial_ann:
+                mancal.parameters = ManualCalibrator(self.initial_ann,
+                                                     self.inputs,
+                                                     self.targets).parameters
+                mancal.perturb(std_perturbation)
+            else:
+                mancal.initialize(std_initialization)
+            parameters = mancal.calibrate()
+            error = mancal.parameters2error(parameters)
+            if not self.anns:
+                self.anns.append(ann)
+                self.errors.append(error)
+                min_error = error
+            if error < min_error:
+                self.anns[-1] = ann
+                self.errors[-1] = error
+        print('1 neuron :', self.errors[-1])
+        for nmb_neurons in range(2, max_nmb_neurons+1):
+            last_ann = self.anns[-1]
+            min_error = numpy.inf
+            for idx_trials in range(nmb_trials):
+                next_ann = ANN()
+                next_ann()
+                next_ann(nmb_neurons=nmb_neurons)
+                next_ann.weights_input[:-1] = last_ann.weights_input
+                #next_ann.weights_input[-1] = numpy.mean(last_ann.weights_input)
+                next_ann.weights_output[:-1] = last_ann.weights_output
+                #next_ann.weights_output[-1] = numpy.mean(last_ann.weights_output)
+                next_ann.intercepts_hidden[:-1] = last_ann.intercepts_hidden
+                #next_ann.intercepts_hidden[-1] = numpy.mean(last_ann.intercepts_hidden)
+                next_ann.intercepts_output = last_ann.intercepts_output
+                #next_ann.intercepts_output[-1] = numpy.mean(last_ann.intercepts_output)
+                mancal = ManualCalibrator(next_ann, self.inputs, self.targets)
+                mancal.perturb(std_perturbation)
+                parameters = mancal.calibrate()
+                error = mancal.parameters2error(parameters)
+                if len(self.anns) < nmb_neurons:
+                    self.anns.append(next_ann)
+                    self.errors.append(error)
+                    min_error = error
+                if error < min_error:
+                    self.anns[-1] = next_ann
+                    self.errors[-1] = error
+            print(nmb_neurons, 'neurons:', self.errors[-1])
+
