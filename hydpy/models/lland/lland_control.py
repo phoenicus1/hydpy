@@ -568,7 +568,6 @@ class WMax(lland_parameters.ParameterSoil):
         >>> wmax
         wmax(60.0, 60.0, 90.0)
         """
-        # ToDo: trim also with regard to WZPf ans WZBo???
         if lower is None:
             lower = getattr(self.subpars.fk, 'value', None)
             if lower is None:
@@ -652,11 +651,11 @@ class PWP(lland_parameters.ParameterSoilThreshold):
         super().trim(lower, upper)
 
 
-class WZPf(lland_parameters.ParameterSoilThreshold):
+class PY(lland_parameters.ParameterSoilThreshold):
     """Schwellenwert für den Anteil des für Pflanzen gebundenen Bodenwassers
-    (permanent wilting point) [mm].
+    (permanent wilting point) [mm].  # ToDo: wording
 
-    Note that one can define the values of parameter |WZPf| via the
+    Note that one can define the values of parameter |PY| via the
     keyword argument `relative`, as explained in the documentation
     on class |ParameterSoilThreshold|.
     """
@@ -665,64 +664,20 @@ class WZPf(lland_parameters.ParameterSoilThreshold):
 
     CONTROLPARAMETERS = (
         WMax,
-        # WZBo,   # ToDo: circular dependency, how to solve this?
     )
 
     def trim(self, lower=None, upper=None):
-        """Trim values in accordance with :math:`WZPf \\leq WZBo \\leq WMax`.
+        """Trim values in accordance with :math:`PY \\leq WMax`.
 
         >>> from hydpy.models.lland import *
         >>> parameterstep()
         >>> nhru(3)
         >>> lnk(ACKER)
         >>> wmax(100.0)
-        >>> wzpf(-10.0, 50.0, 110.0)
-        >>> wzpf
-        wzpf(0.0, 50.0, 100.0)
-
-        >>> wzbo.values = 80.0
-        >>> wzpf.trim()
-        >>> wzpf
-        wzpf(0.0, 50.0, 80.0)
+        >>> py(-10.0, 50.0, 110.0)
+        >>> py
+        py(0.0, 50.0, 100.0)
         """
-        if upper is None:
-            upper = getattr(self.subpars.wzbo, 'value', None)
-            if upper is None:
-                upper = getattr(self.subpars.wmax, 'value', None)
-        super().trim(lower, upper)
-
-
-class WZBo(lland_parameters.ParameterSoilThreshold):
-    """Schwellenwert Wasserinhalt mittlerer Bodenspeicher ((available)
-    field capacity?) [mm].
-
-    Note that one can define the values of parameter |WZBo| via the
-    keyword argument `relative`, as explained in the documentation
-    on class |ParameterSoilThreshold|.
-    """
-    NDIM, TYPE, TIME, SPAN = 1, float, None, (0., None)
-    INIT = 0.
-
-    CONTROLPARAMETERS = (
-        WMax,
-        WZPf,
-    )
-
-    def trim(self, lower=None, upper=None):
-        """Trim values in accordance with :math:`WZPf \\leq WZBo \\leq WMax`.
-
-        >>> from hydpy.models.lland import *
-        >>> parameterstep()
-        >>> nhru(3)
-        >>> lnk(ACKER)
-        >>> wzpf(20.0)
-        >>> wmax(80.0)
-        >>> wzbo(10.0, 50.0, 90.0)
-        >>> wzbo
-        wzbo(20.0, 50.0, 80.0)
-        """
-        if lower is None:
-            lower = getattr(self.subpars.wzpf, 'value', None)
         if upper is None:
             upper = getattr(self.subpars.wmax, 'value', None)
         super().trim(lower, upper)
